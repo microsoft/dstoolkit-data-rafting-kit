@@ -19,6 +19,9 @@ from data_rafting_kit.transformations.transformation_base import (
 from data_rafting_kit.transformations.transformation_mapping import (
     TransformationMapping,
 )
+from data_rafting_kit.transformations.window_transformations import (
+    WindowTransformationSpec,
+)
 
 
 def is_builtin(t: type) -> bool:
@@ -173,11 +176,12 @@ ALL_TRANSFORMATION_SPECS = (
     PRESIDO_TRANSFORMATION_SPECS
     + PYSPARK_TRANSFORMATION_SPECS
     + dynamic_pyspark_transformation_models
+    + [WindowTransformationSpec]
 )
 TransformationRootSpec = create_model(
     "TransformationRootSpec",
     root=Annotated[
-        Union[tuple(ALL_TRANSFORMATION_SPECS)],  # noqa: UP007
+        Union[tuple(ALL_TRANSFORMATION_SPECS)],
         Field(..., discriminator="type"),
     ],
     __base__=RootModel,

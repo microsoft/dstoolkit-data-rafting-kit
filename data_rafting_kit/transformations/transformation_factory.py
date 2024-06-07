@@ -12,7 +12,7 @@ from data_rafting_kit.transformations.transformation_spec import (
 
 
 class TransformationFactory(BaseFactory):
-    """Represents a Transformation Factory object for data pipelines."""
+    """Processes transformations for data pipelines."""
 
     def process_transformation(self, spec: TransformationBaseSpec):
         """Processes the transformation specification.
@@ -21,7 +21,6 @@ class TransformationFactory(BaseFactory):
         ----
             spec (TransformationBaseSpec): The transformation specification to process.
         """
-        # Automatically use the last DataFrame if no input DataFrame is specified
         if spec.input_df is not None:
             input_df = self._dfs[spec.input_df]
         else:
@@ -32,7 +31,6 @@ class TransformationFactory(BaseFactory):
                 spec.type, df=input_df
             )[0]
 
-            # Adjust parameter names based on the replacement map
             params = spec.params.model_dump(by_alias=False)
             if spec.type in PYSPARK_DYNAMIC_TRANSFORMATIONS_PARAMATER_REPLACEMENT_MAP:
                 replacement_map = (
@@ -42,16 +40,13 @@ class TransformationFactory(BaseFactory):
                     if original in params:
                         params[replacement] = params.pop(original)
 
-            # Determine if the function expects positional or keyword arguments
             sig = inspect.signature(transformation_function)
             if any(
                 param.kind == param.VAR_POSITIONAL for param in sig.parameters.values()
             ):
-                # Handle positional arguments
-                df = transformation_function(*params.values())
+                df = transformation_function(input_df, *params.values())
             else:
-                # Handle keyword arguments
-                df = transformation_function(**params)
+                df = transformation_function(input_df, **params)
         else:
             (
                 transformation_class,
