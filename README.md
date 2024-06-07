@@ -1,14 +1,17 @@
-# Project
+# Data Rafting Kit - A declarative framework for PySpark Pipelines
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+Data Rafting Kit enables a YAML based approach to PySpark pipelines with integrated features such as data quality checks. Instead of spending time figuring out the syntax or building common PySpark, simply write your pipelines in a YAML format and run via the library. We target the use of Azure based services, primarily Microsoft Fabric and Azure Databricks, but this library can be used in any PySpark environment.
 
-As the maintainer of this project, please make a few updates:
+## Why 'Data Rafting Kit'?
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+Naming a library is hard... In the real world, a raft flows down a stream carrying a load. In our data world, this library carries data along a data stream.
+
+## Build & Installation
+
+- Currently, there is no installation via PIP, but we plan to address this in the future.
+- All dependency management is with [Poetry](https://python-poetry.org/). Make sure you have Poetry setup on your system.
+- Run `poetry install`, followed by `poetry build` to produce a `.whl` file.
+- Upload to your Spark cluster and get building!
 
 ## Contributing
 
