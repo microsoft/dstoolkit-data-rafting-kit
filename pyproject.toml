@@ -5,6 +5,7 @@ description = "Data Rafting Kit is an utility library that brings an declarative
 authors = ["Ben Constable <benconstable@microsoft.com>", "Nina Stijepovic <nstijepovic@microsoft.com>"]
 readme = "README.md"
 license = "MIT"
+repository = "https://github.com/microsoft/dstoolkit-data-rafting-kit"
 
 [tool.poetry.dependencies]
 python = "^3.11"
