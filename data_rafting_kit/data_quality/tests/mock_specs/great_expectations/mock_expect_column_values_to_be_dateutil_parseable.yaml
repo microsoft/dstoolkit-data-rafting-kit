@@ -1,0 +1,4 @@
+type: expect_column_values_to_be_dateutil_parseable
+name: expect_column_values_to_be_dateutil_parseable
+params:
+  column: 'test_column'

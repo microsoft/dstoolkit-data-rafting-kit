@@ -1,0 +1,7 @@
+type: expect_column_proportion_of_unique_values_to_be_between
+name: expect_column_proportion_of_unique_values_to_be_between
+params:
+  column: 'test_column'
+  min_value: 0.0
+  max_value: 1.0
+  mostly: 0.5

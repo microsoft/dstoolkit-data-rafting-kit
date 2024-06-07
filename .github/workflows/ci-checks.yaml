@@ -1,0 +1,68 @@
+name: CI Checks
+
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - "*" # Run on all branches
+
+env:
+  MIN_PYTHON_VERSION: 3.11
+
+jobs:
+  job-pre-commit-check:
+    name: Pre-Commit Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ env.MIN_PYTHON_VERSION }}
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+          poetry --version
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run pre-commit
+        run: poetry run pre-commit run --all-files
+
+  job-run-pytest:
+    name: PyTest Check
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.12, 3.11]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+          poetry --version
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Run PyTest
+        run: poetry run pytest

@@ -1,0 +1,7 @@
+type: expect_table_columns_to_match_set
+name: expect_table_columns_to_match_set
+params:
+  columns:
+    - 'test_column'
+    - 'test_column_2'
+  exact_match: true

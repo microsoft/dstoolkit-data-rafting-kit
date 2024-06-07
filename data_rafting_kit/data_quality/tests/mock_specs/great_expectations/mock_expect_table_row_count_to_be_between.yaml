@@ -1,0 +1,5 @@
+type: expect_table_row_count_to_be_between
+name: expect_table_row_count_to_be_between
+params:
+  min_value: 10
+  max_value: 20

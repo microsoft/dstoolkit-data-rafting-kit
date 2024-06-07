@@ -1,0 +1,4 @@
+type: drop
+name: drop
+params:
+  column: 'column_to_drop'
