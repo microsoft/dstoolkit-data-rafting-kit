@@ -32,11 +32,13 @@ class DataRaftingKit:
         self._spark = spark
         self._verbose = verbose
 
-        self.logger = logging.getLogger(__name__)
+        self._logger = logging.getLogger(__name__)
 
         self._raw_data_pipeline_spec = raw_data_pipeline_spec
 
         self._data_pipeline_spec = None
+
+        self._logger.info("Data Pipeline Config Loaded")
 
     @classmethod
     def from_yaml_str(
@@ -62,8 +64,6 @@ class DataRaftingKit:
         raw_data_pipeline_spec = yaml.safe_load(Template(yaml_str).render(params))
 
         data_rafting_kit = cls(spark, raw_data_pipeline_spec, verbose)
-
-        data_rafting_kit.logger.info("Data Pipeline Config Loaded")
 
         return data_rafting_kit
 
