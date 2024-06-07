@@ -1,0 +1,4 @@
+type: expect_table_row_count_to_equal
+name: expect_table_row_count_to_equal
+params:
+  value: 10

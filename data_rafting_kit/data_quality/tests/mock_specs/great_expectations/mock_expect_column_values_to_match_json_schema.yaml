@@ -1,0 +1,5 @@
+type: expect_column_values_to_match_json_schema
+name: expect_column_values_to_match_json_schema
+params:
+  column: 'test_column'
+  json_schema: '{"type": "string"}'

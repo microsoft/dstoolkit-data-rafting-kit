@@ -1,0 +1,4 @@
+type: expect_compound_columns_to_be_unique
+name: expect_compound_columns_to_be_unique
+params:
+  columns: ['test_column', 'test_column_2']

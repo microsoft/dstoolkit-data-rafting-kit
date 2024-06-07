@@ -1,0 +1,5 @@
+type: expect_column_values_to_match_like_pattern
+name: expect_column_values_to_match_like_pattern
+params:
+  column: 'test_column'
+  like_pattern: '.*'

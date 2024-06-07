@@ -1,0 +1,17 @@
+type: anonymize
+name: anonymize
+params:
+  columns:
+    - name: 'test_mask_column'
+      type: 'mask'
+      chars_to_mask: 5
+    - name: 'test_replace_column'
+      type: 'replace'
+      new_value: 'REPLACED'
+      entire_value: True
+    - name: 'test_hash_column'
+      type: 'hash'
+      hash_type: 'sha256'
+    - name: 'test_redact_column'
+      type: 'redact'
+      entire_value: True

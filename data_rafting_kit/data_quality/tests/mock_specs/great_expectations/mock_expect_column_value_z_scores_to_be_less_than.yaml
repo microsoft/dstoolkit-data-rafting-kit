@@ -1,0 +1,6 @@
+type: expect_column_value_z_scores_to_be_less_than
+name: expect_column_value_z_scores_to_be_less_than
+params:
+  column: 'test_column'
+  threshold: 1.5
+  double_sided: true

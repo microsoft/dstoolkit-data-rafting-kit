@@ -1,0 +1,7 @@
+type: expect_column_values_to_not_match_regex_list
+name: expect_column_values_to_not_match_regex_list
+params:
+  column: 'test_column'
+  regex:
+    - '.*'
+    - '.*'

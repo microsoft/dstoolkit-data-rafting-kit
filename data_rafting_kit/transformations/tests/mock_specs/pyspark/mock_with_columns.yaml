@@ -1,0 +1,8 @@
+type: with_columns
+name: with_columns
+params:
+  columns:
+    - name: 'test_column'
+      expr: 'test_column + 1'
+    - name: 'test_column_2'
+      expr: 'test_column_2 + 2'

@@ -1,0 +1,8 @@
+type: join
+name: join
+params:
+  other_df: random_df
+  join_on:
+    - id
+    - name
+  how: 'inner'

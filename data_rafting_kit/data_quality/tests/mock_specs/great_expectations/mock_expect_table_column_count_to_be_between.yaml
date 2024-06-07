@@ -1,0 +1,5 @@
+type: expect_table_column_count_to_be_between
+name: expect_table_column_count_to_be_between
+params:
+  min_value: 1
+  max_value: 3

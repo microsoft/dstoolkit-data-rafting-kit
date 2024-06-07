@@ -1,0 +1,8 @@
+type: expect_column_values_to_be_between
+name: expect_column_values_to_be_between
+params:
+  column: 'test_column'
+  min_value: 0
+  max_value: 5
+  strict_min: true
+  strict_max: true

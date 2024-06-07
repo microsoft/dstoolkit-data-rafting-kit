@@ -1,0 +1,6 @@
+type: agg
+name: agg
+params:
+  exprs:
+    column_1: age
+    column_2: avg

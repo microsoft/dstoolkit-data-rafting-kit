@@ -1,0 +1,8 @@
+type: expect_column_pair_values_to_be_in_set
+name: expect_column_pair_values_to_be_in_set
+params:
+  column_a: 'test_column_1'
+  column_b: 'test_column_2'
+  value_pairs:
+    - ['test_value_1', 'test_value_2']
+    - ['test_value_3', 'test_value_4']

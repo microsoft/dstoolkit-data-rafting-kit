@@ -1,0 +1,5 @@
+type: expect_column_values_to_match_strftime_format
+name: expect_column_values_to_match_strftime_format
+params:
+  column: 'test_column'
+  strftime_format: '%Y-%m-%d'

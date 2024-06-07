@@ -1,0 +1,6 @@
+type: expect_column_unique_value_count_to_be_between
+name: expect_column_unique_value_count_to_be_between
+params:
+  column: 'test_column'
+  min_value: 1
+  max_value: 10

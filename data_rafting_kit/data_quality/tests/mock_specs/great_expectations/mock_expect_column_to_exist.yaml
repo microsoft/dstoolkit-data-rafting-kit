@@ -1,0 +1,4 @@
+type: expect_column_to_exist
+name: expect_column_to_exist
+params:
+  column: 'test_column'
