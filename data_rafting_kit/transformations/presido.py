@@ -119,7 +119,7 @@ class PresidoTransformation(TransformationBase):
             DataFrame: The resulting DataFrame.
 
         """
-        self._logger.info("Anonymizing data...")
+        self.logger.info("Anonymizing data...")
 
         broadcasted_analyzer, broadcasted_anonymizer = self.setup_presido()
 

@@ -17,5 +17,5 @@ class BaseFactory:
             dfs (OrderedDict): The ordered dictionary of DataFrames.
         """
         self._spark = spark
-        self._logger = logger
+        self.logger = logger
         self._dfs = dfs

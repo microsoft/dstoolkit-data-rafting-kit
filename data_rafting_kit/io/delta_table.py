@@ -111,7 +111,7 @@ class DeltaTableIO(IOBase):
         -------
             DataFrame: The DataFrame object.
         """
-        self._logger.info("Reading from Delta Table...")
+        self.logger.info("Reading from Delta Table...")
 
         reader = self._spark.read.options(**spec.params.options)
 
@@ -231,7 +231,7 @@ class DeltaTableIO(IOBase):
             spec (DeltaTableOutputSpec): The output parameter specification object.
             input_df (DataFrame): The DataFrame object to write.
         """
-        self._logger.info("Writing to Delta Table...")
+        self.logger.info("Writing to Delta Table...")
 
         table_exists = self.table_exists(spec)
         if spec.params.mode == DeltaTableModeEnum.MERGE and table_exists:

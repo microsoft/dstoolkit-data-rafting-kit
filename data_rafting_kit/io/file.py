@@ -75,7 +75,7 @@ class FileIO(IOBase):
         -------
             DataFrame: The DataFrame object.
         """
-        self._logger.info("Reading from File...")
+        self.logger.info("Reading from File...")
 
         return (
             self._spark.read.options(**spec.params.options)
@@ -91,7 +91,7 @@ class FileIO(IOBase):
             spec (FileOutputSpec): The output parameter specification object.
             input_df (DataFrame): The DataFrame object to write.
         """
-        self._logger.info("Writing to File...")
+        self.logger.info("Writing to File...")
 
         writer = (
             input_df.write.options(**spec.params.options)

@@ -35,7 +35,7 @@ class DataQualityBase:
     Attributes
     ----------
         _spark (SparkSession): The SparkSession object.
-        _logger (Logger): The logger object.
+        logger (Logger): The logger object.
         _dfs (OrderedDict): The ordered dictionary of DataFrames.
 
     """
@@ -51,5 +51,5 @@ class DataQualityBase:
 
         """
         self._spark = spark
-        self._logger = logger
+        self.logger = logger
         self._dfs = dfs

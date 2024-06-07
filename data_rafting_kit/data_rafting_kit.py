@@ -20,48 +20,79 @@ from data_rafting_kit.transformations.transformation_factory import (
 class DataRaftingKit:
     """The DataRaftingKit class is responsible for executing a data pipeline."""
 
-    def __init__(
-        self,
-        spark,
-        config_file_path: str,
-        params: dict | None = None,
-        verbose: bool = False,
-    ):
+    def __init__(self, spark, raw_data_pipeline_spec: dict, verbose: bool = False):
         """Initialize the DataPipeline object.
 
         Args:
         ----
             spark (SparkSession): The SparkSession object.
-            config_file_path (str): The path to the config file.
-            params (dict, optional): The parameters to render the config file. Defaults to None.
+            raw_data_pipeline_spec (dict): The raw data pipeline specification.
             verbose (bool, optional): Whether to log verbose messages. Defaults to False.
         """
         self._spark = spark
-        self._config_file_path = config_file_path
-        self._params = params
         self._verbose = verbose
 
-        self._logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(__name__)
 
-        self._raw_data_pipeline_spec = self._load_spec()
+        self._raw_data_pipeline_spec = raw_data_pipeline_spec
 
         self._data_pipeline_spec = None
 
-    def _load_spec(self) -> dict:
-        """Load the test config from the config file."""
-        if not os.path.isfile(self._config_file_path):
-            raise FileNotFoundError(
-                f"Config file not found at {self._config_file_path}"
-            )
+    @classmethod
+    def from_yaml_str(
+        cls,
+        spark,
+        yaml_str: str,
+        params: dict | None = None,
+        verbose: bool = False,
+    ) -> object:
+        """Load the test config from the config file.
 
-        with open(self._config_file_path, encoding="utf-8") as config_file:
-            test_config = yaml.safe_load(
-                Template(config_file.read()).render(self._params)
-            )
+        Args:
+        ----
+            spark (SparkSession): The SparkSession object.
+            yaml_str (str): The string of YAML to load.
+            params (dict, optional): The parameters to render the config file. Defaults to None.
+            verbose (bool, optional): Whether to log verbose messages. Defaults to False.
 
-        self._logger.info("Data Pipeline Config Loaded")
+        Returns:
+        -------
+        DataRaftingKit: The DataRaftingKit object.
+        """
+        raw_data_pipeline_spec = yaml.safe_load(Template(yaml_str).render(params))
 
-        return test_config
+        data_rafting_kit = cls(spark, raw_data_pipeline_spec, verbose)
+
+        data_rafting_kit.logger.info("Data Pipeline Config Loaded")
+
+        return data_rafting_kit
+
+    @classmethod
+    def from_yaml_file(
+        cls,
+        spark,
+        yaml_file_path: str,
+        params: dict | None = None,
+        verbose: bool = False,
+    ) -> object:
+        """Load the test config from the config file.
+
+        Args:
+        ----
+            spark (SparkSession): The SparkSession object.
+            yaml_file_path (str): The path to the config file.
+            params (dict, optional): The parameters to render the config file. Defaults to None.
+            verbose (bool, optional): Whether to log verbose messages. Defaults to False.
+
+        Returns:
+        -------
+        DataRaftingKit: The DataRaftingKit object.
+        """
+        if not os.path.isfile(yaml_file_path):
+            raise FileNotFoundError(f"Config file not found at {yaml_file_path}")
+
+        with open(yaml_file_path, encoding="utf-8") as config_file:
+            return cls.from_yaml_str(spark, config_file.read(), params, verbose)
 
     def validate(self) -> bool:
         """Validate the data pipeline spec.
@@ -77,9 +108,9 @@ class DataRaftingKit:
 
             return True
         except ValidationError as e:
-            self._logger.error("%i Validation Errors Found:", e.error_count())
+            self.logger.error("%i Validation Errors Found:", e.error_count())
             for error in e.errors():
-                self._logger.error(
+                self.logger.error(
                     "Config Location: %s -> %s -> Found: %s",
                     error["loc"],
                     error["msg"],
@@ -102,44 +133,44 @@ class DataRaftingKit:
             OrderedDict[str, DataFrame]: The final DataFrames in the pipeline.
         """
         dfs = OrderedDict()
-        self._logger.info("Executing Data Pipeline")
+        self.logger.info("Executing Data Pipeline")
 
-        io_factory = IOFactory(self._spark, self._logger, dfs)
+        io_factory = IOFactory(self._spark, self.logger, dfs)
 
         for input_spec in data_pipeline_spec.pipeline.inputs:
-            self._logger.info("Reading from %s", input_spec.root.name)
+            self.logger.info("Reading from %s", input_spec.root.name)
 
             io_factory.process_input(input_spec.root)
 
-        transformation_factory = TransformationFactory(self._spark, self._logger, dfs)
+        transformation_factory = TransformationFactory(self._spark, self.logger, dfs)
         for transformation_spec in data_pipeline_spec.pipeline.transformations:
-            self._logger.info(
+            self.logger.info(
                 "Applying transformation %s", transformation_spec.root.type
             )
 
             transformation_factory.process_transformation(transformation_spec.root)
 
-        data_quality_factory = DataQualityFactory(self._spark, self._logger, dfs)
+        data_quality_factory = DataQualityFactory(self._spark, self.logger, dfs)
         for data_quality_check_spec in data_pipeline_spec.pipeline.data_quality:
-            self._logger.info(
+            self.logger.info(
                 "Applying data quality check %s", data_quality_check_spec.name
             )
             data_quality_factory.process_data_quality(data_quality_check_spec)
 
         if write_outputs:
             for output_spec in data_pipeline_spec.pipeline.outputs:
-                self._logger.info("Writing to %s", output_spec.root.name)
+                self.logger.info("Writing to %s", output_spec.root.name)
 
                 io_factory.process_output(output_spec.root)
 
-        self._logger.info("Data Pipeline Execution Complete")
+        self.logger.info("Data Pipeline Execution Complete")
 
         return dfs
 
     def test_local(self):  # noqa: PLR0912
         """Test the data pipeline locally with a spark installation."""
         if not self.validate():
-            self._logger.error(
+            self.logger.error(
                 "Testing of Data Pipeline Failed due to validation error."
             )
             return None
@@ -148,12 +179,12 @@ class DataRaftingKit:
             self._data_pipeline_spec.tests is None
             or len(self._data_pipeline_spec.tests.local) == 0
         ):
-            self._logger.info("No local tests found in the data pipeline spec")
+            self.logger.info("No local tests found in the data pipeline spec")
             return None
 
         for test_spec in self._data_pipeline_spec.tests.local:
             test_pipeline_spec = self._data_pipeline_spec.model_copy(deep=True)
-            self._logger.info("Testing Data Pipeline Locally")
+            self.logger.info("Testing Data Pipeline Locally")
 
             # Merge the test inputs into the data pipeline spec
             for input_index, input_spec in enumerate(
@@ -174,7 +205,7 @@ class DataRaftingKit:
 
             expected_dfs = OrderedDict()
 
-            io_factory = IOFactory(self._spark, self._logger, expected_dfs)
+            io_factory = IOFactory(self._spark, self.logger, expected_dfs)
 
             # Analyse the outputs to determine if the test passed
             for expected_output_spec in test_spec.expected_outputs:
@@ -185,7 +216,7 @@ class DataRaftingKit:
                         else:
                             input_df = list(dfs.values())[-1]
 
-                        self._logger.info(
+                        self.logger.info(
                             "Reading expected output from %s",
                             expected_output_spec.root.name,
                         )
@@ -200,7 +231,7 @@ class DataRaftingKit:
 
                             break
                         except PySparkAssertionError as e:
-                            self._logger.error("Mismatching Dataframe Found: %s", e)
+                            self.logger.error("Mismatching Dataframe Found: %s", e)
                             raise ValueError(
                                 f"Expected output did not match the expected input for output: {expected_output_spec.root.name}."
                             ) from None
@@ -213,9 +244,7 @@ class DataRaftingKit:
             DataFrame: The final DataFrame object in the data pipeline.
         """
         if not self.validate():
-            self._logger.error(
-                "Data Pipeline Execution Failed due to validation error."
-            )
+            self.logger.error("Data Pipeline Execution Failed due to validation error.")
             return None
 
         dfs = self.run_pipeline_from_spec(self._data_pipeline_spec)

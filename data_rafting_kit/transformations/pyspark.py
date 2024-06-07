@@ -80,7 +80,7 @@ class PysparkTransformation(TransformationBase):
             DataFrame: The resulting DataFrame.
 
         """
-        self._logger.info("Joining DataFrames...")
+        self.logger.info("Joining DataFrames...")
 
         other_df = self._dfs[spec.params.other_df]
 
@@ -103,7 +103,7 @@ class PysparkTransformation(TransformationBase):
             DataFrame: The resulting DataFrame.
 
         """
-        self._logger.info("Adding columns to DataFrame...")
+        self.logger.info("Adding columns to DataFrame...")
 
         with_columns_map = {
             column.name: f.expr(column.expr) for column in spec.params.columns

@@ -26,7 +26,6 @@ share/python-wheels/
 *.egg
 MANIFEST
 poetry.lock
-data/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -162,3 +161,5 @@ cython_debug/
 #.idea/
 
 .databricks
+data/
+local_samples/

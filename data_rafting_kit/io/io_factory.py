@@ -40,7 +40,7 @@ class IOFactory(BaseFactory):
             try:
                 assertSchemaEqual(actual=df.schema, expected=expected_schema)
             except PySparkAssertionError as e:
-                self._logger.error("Schema Mismatch Found: %s", e)
+                self.logger.error("Schema Mismatch Found: %s", e)
                 raise ValueError(
                     "Schema Mismatch Found. Unable to proceed with pipeline."
                 ) from None
@@ -54,7 +54,7 @@ class IOFactory(BaseFactory):
         """
         input_class, input_function = IOMapping.get_input_map(spec.type)
 
-        io_object = input_class(self._spark, self._logger)
+        io_object = input_class(self._spark, self.logger)
         df = getattr(io_object, input_function.__name__)(spec)
 
         if spec.params.expected_schema is not None:
@@ -77,7 +77,7 @@ class IOFactory(BaseFactory):
 
         output_class, output_function = IOMapping.get_output_map(spec.type)
 
-        io_object = output_class(self._spark, self._logger)
+        io_object = output_class(self._spark, self.logger)
 
         if spec.params.expected_schema is not None:
             self.validate_schema(spec, input_df)

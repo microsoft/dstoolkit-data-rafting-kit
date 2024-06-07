@@ -71,7 +71,7 @@ class IOBase:
     ----------
         _spark (SparkSession): The SparkSession object.
         _spec (BaseSpec): The specification object or child specification derirved from it.
-        _logger (Logger): The logger object.
+        logger (Logger): The logger object.
 
     """
 
@@ -85,4 +85,4 @@ class IOBase:
 
         """
         self._spark = spark
-        self._logger = logger
+        self.logger = logger
