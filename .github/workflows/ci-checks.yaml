@@ -40,7 +40,7 @@ jobs:
 
   job-run-pytest:
     name: PyTest Check
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
