@@ -1,14 +1,83 @@
-# Project
+# Data Rafting Kit - A declarative framework for PySpark Pipelines
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+Data Rafting Kit enables a YAML based approach to PySpark pipelines with integrated features such as data quality checks. Instead of spending time figuring out the syntax or building common PySpark, simply write your pipelines in a YAML format and run via the library. We target the use of Azure based services, primarily Microsoft Fabric and Azure Databricks, but this library can be used in any PySpark environment.
 
-As the maintainer of this project, please make a few updates:
+A simple pipeline with data quality checks can be defined in a few lines of YAML:
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+```yaml
+env:
+  target: fabric
+pipeline:
+  inputs:
+    - type: delta_table
+      name: input_delta_table
+      params:
+        location: './data/netflix_titles'
+
+  transformations:
+    - type: filter
+      name: filter_movies
+      params:
+        condition: 'type = "TV Show"'
+    - type: anonymize
+      name: blank_directors
+      params:
+        columns:
+          - name: 'director'
+            type: 'mask'
+            chars_to_mask: 5
+
+  outputs:
+    - type: delta_table
+      name: output
+      params:
+        location: './data/netflix_titles_output'
+        mode: merge
+        merge_spec:
+          condition: 'source.show_id = target.show_id'
+
+  data_quality:
+    - name: check_data
+      checks:
+        - type: expect_column_values_to_be_unique
+          params:
+            column: show_id
+        - type: expect_column_values_to_be_between
+          params:
+            column: release_year
+            min_value: "1900"
+            max_value: "2005"
+```
+
+## Why 'Data Rafting Kit'?
+
+Naming a library is hard... In the real world, a raft flows down a stream carrying a load. In our data world, this library carries data along a data stream.
+
+# Key Features
+
+- Easy YAML syntax, to quickly build repeatable pipelines
+- Inbuilt parametrisation of pipelines
+- Integrated testing of pipelines for expected behaviour
+- Data quality checks, powered by [Great Expectations](https://github.com/great-expectations/great_expectations)
+- Anonymisation, powered by [Microsoft Presidio](https://github.com/microsoft/presidio)
+
+## Build & Installation
+
+- Currently, there is no installation via PIP, but we plan to address this in the future.
+- All dependency management is with [Poetry](https://python-poetry.org/). Make sure you have Poetry setup on your system.
+- Run `poetry install`, followed by `poetry build` to produce a `.whl` file.
+- Upload to your Spark cluster and get building!
+
+## Runtime Dependencies
+
+This project requires Python 3.11 or greater to run. For Spark runtimes, the following minimum version is required:
+
+- Microsoft Fabric: 1.3
+- Azure Databricks: 15.1
+
+## Samples
+
+Sample pipelines can be found under `./samples`.
 
 ## Contributing
 
