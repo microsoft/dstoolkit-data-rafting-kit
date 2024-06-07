@@ -19,13 +19,13 @@ pandas = "^2.2.2"
 pyarrow = "^16.1.0"
 great-expectations = "^0.18.13"
 delta-spark = "^3.2.0"
-pytest = "^8.2.1"
 
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.7.0"
 black = "^24.4.2"
 ruff = "^0.4.3"
+pytest = "^8.2.1"
 
 [build-system]
 requires = ["poetry-core"]
