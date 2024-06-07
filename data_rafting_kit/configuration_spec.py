@@ -1,5 +1,4 @@
 from enum import StrEnum
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -13,12 +12,13 @@ class TargetEnum(StrEnum):
     """Enum for target platforms."""
 
     FABRIC = "fabric"
+    DATABRICKS = "databricks"
 
 
 class EnvSpec(BaseModel):
     """Environment specification. Used to specify changes to the environment and config."""
 
-    target: Literal[TargetEnum.FABRIC]
+    target: TargetEnum
 
 
 class PipelineSpec(BaseModel):

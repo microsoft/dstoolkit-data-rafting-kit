@@ -20,53 +20,84 @@ from data_rafting_kit.transformations.transformation_factory import (
 class DataRaftingKit:
     """The DataRaftingKit class is responsible for executing a data pipeline."""
 
-    def __init__(
-        self,
-        spark,
-        config_file_path: str,
-        params: dict | None = None,
-        verbose: bool = False,
-    ):
+    def __init__(self, spark, raw_data_pipeline_spec: dict, verbose: bool = False):
         """Initialize the DataPipeline object.
 
         Args:
         ----
             spark (SparkSession): The SparkSession object.
-            config_file_path (str): The path to the config file.
-            params (dict, optional): The parameters to render the config file. Defaults to None.
+            raw_data_pipeline_spec (dict): The raw data pipeline specification.
             verbose (bool, optional): Whether to log verbose messages. Defaults to False.
         """
         self._spark = spark
-        self._config_file_path = config_file_path
-        self._params = params
         self._verbose = verbose
 
         self._logger = logging.getLogger(__name__)
 
-        self._raw_data_pipeline_spec = self._load_spec()
+        self._raw_data_pipeline_spec = raw_data_pipeline_spec
 
         self._data_pipeline_spec = None
 
-    def _load_spec(self) -> dict:
-        """Load the test config from the config file."""
-        if not os.path.isfile(self._config_file_path):
-            raise FileNotFoundError(
-                f"Config file not found at {self._config_file_path}"
-            )
-
-        with open(self._config_file_path, encoding="utf-8") as config_file:
-            test_config = yaml.safe_load(
-                Template(config_file.read()).render(self._params)
-            )
-
         self._logger.info("Data Pipeline Config Loaded")
 
-        return test_config
+    @classmethod
+    def from_yaml_str(
+        cls,
+        spark,
+        yaml_str: str,
+        params: dict | None = None,
+        verbose: bool = False,
+    ) -> object:
+        """Load the test config from the config file.
+
+        Args:
+        ----
+            spark (SparkSession): The SparkSession object.
+            yaml_str (str): The string of YAML to load.
+            params (dict, optional): The parameters to render the config file. Defaults to None.
+            verbose (bool, optional): Whether to log verbose messages. Defaults to False.
+
+        Returns:
+        -------
+        DataRaftingKit: The DataRaftingKit object.
+        """
+        raw_data_pipeline_spec = yaml.safe_load(Template(yaml_str).render(params))
+
+        data_rafting_kit = cls(spark, raw_data_pipeline_spec, verbose)
+
+        return data_rafting_kit
+
+    @classmethod
+    def from_yaml_file(
+        cls,
+        spark,
+        yaml_file_path: str,
+        params: dict | None = None,
+        verbose: bool = False,
+    ) -> object:
+        """Load the test config from the config file.
+
+        Args:
+        ----
+            spark (SparkSession): The SparkSession object.
+            yaml_file_path (str): The path to the config file.
+            params (dict, optional): The parameters to render the config file. Defaults to None.
+            verbose (bool, optional): Whether to log verbose messages. Defaults to False.
+
+        Returns:
+        -------
+        DataRaftingKit: The DataRaftingKit object.
+        """
+        if not os.path.isfile(yaml_file_path):
+            raise FileNotFoundError(f"Config file not found at {yaml_file_path}")
+
+        with open(yaml_file_path, encoding="utf-8") as config_file:
+            return cls.from_yaml_str(spark, config_file.read(), params, verbose)
 
     def validate(self) -> bool:
         """Validate the data pipeline spec.
 
-        Returns
+        Returnsll
         -------
             bool: True if the data pipeline spec is valid, False otherwise.
         """
