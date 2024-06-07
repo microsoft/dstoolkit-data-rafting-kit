@@ -12,15 +12,13 @@ from data_rafting_kit.transformations.presido import (
 from data_rafting_kit.transformations.pyspark import (
     PYSPARK_DYNAMIC_TRANSFORMATIONS,
     PYSPARK_TRANSFORMATION_SPECS,
+    WindowTransformationSpec,
 )
 from data_rafting_kit.transformations.transformation_base import (
     TransformationBaseSpec,
 )
 from data_rafting_kit.transformations.transformation_mapping import (
     TransformationMapping,
-)
-from data_rafting_kit.transformations.window_transformations import (
-    WindowTransformationSpec,
 )
 
 

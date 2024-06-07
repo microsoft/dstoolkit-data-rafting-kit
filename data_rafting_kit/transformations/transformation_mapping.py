@@ -5,9 +5,6 @@ from pyspark.sql import DataFrame
 from data_rafting_kit.transformations.presido import PresidoTransformation
 from data_rafting_kit.transformations.pyspark import PysparkTransformation
 from data_rafting_kit.transformations.transformation_base import TransformationEnum
-from data_rafting_kit.transformations.window_transformations import (
-    WindowTransformation,
-)
 
 
 class TransformationMapping:
@@ -39,8 +36,8 @@ class TransformationMapping:
             getattr(DataFrame, "withColumnsRenamed", None),
         ),
         TransformationEnum.WINDOW_FUNCTION: (
-            WindowTransformation,
-            WindowTransformation.apply_window_function,
+            PysparkTransformation,
+            PysparkTransformation.apply_window_function,
         ),
     }
 
