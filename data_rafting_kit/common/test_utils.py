@@ -24,9 +24,7 @@ def extract_and_convert_model_name_to_file_name(
 
     # Convert to lowercase and replace camel case with underscores
     # First, insert underscores before each uppercase letter (except the first one)
-    converted_file_name = (
-        "mock_" + re.sub(r"(?<!^)(?=[A-Z])", "_", match.group(2)).lower()
-    )
+    converted_file_name = re.sub(r"(?<!^)(?=[A-Z])", "_", match.group(2)).lower()
 
     converted_directory_name = re.sub(r"(?<!^)(?=[A-Z])", "_", match.group(1)).lower()
 

@@ -325,13 +325,17 @@ class GreatExpectationsDataQuality(DataQualityBase):
         elif spec.mode in [DataQualityModeEnum.SEPARATE, DataQualityModeEnum.FLAG]:
             failed_flag_column_name = f"failed_{spec.name}_dq"
             if results["success"] is True:
-                failing_rows_df = self._spark.createDataFrame(
-                    [], schema=input_df.schema
-                )
                 if spec.mode == DataQualityModeEnum.FLAG:
                     input_df = input_df.withColumn(
                         failed_flag_column_name, f.lit(False)
                     )
+
+                    return input_df
+                else:
+                    failing_rows_df = self._spark.createDataFrame(
+                        [], schema=input_df.schema
+                    )
+                    return input_df, failing_rows_df
             else:
                 filter_expressions = []
                 for result in results.results:

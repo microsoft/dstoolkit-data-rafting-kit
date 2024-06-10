@@ -228,8 +228,6 @@ class DataRaftingKit:
                                 actual=input_df,
                                 expected=expected_dfs[expected_output_spec.root.name],
                             )
-
-                            break
                         except PySparkAssertionError as e:
                             self._logger.error("Mismatching Dataframe Found: %s", e)
                             raise ValueError(
