@@ -260,7 +260,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
 
     def expectation(
         self, spec: GreatExpectationBaseSpec, input_df: DataFrame
-    ) -> tuple[DataFrame, DataFrame]:
+    ) -> tuple[DataFrame, DataFrame] | DataFrame:
         """Executes the data quality expectation.
 
         Args:
@@ -271,7 +271,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
         Returns:
         -------
             DataFrame: The output DataFrame.
-        DataFrame: The failing rows DataFrame.
+            DataFrame: The failing rows DataFrame.
         """
         context = gx.get_context()
         asset = context.sources.add_spark("spark").add_dataframe_asset(spec.name)
@@ -346,9 +346,6 @@ class GreatExpectationsDataQuality(DataQualityBase):
                 # Combine all filter expressions into a single expression
                 combined_filter_expression = " AND ".join(filter_expressions)
 
-                failing_rows_df = input_df.filter(f.expr(combined_filter_expression))
-                input_df = input_df.subtract(failing_rows_df)
-
                 if spec.mode == DataQualityModeEnum.FLAG:
                     input_df = input_df.withColumn(
                         failed_flag_column_name,
@@ -356,7 +353,12 @@ class GreatExpectationsDataQuality(DataQualityBase):
                             f.expr(combined_filter_expression), f.lit(True)
                         ).otherwise(f.lit(False)),
                     )
+
+                    return input_df
                 elif spec.mode == DataQualityModeEnum.SEPARATE:
                     input_df = input_df.subtract(failing_rows_df)
+                    failing_rows_df = input_df.filter(
+                        f.expr(combined_filter_expression)
+                    )
 
-            return input_df, failing_rows_df
+                    return input_df, failing_rows_df
