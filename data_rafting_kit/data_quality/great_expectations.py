@@ -339,15 +339,18 @@ class GreatExpectationsDataQuality(DataQualityBase):
             else:
                 filter_expressions = []
                 for result in results.results:
-                    filter_expression_pattern = r"df\.filter\(F\.expr\((.*)\)\)"
-                    filter_expression = re.search(
-                        filter_expression_pattern,
-                        result.result["unexpected_index_query"],
-                    ).group(1)
-                    fixed_filter_expression = self.fix_unquoted_strings(
-                        filter_expression
-                    )
-                    filter_expressions.append(f"({fixed_filter_expression})")
+                    if "unexpected_index_query" in result.result:
+                        filter_expression_pattern = r"df\.filter\(F\.expr\((.*)\)\)"
+                        filter_expression = re.search(
+                            filter_expression_pattern,
+                            result.result["unexpected_index_query"],
+                        ).group(1)
+                        fixed_filter_expression = self.fix_unquoted_strings(
+                            filter_expression
+                        )
+                        filter_expressions.append(f"({fixed_filter_expression})")
+                    else:
+                        filter_expressions.append("true")
 
                 # Combine all filter expressions into a single expression
                 combined_filter_expression = " AND ".join(filter_expressions)

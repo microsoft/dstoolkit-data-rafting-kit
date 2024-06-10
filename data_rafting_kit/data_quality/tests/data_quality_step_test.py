@@ -93,7 +93,12 @@ def test_data_quality_check(data_quality_spec_model, spark_session, logger):
         try:
             data_quality_check_spec = DataQualityRootSpec.model_validate(mock_spec)
 
-            passing_rows = spark_session.createDataFrame(mock_dataset["passing_rows"])
+            if len(mock_dataset["passing_rows"]) == 0:
+                passing_rows = spark_session.createDataFrame([], input_rows_df.schema)
+            else:
+                passing_rows = spark_session.createDataFrame(
+                    mock_dataset["passing_rows"]
+                )
 
             dfs = OrderedDict()
             dfs["input_df"] = input_rows_df
@@ -104,11 +109,14 @@ def test_data_quality_check(data_quality_spec_model, spark_session, logger):
 
             assertDataFrameEqual(dfs["test_dq"], passing_rows)
 
-            if len(mock_dataset["failing_rows"]) > 0:
+            if len(mock_dataset["failing_rows"]) == 0:
+                failing_rows = spark_session.createDataFrame([], input_rows_df.schema)
+            else:
                 failing_rows = spark_session.createDataFrame(
                     mock_dataset["failing_rows"]
                 )
-                assertDataFrameEqual(dfs["test_dq_fails"], failing_rows)
+
+            assertDataFrameEqual(dfs["test_dq_fails"], failing_rows)
 
         except ValidationError as e:
             print(f"Full loaded spec: {mock_spec}")
