@@ -6,17 +6,12 @@ from typing import Annotated, Literal, Union
 
 from pydantic import ConfigDict, Field, RootModel, create_model
 
-from data_rafting_kit.transformations.presido import (
-    PRESIDO_TRANSFORMATION_SPECS,
-)
+from data_rafting_kit.transformations.presido import PRESIDO_TRANSFORMATION_SPECS
 from data_rafting_kit.transformations.pyspark import (
     PYSPARK_DYNAMIC_TRANSFORMATIONS,
     PYSPARK_TRANSFORMATION_SPECS,
-    PysparkWindowTransformationSpec,
 )
-from data_rafting_kit.transformations.transformation_base import (
-    TransformationBaseSpec,
-)
+from data_rafting_kit.transformations.transformation_base import TransformationBaseSpec
 from data_rafting_kit.transformations.transformation_mapping import (
     TransformationMapping,
 )
@@ -32,7 +27,6 @@ def is_builtin(t: type) -> bool:
     Returns:
     -------
     bool: True if the type is a builtin type, False otherwise.
-
     """
     return t.__name__ in dir(builtins)
 
@@ -47,7 +41,6 @@ def clean_type(t: type) -> type | None:
     Returns:
     -------
         type: The cleaned type.
-
     """
     origin = getattr(t, "__origin__", None)
     if origin is not None:
@@ -86,7 +79,6 @@ def is_type_optional(t: type) -> bool:
     Returns:
     -------
     bool: True if the type is optional, False otherwise.
-
     """
     origin = getattr(t, "__origin__", None)
 
@@ -177,12 +169,12 @@ ALL_TRANSFORMATION_SPECS = (
     PRESIDO_TRANSFORMATION_SPECS
     + PYSPARK_TRANSFORMATION_SPECS
     + dynamic_pyspark_transformation_models
-    + [PysparkWindowTransformationSpec]
 )
+
 TransformationRootSpec = create_model(
     "TransformationRootSpec",
     root=Annotated[
-        Union[tuple(ALL_TRANSFORMATION_SPECS)],  # noqa: UP007
+        Union[tuple(ALL_TRANSFORMATION_SPECS)],
         Field(..., discriminator="type"),
     ],
     __base__=RootModel,
