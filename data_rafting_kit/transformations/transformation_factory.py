@@ -20,6 +20,7 @@ class TransformationFactory(BaseFactory):
         Args:
         ----
             spec (TransformationBaseSpec): The transformation specification to process.
+
         """
         if spec.input_df is not None:
             input_df = self._dfs[spec.input_df]

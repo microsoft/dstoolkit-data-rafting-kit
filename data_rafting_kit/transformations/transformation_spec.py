@@ -12,7 +12,7 @@ from data_rafting_kit.transformations.presido import (
 from data_rafting_kit.transformations.pyspark import (
     PYSPARK_DYNAMIC_TRANSFORMATIONS,
     PYSPARK_TRANSFORMATION_SPECS,
-    WindowTransformationSpec,
+    PysparkWindowTransformationSpec,
 )
 from data_rafting_kit.transformations.transformation_base import (
     TransformationBaseSpec,
@@ -32,6 +32,7 @@ def is_builtin(t: type) -> bool:
     Returns:
     -------
     bool: True if the type is a builtin type, False otherwise.
+
     """
     return t.__name__ in dir(builtins)
 
@@ -46,6 +47,7 @@ def clean_type(t: type) -> type | None:
     Returns:
     -------
         type: The cleaned type.
+
     """
     origin = getattr(t, "__origin__", None)
     if origin is not None:
@@ -84,6 +86,7 @@ def is_type_optional(t: type) -> bool:
     Returns:
     -------
     bool: True if the type is optional, False otherwise.
+
     """
     origin = getattr(t, "__origin__", None)
 
@@ -174,12 +177,12 @@ ALL_TRANSFORMATION_SPECS = (
     PRESIDO_TRANSFORMATION_SPECS
     + PYSPARK_TRANSFORMATION_SPECS
     + dynamic_pyspark_transformation_models
-    + [WindowTransformationSpec]
+    + [PysparkWindowTransformationSpec]
 )
 TransformationRootSpec = create_model(
     "TransformationRootSpec",
     root=Annotated[
-        Union[tuple(ALL_TRANSFORMATION_SPECS)],
+        Union[tuple(ALL_TRANSFORMATION_SPECS)],  # noqa: UP007
         Field(..., discriminator="type"),
     ],
     __base__=RootModel,

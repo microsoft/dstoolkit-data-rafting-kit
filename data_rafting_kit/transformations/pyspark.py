@@ -56,7 +56,7 @@ class PysparkWithColumnsTransformationSpec(TransformationBaseSpec):
     params: PysparkWithColumnsTransformationParamSpec
 
 
-class WindowFunctionParamSpec(BaseModel):
+class PysparkWindowFunctionParamSpec(BaseModel):
     """Parameters for the custom window function transformation."""
 
     partition_by: list[str]
@@ -65,17 +65,17 @@ class WindowFunctionParamSpec(BaseModel):
     column: str
 
 
-class WindowTransformationSpec(TransformationBaseSpec):
-    """Window function transformation specification."""
+class PysparkWindowTransformationSpec(TransformationBaseSpec):
+    """PySpark window function transformation specification."""
 
     type: Literal["window_function"]
-    params: WindowFunctionParamSpec
+    params: PysparkWindowFunctionParamSpec
 
 
 PYSPARK_TRANSFORMATION_SPECS = [
     PysparkJoinTransformationSpec,
     PysparkWithColumnsTransformationSpec,
-    WindowTransformationSpec,
+    PysparkWindowTransformationSpec,
 ]
 
 
@@ -129,13 +129,13 @@ class PysparkTransformation(TransformationBase):
         return input_df.withColumns(with_columns_map)
 
     def apply_window_function(
-        self, spec: WindowTransformationSpec, input_df: DataFrame
+        self, spec: PysparkWindowTransformationSpec, input_df: DataFrame
     ) -> DataFrame:
         """Applies a custom window function to the input DataFrame.
 
         Args:
         ----
-            spec (WindowTransformationSpec): The window function transformation specification.
+            spec (PysparkWindowTransformationSpec): The window function transformation specification.
             input_df (DataFrame): The input DataFrame.
 
         Returns:

@@ -57,6 +57,7 @@ class TransformationMapping:
         Raises:
         ------
             NotImplementedError: If the transformation type is not implemented.
+
         """
         if df is None:
             df = DataFrame
