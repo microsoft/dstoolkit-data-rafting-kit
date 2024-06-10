@@ -12,7 +12,7 @@ ALL_DATA_QUALITY_SPECS = GREAT_EXPECTATIONS_DATA_QUALITY_SPECS
 DataQualityCheckRootSpec = create_model(
     "DataQualityCheckRootSpec",
     root=Annotated[
-        Union[tuple(ALL_DATA_QUALITY_SPECS)],  # noqa: UP007
+        Union[tuple(ALL_DATA_QUALITY_SPECS)],
         Field(..., discriminator="type"),
     ],
     __base__=RootModel,
