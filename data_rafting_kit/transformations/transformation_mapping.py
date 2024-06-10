@@ -39,6 +39,10 @@ class TransformationMapping:
             PysparkTransformation,
             PysparkTransformation.apply_window_function,
         ),
+        TransformationEnum.SELECT: (
+            PysparkTransformation,
+            PysparkTransformation.select,
+        ),
     }
 
     @staticmethod

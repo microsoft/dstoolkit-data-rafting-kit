@@ -23,6 +23,7 @@ class TransformationEnum(StrEnum):
     WITH_COLUMNS = "with_columns"
     WITH_COLUMNS_RENAMED = "with_columns_renamed"
     WINDOW_FUNCTION = "window_function"
+    SELECT = "select"
 
 
 class TransformationBaseSpec(BaseSpec):
