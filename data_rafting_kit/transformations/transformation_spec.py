@@ -27,6 +27,7 @@ def is_builtin(t: type) -> bool:
     Returns:
     -------
     bool: True if the type is a builtin type, False otherwise.
+
     """
     return t.__name__ in dir(builtins)
 
@@ -41,15 +42,16 @@ def clean_type(t: type) -> type | None:
     Returns:
     -------
         type: The cleaned type.
+
     """
     origin = getattr(t, "__origin__", None)
     if origin is not None:
         if origin is typing.Union:
             args = [a for a in t.__args__ if is_builtin(a) or clean_type(a)]
             return (
-                typing.Optional[args[0]]  # noqa: UP007
+                typing.Optional[args[0]]
                 if len(args) == 1
-                else typing.Union[tuple(args)]  # noqa: UP007
+                else typing.Union[tuple(args)]
                 if args
                 else None
             )
@@ -79,6 +81,7 @@ def is_type_optional(t: type) -> bool:
     Returns:
     -------
     bool: True if the type is optional, False otherwise.
+
     """
     origin = getattr(t, "__origin__", None)
 
