@@ -141,6 +141,7 @@ class PysparkTransformation(TransformationBase):
         Returns:
         -------
             DataFrame: The resulting DataFrame with the applied window function.
+
         """
         self._logger.info("Applying window function...")
 
