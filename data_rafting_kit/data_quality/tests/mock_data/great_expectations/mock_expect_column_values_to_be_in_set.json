@@ -1,7 +1,81 @@
-{"mock_data": [
-    {"fails": true,
-    "input_rows": [],
-    "failing_rows": [],
-    "passing_rows": []
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_name": "value4"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_name": "value1"
+        },
+        {
+          "column_name": "value2"
+        },
+        {
+          "column_name": "value3"
+        },
+        {
+          "column_name": "value4"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_name": "value1"
+        },
+        {
+          "column_name": "value2"
+        },
+        {
+          "column_name": "value3"
+        }
+      ],
+      "spec": {
+        "column": "column_name",
+        "expectation_type": "expect_column_values_to_be_in_set",
+        "value_set": [
+          "value1",
+          "value2",
+          "value3"
+        ]
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_name": "value1"
+        },
+        {
+          "column_name": "value2"
+        },
+        {
+          "column_name": "value3"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_name": "value1"
+        },
+        {
+          "column_name": "value2"
+        },
+        {
+          "column_name": "value3"
+        }
+      ],
+      "spec": {
+        "column": "column_name",
+        "expectation_type": "expect_column_values_to_be_in_set",
+        "value_set": [
+          "value1",
+          "value2",
+          "value3"
+        ]
+      }
+    }
+  ]
 }
-]}

@@ -21,6 +21,8 @@ repos:
 
       # JSON files
       - id: pretty-format-json
+        args: [--autofix]
+
       - id: check-json
 
   - repo: https://github.com/codespell-project/codespell
