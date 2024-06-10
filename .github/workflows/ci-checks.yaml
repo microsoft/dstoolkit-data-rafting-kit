@@ -62,7 +62,7 @@ jobs:
           echo "export SPARK_HOME=$HOME/spark-3.5.1-bin-hadoop3" >> $GITHUB_ENV
           echo "export PATH=$SPARK_HOME/bin:$PATH" >> $GITHUB_ENV
           source $GITHUB_ENV
-          spark-shell --version
+          spark --version
 
       - name: Set up Python
         uses: actions/setup-python@v3
