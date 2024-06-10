@@ -47,8 +47,8 @@ def logger():
         def get_logs(self):
             return self.logs
 
-    logger = FakeLogger()
-    yield logger
+    fake_logger = FakeLogger()
+    yield fake_logger
 
 
 @pytest.mark.parametrize("data_quality_spec_model", ALL_DATA_QUALITY_SPECS)

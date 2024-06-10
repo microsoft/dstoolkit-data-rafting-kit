@@ -1,0 +1,74 @@
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "value123"
+        },
+        {
+          "column_1": "test456"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "value123"
+        },
+        {
+          "column_1": "test456"
+        },
+        {
+          "column_1": "example789"
+        },
+        {
+          "column_1": "sample0"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "example789"
+        },
+        {
+          "column_1": "sample0"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "regex": [
+          "value\\d+",
+          "test\\d+"
+        ]
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "example789"
+        },
+        {
+          "column_1": "sample0"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "example789"
+        },
+        {
+          "column_1": "sample0"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "regex": [
+          "value\\d+",
+          "test\\d+"
+        ]
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}
