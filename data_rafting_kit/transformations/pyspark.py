@@ -2,7 +2,7 @@ from typing import Literal
 
 import pyspark.sql.functions as f
 from pydantic import BaseModel, Field
-from pyspark.sql import DataFrame
+from pyspark.sql import DataFrame, Window
 
 from data_rafting_kit.transformations.transformation_base import (
     TransformationBase,
@@ -50,15 +50,32 @@ class PysparkWithColumnsTransformationParamSpec(BaseModel):
 
 
 class PysparkWithColumnsTransformationSpec(TransformationBaseSpec):
-    """PySpark Join transformation specification."""
+    """PySpark With Columns transformation specification."""
 
     type: Literal[TransformationEnum.WITH_COLUMNS]
     params: PysparkWithColumnsTransformationParamSpec
 
 
+class PysparkWindowFunctionParamSpec(BaseModel):
+    """Parameters for the custom window function transformation."""
+
+    partition_by: list[str]
+    order_by: list[str]
+    window_function: str
+    column: str
+
+
+class PysparkWindowTransformationSpec(TransformationBaseSpec):
+    """PySpark window function transformation specification."""
+
+    type: Literal["window_function"]
+    params: PysparkWindowFunctionParamSpec
+
+
 PYSPARK_TRANSFORMATION_SPECS = [
     PysparkJoinTransformationSpec,
     PysparkWithColumnsTransformationSpec,
+    PysparkWindowTransformationSpec,
 ]
 
 
@@ -110,3 +127,28 @@ class PysparkTransformation(TransformationBase):
         }
 
         return input_df.withColumns(with_columns_map)
+
+    def apply_window_function(
+        self, spec: PysparkWindowTransformationSpec, input_df: DataFrame
+    ) -> DataFrame:
+        """Applies a custom window function to the input DataFrame.
+
+        Args:
+        ----
+            spec (PysparkWindowTransformationSpec): The window function transformation specification.
+            input_df (DataFrame): The input DataFrame.
+
+        Returns:
+        -------
+            DataFrame: The resulting DataFrame with the applied window function.
+
+        """
+        self._logger.info("Applying window function...")
+
+        window_spec = Window.partitionBy(*spec.params.partition_by).orderBy(
+            *spec.params.order_by
+        )
+        window_function = getattr(f, spec.params.window_function)
+        return input_df.withColumn(
+            spec.params.column, window_function().over(window_spec)
+        )

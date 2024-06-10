@@ -1,0 +1,9 @@
+type: window_function
+name: apply_window_function
+params:
+  partition_by:
+    - 'test_partition_column'
+  order_by:
+    - 'test_order_column'
+  window_function: 'row_number'
+  column: 'test_row_number_column'
