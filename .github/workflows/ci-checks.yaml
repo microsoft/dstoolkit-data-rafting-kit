@@ -50,6 +50,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install Spark
+        run: |
+          curl -sSL https://archive.apache.org/dist/spark/spark-3.5.1/spark-3.5.1-bin-hadoop3.tgz | tar -xz
+          echo "export SPARK_HOME=$HOME/spark-3.5.1-bin-hadoop3" >> $GITHUB_ENV
+          echo "export PATH=$SPARK_HOME/bin:$PATH" >> $GITHUB_ENV
+          source $GITHUB_ENV
+          spark-shell --version
+
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
