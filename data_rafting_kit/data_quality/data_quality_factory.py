@@ -1,6 +1,3 @@
-from great_expectations.core import ExpectationSuite
-from great_expectations.exceptions import GreatExpectationsError
-
 from data_rafting_kit.common.base_factory import BaseFactory
 from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityBaseSpec,

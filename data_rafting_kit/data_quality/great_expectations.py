@@ -1,9 +1,10 @@
+import re
 from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Any, Literal
 
-import pyspark.sql.functions as f
 import great_expectations as gx
+import pyspark.sql.functions as f
 from great_expectations.core import ExpectationSuite
 from great_expectations.expectations.expectation import ExpectationConfiguration
 from great_expectations.expectations.registry import (
@@ -12,16 +13,16 @@ from great_expectations.expectations.registry import (
 )
 from pydantic import BaseModel, ConfigDict, Field, create_model
 from pyspark.sql import DataFrame
-from pyspark.sql.functions import col
 
 from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityBase,
     DataQualityBaseSpec,
 )
-import re
 
 
 class DataQualityModeEnum(StrEnum):
+    """Data quality mode enumeration."""
+
     FAIL = "fail"
     SEPARATE = "separate"
     FLAG = "flag"
@@ -187,12 +188,32 @@ GREAT_EXPECTATIONS_DATA_QUALITY_SPECS = dynamic_great_expectations_data_quality_
 class GreatExpectationsDataQuality(DataQualityBase):
     """Represents a Great Expectations data quality expectation object."""
 
-    def fix_unquoted_strings(self, sql_expr):
+    def fix_unquoted_strings(self, sql_expr: str) -> str:
+        """Fixes unquoted strings in SQL expressions.
+
+        Args:
+        ----
+            sql_expr (str): The SQL expression to fix.
+
+        Returns:
+        -------
+            str: The fixed SQL expression.
+        """
         # Regex pattern to match unquoted strings inside parentheses
         pattern = r"(\bNOT IN\s*\(|\bIN\s*\()([a-zA-Z0-9_,\s]+)(\))"
 
         # Function to add quotes around the unquoted strings within parentheses
-        def add_quotes(match):
+        def add_quotes(match: str) -> str:
+            """Add quotes around the unquoted strings within parentheses.
+
+            Args:
+            ----
+                match (str): The matched string.
+
+            Returns:
+            -------
+                str: The fixed expression.
+            """
             # Get the list of items inside the parentheses
             items = match.group(2).split(",")
             # Strip and quote each item
@@ -214,7 +235,17 @@ class GreatExpectationsDataQuality(DataQualityBase):
         comparison_pattern = r"(\s(=|!=|<|>|<=|>=)\s)([a-zA-Z0-9_]+)"
 
         # Function to add quotes around the unquoted strings after comparison operators
-        def add_quotes_comparison(match):
+        def add_quotes_comparison(match: str) -> str:
+            """Add quotes around unquoted strings after comparison operators.
+
+            Args:
+            ----
+                match (str): The matched string.
+
+            Returns:
+            -------
+                str: The fixed expression.
+            """
             # Get the comparison value
             value = match.group(3)
             # Quote the value if it's not already quoted
@@ -227,8 +258,21 @@ class GreatExpectationsDataQuality(DataQualityBase):
 
         return fixed_expr
 
-    def expectation(self, spec: GreatExpectationBaseSpec, input_df: DataFrame):
-        """Executes the data quality expectation."""
+    def expectation(
+        self, spec: GreatExpectationBaseSpec, input_df: DataFrame
+    ) -> tuple[DataFrame, DataFrame]:
+        """Executes the data quality expectation.
+
+        Args:
+        ----
+            spec (GreatExpectationBaseSpec): The data quality expectation specification.
+            input_df (DataFrame): The input DataFrame.
+
+        Returns:
+        -------
+            DataFrame: The output DataFrame.
+        DataFrame: The failing rows DataFrame.
+        """
         context = gx.get_context()
         asset = context.sources.add_spark("spark").add_dataframe_asset(spec.name)
 
@@ -276,10 +320,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
             failed_checks_str = ", ".join(failed_checks)
             raise ValueError(f"Data quality check(s) failed: {failed_checks_str}")
 
-        elif (
-            spec.mode == DataQualityModeEnum.SEPARATE
-            or spec.mode == DataQualityModeEnum.FLAG
-        ):
+        elif spec.mode in [DataQualityModeEnum.SEPARATE, DataQualityModeEnum.FLAG]:
             failed_flag_column_name = f"failed_{spec.name}_dq"
             if results["success"] is True:
                 failing_rows_df = self._spark.createDataFrame(
@@ -293,7 +334,6 @@ class GreatExpectationsDataQuality(DataQualityBase):
                 filter_expressions = []
                 for result in results.results:
                     filter_expression_pattern = r"df\.filter\(F\.expr\((.*)\)\)"
-                    print(result)
                     filter_expression = re.search(
                         filter_expression_pattern,
                         result.result["unexpected_index_query"],
@@ -311,9 +351,12 @@ class GreatExpectationsDataQuality(DataQualityBase):
 
                 if spec.mode == DataQualityModeEnum.FLAG:
                     input_df = input_df.withColumn(
-                        failed_flag_column_name, f.lit(False)
-                    ).add(
-                        failing_rows_df.withColumn(failed_flag_column_name, f.lit(True))
+                        failed_flag_column_name,
+                        f.when(
+                            f.expr(combined_filter_expression), f.lit(True)
+                        ).otherwise(f.lit(False)),
                     )
+                elif spec.mode == DataQualityModeEnum.SEPARATE:
+                    input_df = input_df.subtract(failing_rows_df)
 
             return input_df, failing_rows_df
