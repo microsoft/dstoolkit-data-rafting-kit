@@ -72,10 +72,24 @@ class PysparkWindowTransformationSpec(TransformationBaseSpec):
     params: PysparkWindowFunctionParamSpec
 
 
+class PysparkSelectTransformationParamSpec(BaseModel):
+    """PySpark Select Transformation Parameters."""
+
+    columns: list[str]
+
+
+class PysparkSelectTransformationSpec(TransformationBaseSpec):
+    """PySpark Select transformation specification."""
+
+    type: Literal[TransformationEnum.SELECT]
+    params: PysparkSelectTransformationParamSpec
+
+
 PYSPARK_TRANSFORMATION_SPECS = [
     PysparkJoinTransformationSpec,
     PysparkWithColumnsTransformationSpec,
     PysparkWindowTransformationSpec,
+    PysparkSelectTransformationSpec,
 ]
 
 
@@ -152,3 +166,22 @@ class PysparkTransformation(TransformationBase):
         return input_df.withColumn(
             spec.params.column, window_function().over(window_spec)
         )
+
+    def select(
+        self, spec: PysparkSelectTransformationSpec, input_df: DataFrame
+    ) -> DataFrame:
+        """Selects specific columns from a DataFrame according to the spec.
+
+        Args:
+        ----
+            spec (PysparkSelectTransformationSpec): The PySpark Select Transformation parameter specification.
+            input_df (DataFrame): The input DataFrame.
+
+        Returns:
+        -------
+            DataFrame: The resulting DataFrame.
+
+        """
+        self._logger.info("Selecting columns from DataFrame...")
+
+        return input_df.select(*spec.params.columns)

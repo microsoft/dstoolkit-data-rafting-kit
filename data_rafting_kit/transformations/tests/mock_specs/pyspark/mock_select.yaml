@@ -1,0 +1,7 @@
+type: select
+name: select_columns
+params:
+  columns:
+    - 'column1'
+    - 'column2'
+    - 'column3'
