@@ -274,7 +274,9 @@ class GreatExpectationsDataQuality(DataQualityBase):
             DataFrame: The failing rows DataFrame.
         """
         context = gx.get_context()
-        asset = context.sources.add_spark("spark").add_dataframe_asset(spec.name)
+        asset = context.sources.add_spark(
+            "spark", spark_config=self._spark.sparkContext.getConf().getAll()
+        ).add_dataframe_asset(spec.name)
 
         validator = context.get_validator(
             batch_request=asset.build_batch_request(dataframe=input_df)
@@ -356,9 +358,9 @@ class GreatExpectationsDataQuality(DataQualityBase):
 
                     return input_df
                 elif spec.mode == DataQualityModeEnum.SEPARATE:
-                    input_df = input_df.subtract(failing_rows_df)
                     failing_rows_df = input_df.filter(
                         f.expr(combined_filter_expression)
                     )
+                    input_df = input_df.subtract(failing_rows_df)
 
                     return input_df, failing_rows_df
