@@ -3,46 +3,41 @@
     {
       "failing_rows": [
         {
-          "column_1": "abcdef",
-          "length": 5
+          "column_1": "abcdef"
         },
         {
-          "column_1": "xyz",
-          "length": 4
+          "column_1": "xyz"
         }
       ],
       "fails": true,
       "input_rows": [
         {
-          "column_1": "abcd",
-          "length": 4
+          "column_1": "abcd"
         },
         {
-          "column_1": "abcdef",
-          "length": 5
+          "column_1": "abcdef"
         },
         {
-          "column_1": "xyz",
-          "length": 4
+          "column_1": "xyz"
         },
         {
-          "column_1": "pqrst",
-          "length": 5
+          "column_1": "pqrst"
         }
       ],
       "passing_rows": [
         {
-          "column_1": "abcd",
-          "length": 4
+          "column_1": "abcd"
         },
         {
-          "column_1": "pqrst",
-          "length": 5
+          "column_1": "pqrst"
         }
       ],
       "spec": {
         "column": "column_1",
-        "value_length": "length"
+        "value_length": {
+          "max_value": 5,
+          "min_value": 3
+        }
       }
     },
     {
@@ -50,40 +45,36 @@
       "fails": false,
       "input_rows": [
         {
-          "column_1": "abc",
-          "length": 3
+          "column_1": "abc"
         },
         {
-          "column_1": "defg",
-          "length": 4
+          "column_1": "defg"
         },
         {
-          "column_1": "ijklm",
-          "length": 5
+          "column_1": "ijklm"
         }
       ],
       "passing_rows": [
         {
-          "column_1": "abc",
-          "length": 3
+          "column_1": "abc"
         },
         {
-          "column_1": "defg",
-          "length": 4
+          "column_1": "defg"
         },
         {
-          "column_1": "ijklm",
-          "length": 5
+          "column_1": "ijklm"
         }
       ],
       "spec": {
         "column": "column_1",
-        "value_length": "length"
+        "value_length": {
+          "max_value": 5,
+          "min_value": 3
+        }
       }
     }
   ],
   "unique_column_identifiers": [
-    "column_1",
-    "length"
+    "column_1"
   ]
 }

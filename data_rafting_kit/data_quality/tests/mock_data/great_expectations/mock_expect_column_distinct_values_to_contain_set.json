@@ -1,7 +1,20 @@
 {
   "mock_data": [
     {
-      "failing_rows": [],
+      "failing_rows": [
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        },
+        {
+          "column_1": "value4"
+        },
+        {
+          "column_1": "value5"
+        }
+      ],
       "fails": true,
       "input_rows": [
         {
@@ -44,7 +57,20 @@
           "column_1": "value4"
         }
       ],
-      "passing_rows": [],
+      "passing_rows": [
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        },
+        {
+          "column_1": "value3"
+        },
+        {
+          "column_1": "value4"
+        }
+      ],
       "spec": {
         "column": "column_1",
         "values": [
