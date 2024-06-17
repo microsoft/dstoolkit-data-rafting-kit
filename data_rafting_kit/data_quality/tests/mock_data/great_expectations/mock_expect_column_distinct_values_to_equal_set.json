@@ -8,21 +8,11 @@
             "value2",
             "value3",
             "value4"
-          ],
-          "expected_set": [
-            "value1",
-            "value2",
-            "value3"
           ]
         },
         {
           "column_1": [
             "value1",
-            "value2",
-            "value3",
-            "value4"
-          ],
-          "expected_set": [
             "value2",
             "value3",
             "value4"
@@ -36,11 +26,6 @@
             "value1",
             "value2",
             "value3"
-          ],
-          "expected_set": [
-            "value1",
-            "value2",
-            "value3"
           ]
         },
         {
@@ -49,20 +34,10 @@
             "value2",
             "value3",
             "value4"
-          ],
-          "expected_set": [
-            "value1",
-            "value2",
-            "value3"
           ]
         },
         {
           "column_1": [
-            "value2",
-            "value3",
-            "value4"
-          ],
-          "expected_set": [
             "value2",
             "value3",
             "value4"
@@ -75,20 +50,10 @@
             "value1",
             "value2",
             "value3"
-          ],
-          "expected_set": [
-            "value1",
-            "value2",
-            "value3"
           ]
         },
         {
           "column_1": [
-            "value2",
-            "value3",
-            "value4"
-          ],
-          "expected_set": [
             "value2",
             "value3",
             "value4"
@@ -97,7 +62,12 @@
       ],
       "spec": {
         "column": "column_1",
-        "values": "expected_set"
+        "values": [
+          "value1",
+          "value2",
+          "value3",
+          "value4"
+        ]
       }
     },
     {
@@ -109,11 +79,6 @@
             "value1",
             "value2",
             "value3"
-          ],
-          "expected_set": [
-            "value1",
-            "value2",
-            "value3"
           ]
         },
         {
@@ -121,20 +86,10 @@
             "value2",
             "value3",
             "value4"
-          ],
-          "expected_set": [
-            "value2",
-            "value3",
-            "value4"
           ]
         },
         {
           "column_1": [
-            "value3",
-            "value4",
-            "value5"
-          ],
-          "expected_set": [
             "value3",
             "value4",
             "value5"
@@ -147,20 +102,10 @@
             "value1",
             "value2",
             "value3"
-          ],
-          "expected_set": [
-            "value1",
-            "value2",
-            "value3"
           ]
         },
         {
           "column_1": [
-            "value3",
-            "value4",
-            "value5"
-          ],
-          "expected_set": [
             "value3",
             "value4",
             "value5"
@@ -169,12 +114,17 @@
       ],
       "spec": {
         "column": "column_1",
-        "values": "expected_set"
+        "values": [
+          "value1",
+          "value2",
+          "value3",
+          "value4",
+          "value5"
+        ]
       }
     }
   ],
   "unique_column_identifiers": [
-    "column_1",
-    "expected_set"
+    "column_1"
   ]
 }

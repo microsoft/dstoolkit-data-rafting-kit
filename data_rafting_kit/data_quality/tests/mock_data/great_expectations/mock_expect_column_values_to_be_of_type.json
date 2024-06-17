@@ -6,43 +6,6 @@
           "column_1": "value1"
         },
         {
-          "column_1": 123
-        }
-      ],
-      "fails": true,
-      "input_rows": [
-        {
-          "column_1": "value1"
-        },
-        {
-          "column_1": "value2"
-        },
-        {
-          "column_1": "value3"
-        }
-      ],
-      "passing_rows": [
-        {
-          "column_1": "value1"
-        },
-        {
-          "column_1": "value2"
-        },
-        {
-          "column_1": "value3"
-        }
-      ],
-      "spec": {
-        "column": "column_1",
-        "type": "string"
-      }
-    },
-    {
-      "failing_rows": [
-        {
-          "column_1": "value1"
-        },
-        {
           "column_1": "value2"
         },
         {
@@ -81,7 +44,17 @@
           "column_1": 789
         }
       ],
-      "passing_rows": [],
+      "passing_rows": [
+        {
+          "column_1": 123
+        },
+        {
+          "column_1": 456
+        },
+        {
+          "column_1": 789
+        }
+      ],
       "spec": {
         "column": "column_1",
         "type": "integer"

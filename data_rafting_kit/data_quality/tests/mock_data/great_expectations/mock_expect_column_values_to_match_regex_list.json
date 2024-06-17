@@ -31,7 +31,7 @@
       ],
       "spec": {
         "column": "column_1",
-        "regex_list": [
+        "regex": [
           "^abc.*$",
           "^.*123$"
         ]
@@ -64,7 +64,7 @@
       ],
       "spec": {
         "column": "column_1",
-        "regex_list": [
+        "regex": [
           "^abc.*$",
           "^.*123$"
         ]

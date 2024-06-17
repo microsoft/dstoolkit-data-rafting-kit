@@ -1,7 +1,23 @@
 {
   "mock_data": [
     {
-      "failing_rows": [],
+      "failing_rows": [
+        {
+          "column_1": 1
+        },
+        {
+          "column_1": 2
+        },
+        {
+          "column_1": 3
+        },
+        {
+          "column_1": 4
+        },
+        {
+          "column_1": 5
+        }
+      ],
       "fails": true,
       "input_rows": [
         {
@@ -47,7 +63,23 @@
           "column_1": 8
         }
       ],
-      "passing_rows": [],
+      "passing_rows": [
+        {
+          "column_1": 4
+        },
+        {
+          "column_1": 5
+        },
+        {
+          "column_1": 6
+        },
+        {
+          "column_1": 7
+        },
+        {
+          "column_1": 8
+        }
+      ],
       "spec": {
         "column": "column_1",
         "max_value": 7.0,

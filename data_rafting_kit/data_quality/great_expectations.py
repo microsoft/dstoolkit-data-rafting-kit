@@ -81,7 +81,7 @@ STANDARD_ARG_TYPES = {
     "threshold": (int | float, Field(required=True, alias="threshold")),
     "strictly": (bool | None, Field(default=None, alias="strictly")),
     "type_list": (list[str], Field(required=True, alias="types")),
-    "json_schema": (str, Field(required=True, alias="json_schema")),
+    "json_schema": (dict, Field(required=True, alias="json_schema")),
     "like_pattern": (str, Field(required=True, alias="like_pattern")),
     "match_on": (Literal["any", "all"] | None, Field(default="any", alias="match_on")),
     "like_pattern_list": (list[str], Field(required=True, alias="like_patterns")),
