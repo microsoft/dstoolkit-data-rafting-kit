@@ -3,26 +3,26 @@
     {
       "failing_rows": [
         {
-          "column_A": "A1",
-          "column_B": "B1",
-          "column_C": "C1"
+          "column_A": "A2",
+          "column_B": "B2",
+          "column_C": "C2"
         },
         {
           "column_A": "A2",
-          "column_B": "B2",
-          "column_C": "C1"
+          "column_B": "B4",
+          "column_C": "C2"
         }
       ],
       "fails": true,
       "input_rows": [
         {
-          "column_A": "A1",
-          "column_B": "B1",
-          "column_C": "C1"
+          "column_A": "A2",
+          "column_B": "B2",
+          "column_C": "C2"
         },
         {
           "column_A": "A2",
-          "column_B": "B2",
+          "column_B": "B4",
           "column_C": "C2"
         },
         {
@@ -33,29 +33,16 @@
       ],
       "passing_rows": [
         {
-          "column_A": "A1",
-          "column_B": "B1",
-          "column_C": "C1"
-        },
-        {
-          "column_A": "A2",
-          "column_B": "B2",
-          "column_C": "C2"
-        },
-        {
           "column_A": "A3",
           "column_B": "B3",
           "column_C": "C3"
         }
       ],
       "spec": {
-        "expect_compound_columns_to_be_unique": {
-          "columns": [
-            "column_A",
-            "column_B",
-            "column_C"
-          ]
-        }
+        "columns": [
+          "column_A",
+          "column_C"
+        ]
       }
     },
     {
@@ -96,13 +83,11 @@
         }
       ],
       "spec": {
-        "expect_compound_columns_to_be_unique": {
-          "columns": [
-            "column_A",
-            "column_B",
-            "column_C"
-          ]
-        }
+        "columns": [
+          "column_A",
+          "column_B",
+          "column_C"
+        ]
       }
     }
   ],

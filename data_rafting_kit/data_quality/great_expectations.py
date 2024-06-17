@@ -74,7 +74,10 @@ STANDARD_ARG_TYPES = {
         Field(required=True, alias="value_pairs"),
     ),
     "column_index": (int | None, Field(default=None, alias="column_index")),
-    "double_sided": (bool, Field(required=True, alias="double_sided")),
+    "double_sided": (
+        bool | None,
+        Field(required=True, default=True, alias="double_sided"),
+    ),
     "threshold": (int | float, Field(required=True, alias="threshold")),
     "strictly": (bool | None, Field(default=None, alias="strictly")),
     "type_list": (list[str], Field(required=True, alias="types")),
@@ -156,7 +159,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
             str: The fixed SQL expression.
         """
         # Regex pattern to match unquoted strings inside parentheses
-        pattern = r"(\bNOT IN\s*\(|\bIN\s*\()([a-zA-Z0-9_,\s]+)(\))"
+        pattern = r"(\b(?:NOT\s+)?(?:IN|RLIKE)\s*\()([a-zA-Z0-9_,\s]+)(\))"
 
         # Function to add quotes around the unquoted strings within parentheses
         def add_quotes(match: str) -> str:

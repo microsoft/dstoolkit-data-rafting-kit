@@ -34,7 +34,7 @@
       ],
       "spec": {
         "column": "column_1",
-        "type_list": [
+        "types": [
           "float",
           "boolean"
         ]
@@ -64,7 +64,7 @@
       ],
       "spec": {
         "column": "column_1",
-        "type_list": [
+        "types": [
           "float",
           "boolean"
         ]

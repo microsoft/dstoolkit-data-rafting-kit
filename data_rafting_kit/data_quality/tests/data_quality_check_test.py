@@ -65,16 +65,13 @@ def run_data_quality_check(mode, mock_spec, mock_dataset, spark_session, logger)
     data_quality_check_spec = DataQualityRootSpec.model_validate(mock_spec)
 
     input_rows_df = spark_session.createDataFrame(mock_dataset["input_rows"])
+    passing_rows = spark_session.createDataFrame(
+        mock_dataset["passing_rows"], input_rows_df.schema
+    )
 
-    if len(mock_dataset["passing_rows"]) == 0:
-        passing_rows = spark_session.createDataFrame([], input_rows_df.schema)
-    else:
-        passing_rows = spark_session.createDataFrame(mock_dataset["passing_rows"])
-
-    if len(mock_dataset["failing_rows"]) == 0:
-        failing_rows = spark_session.createDataFrame([], input_rows_df.schema)
-    else:
-        failing_rows = spark_session.createDataFrame(mock_dataset["failing_rows"])
+    failing_rows = spark_session.createDataFrame(
+        mock_dataset["failing_rows"], input_rows_df.schema
+    )
 
     dfs = OrderedDict()
     dfs["input_df"] = input_rows_df
