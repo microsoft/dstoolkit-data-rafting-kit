@@ -43,7 +43,7 @@
       "spec": {
         "column_a": "column_A",
         "column_b": "column_B",
-        "value_pairs_set": [
+        "value_pairs": [
           [
             "value1",
             "value2"
@@ -76,7 +76,7 @@
       "spec": {
         "column_a": "column_A",
         "column_b": "column_B",
-        "value_pairs_set": [
+        "value_pairs": [
           [
             "value1",
             "value2"
