@@ -1,23 +1,23 @@
 {
-	"name": "PySpark Development Container",
-	"build": {
-		"dockerfile": "Dockerfile"
-	},
-	"customizations": {
-		"vscode": {
-			"extensions": [
-				"ms-python.python",
-				"ms-python.vscode-pylance",
-				"charliermarsh.ruff",
-				"databricks.databricks"
-			],
-			"settings": {
-				"editor.formatOnSave": true
-			}
-		}
-	},
-	"forwardPorts": [],
-	"postStartCommand": {
-		"poetry": "poetry install; poetry run pre-commit install"
-	}
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+        "databricks.databricks"
+      ],
+      "settings": {
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "forwardPorts": [],
+  "name": "PySpark Development Container",
+  "postStartCommand": {
+    "poetry": "poetry install; poetry run pre-commit install"
+  }
 }
