@@ -1,1 +1,77 @@
-{}
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "1234"
+        },
+        {
+          "column_1": "abc"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "1234"
+        },
+        {
+          "column_1": "abcd"
+        },
+        {
+          "column_1": "abc123"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "abcd"
+        },
+        {
+          "column_1": "abc123"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "regex_list": [
+          "^abc.*$",
+          "^.*123$"
+        ]
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "abcd"
+        },
+        {
+          "column_1": "abc123"
+        },
+        {
+          "column_1": "XYZ123"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "abcd"
+        },
+        {
+          "column_1": "abc123"
+        },
+        {
+          "column_1": "XYZ123"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "regex_list": [
+          "^abc.*$",
+          "^.*123$"
+        ]
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}

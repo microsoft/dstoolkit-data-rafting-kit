@@ -1,1 +1,49 @@
-{}
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "value1",
+          "column_2": "value2"
+        }
+      ],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "value1",
+          "column_2": "value2"
+        }
+      ],
+      "passing_rows": [],
+      "spec": {
+        "column": "column_3"
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "value1",
+          "column_2": "value2",
+          "column_3": "value3"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "value1",
+          "column_2": "value2",
+          "column_3": "value3"
+        }
+      ],
+      "spec": {
+        "column": "column_3"
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1",
+    "column_2",
+    "column_3"
+  ]
+}

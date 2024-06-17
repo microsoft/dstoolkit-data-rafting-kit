@@ -51,6 +51,43 @@ def logger():
     yield fake_logger
 
 
+def run_data_quality_check(mode, mock_spec, mock_dataset, spark_session, logger):
+    """Run the data quality check for the given spec and dataset.
+
+    Args:
+    ----
+        mode (DataQualityModeEnum): The mode of the data quality check.
+        mock_spec (dict): The mock data quality spec.
+        mock_dataset (dict): The mock data quality dataset.
+        spark_session (SparkSession): The Spark session fixture.
+        logger (FakeLogger): The fake logger fixture.
+    """
+    data_quality_check_spec = DataQualityRootSpec.model_validate(mock_spec)
+
+    input_rows_df = spark_session.createDataFrame(mock_dataset["input_rows"])
+
+    if len(mock_dataset["passing_rows"]) == 0:
+        passing_rows = spark_session.createDataFrame([], input_rows_df.schema)
+    else:
+        passing_rows = spark_session.createDataFrame(mock_dataset["passing_rows"])
+
+    if len(mock_dataset["failing_rows"]) == 0:
+        failing_rows = spark_session.createDataFrame([], input_rows_df.schema)
+    else:
+        failing_rows = spark_session.createDataFrame(mock_dataset["failing_rows"])
+
+    dfs = OrderedDict()
+    dfs["input_df"] = input_rows_df
+
+    DataQualityFactory(spark_session, logger, dfs).process_data_quality(
+        data_quality_check_spec
+    )
+
+    if mode == DataQualityModeEnum.SEPARATE:
+        assertDataFrameEqual(dfs["test_dq"], passing_rows)
+        assertDataFrameEqual(dfs["test_dq_fails"], failing_rows)
+
+
 @pytest.mark.parametrize("data_quality_spec_model", ALL_DATA_QUALITY_SPECS)
 def test_data_quality_check(data_quality_spec_model, spark_session, logger):
     """Test that the transformation spec can be loaded from the mock spec file.
@@ -79,86 +116,38 @@ def test_data_quality_check(data_quality_spec_model, spark_session, logger):
             f"Mock data file not found for data quality {data_quality_spec_model.__name__}."
         )
 
-    for mock_dataset in mock_data["mock_data"]:
-        input_rows_df = spark_session.createDataFrame(mock_dataset["input_rows"])
+    for mode in [DataQualityModeEnum.SEPARATE, DataQualityModeEnum.FAIL]:
+        for mock_dataset in mock_data["mock_data"]:
+            # Test the data quality spec
+            mock_spec = {
+                "name": "test_dq",
+                "mode": mode,
+                "unique_column_identifiers": mock_data["unique_column_identifiers"],
+                "checks": [
+                    {"type": mock_data_file_name, "params": mock_dataset["spec"]}
+                ],
+            }
 
-        # Test the data quality spec
-        mock_spec = {
-            "name": "test_dq",
-            "mode": DataQualityModeEnum.SEPARATE,
-            "unique_column_identifiers": mock_data["unique_column_identifiers"],
-            "checks": [{"type": mock_data_file_name, "params": mock_dataset["spec"]}],
-        }
-
-        try:
-            data_quality_check_spec = DataQualityRootSpec.model_validate(mock_spec)
-
-            if len(mock_dataset["passing_rows"]) == 0:
-                passing_rows = spark_session.createDataFrame([], input_rows_df.schema)
-            else:
-                passing_rows = spark_session.createDataFrame(
-                    mock_dataset["passing_rows"]
-                )
-
-            dfs = OrderedDict()
-            dfs["input_df"] = input_rows_df
-
-            DataQualityFactory(spark_session, logger, dfs).process_data_quality(
-                data_quality_check_spec
-            )
-
-            assertDataFrameEqual(dfs["test_dq"], passing_rows)
-
-            if len(mock_dataset["failing_rows"]) == 0:
-                failing_rows = spark_session.createDataFrame([], input_rows_df.schema)
-            else:
-                failing_rows = spark_session.createDataFrame(
-                    mock_dataset["failing_rows"]
-                )
-
-            assertDataFrameEqual(dfs["test_dq_fails"], failing_rows)
-
-        except ValidationError as e:
-            print(f"Full loaded spec: {mock_spec}")
-            for error in e.errors():
-                print(
-                    "Config Location: {} -> {} -> Found: {}".format(
-                        error["loc"], error["msg"], error["input"]
+            try:
+                if mode == DataQualityModeEnum.FAIL and mock_dataset["fails"]:
+                    with pytest.raises(ValueError):
+                        run_data_quality_check(
+                            mode, mock_spec, mock_dataset, spark_session, logger
+                        )
+                else:
+                    run_data_quality_check(
+                        mode, mock_spec, mock_dataset, spark_session, logger
                     )
-                )
 
-            pytest.fail(
-                f"Failed to load data spec into model for data quality {data_quality_spec_model.__name__}."
-            )
-
-        # Try with fail mode
-        mock_spec["mode"] = DataQualityModeEnum.FAIL
-
-        try:
-            data_quality_check_spec = DataQualityRootSpec.model_validate(mock_spec)
-
-            dfs = OrderedDict()
-            dfs["input_df"] = input_rows_df
-
-            if mock_dataset["fails"]:
-                with pytest.raises(ValueError):
-                    DataQualityFactory(spark_session, logger, dfs).process_data_quality(
-                        data_quality_check_spec
+            except ValidationError as e:
+                print(f"Full loaded spec: {mock_spec}")
+                for error in e.errors():
+                    print(
+                        "Config Location: {} -> {} -> Found: {}".format(
+                            error["loc"], error["msg"], error["input"]
+                        )
                     )
-            else:
-                DataQualityFactory(spark_session, logger, dfs).process_data_quality(
-                    data_quality_check_spec
-                )
 
-        except ValidationError as e:
-            print(f"Full loaded spec: {mock_spec}")
-            for error in e.errors():
-                print(
-                    "Config Location: {} -> {} -> Found: {}".format(
-                        error["loc"], error["msg"], error["input"]
-                    )
+                pytest.fail(
+                    f"Failed to load data spec into model for data quality {data_quality_spec_model.__name__}."
                 )
-
-            pytest.fail(
-                f"Failed to load data spec into model for data quality {data_quality_spec_model.__name__}."
-            )

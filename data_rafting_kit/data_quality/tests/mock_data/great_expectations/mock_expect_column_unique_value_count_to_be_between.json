@@ -1,1 +1,84 @@
-{}
+{
+  "mock_data": [
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        },
+        {
+          "column_1": "value3"
+        },
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        },
+        {
+          "column_1": "value3"
+        },
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "max_value_count": 3,
+        "min_value_count": 2
+      }
+    },
+    {
+      "failing_rows": [
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        },
+        {
+          "column_1": "value3"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        },
+        {
+          "column_1": "value3"
+        },
+        {
+          "column_1": "value4"
+        }
+      ],
+      "passing_rows": [],
+      "spec": {
+        "column": "column_1",
+        "max_value_count": 3,
+        "min_value_count": 2
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}

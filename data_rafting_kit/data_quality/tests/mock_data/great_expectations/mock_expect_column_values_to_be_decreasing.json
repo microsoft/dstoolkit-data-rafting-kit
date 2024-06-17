@@ -1,1 +1,138 @@
-{}
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": [
+            5,
+            4,
+            3,
+            2,
+            1
+          ]
+        },
+        {
+          "column_1": [
+            10,
+            9,
+            8,
+            7,
+            7
+          ]
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": [
+            5,
+            4,
+            3,
+            2,
+            1
+          ]
+        },
+        {
+          "column_1": [
+            10,
+            9,
+            8,
+            7,
+            6
+          ]
+        },
+        {
+          "column_1": [
+            100,
+            50,
+            30,
+            20,
+            10
+          ]
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": [
+            10,
+            9,
+            8,
+            7,
+            6
+          ]
+        },
+        {
+          "column_1": [
+            100,
+            50,
+            30,
+            20,
+            10
+          ]
+        }
+      ],
+      "spec": {
+        "column": "column_1"
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": [
+            10,
+            9,
+            8,
+            7,
+            6
+          ]
+        },
+        {
+          "column_1": [
+            100,
+            50,
+            30,
+            20,
+            10
+          ]
+        },
+        {
+          "column_1": [
+            5,
+            4,
+            3,
+            2,
+            1
+          ]
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": [
+            10,
+            9,
+            8,
+            7,
+            6
+          ]
+        },
+        {
+          "column_1": [
+            100,
+            50,
+            30,
+            20,
+            10
+          ]
+        }
+      ],
+      "spec": {
+        "column": "column_1"
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}
