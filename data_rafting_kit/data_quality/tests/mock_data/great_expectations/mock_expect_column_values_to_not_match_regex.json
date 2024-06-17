@@ -1,1 +1,68 @@
-{}
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "123-456-7890"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "123-456-7890"
+        },
+        {
+          "column_1": "hello@domain.com"
+        },
+        {
+          "column_1": "no_match_here"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "hello@domain.com"
+        },
+        {
+          "column_1": "no_match_here"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "regex": "^\\d{3}-\\d{3}-\\d{4}$"
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "hello@domain.com"
+        },
+        {
+          "column_1": "not_a_phone_number"
+        },
+        {
+          "column_1": "another_string"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "hello@domain.com"
+        },
+        {
+          "column_1": "not_a_phone_number"
+        },
+        {
+          "column_1": "another_string"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "regex": "^\\d{3}-\\d{3}-\\d{4}$"
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}

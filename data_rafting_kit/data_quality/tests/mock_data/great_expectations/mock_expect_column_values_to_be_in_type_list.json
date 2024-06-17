@@ -1,1 +1,77 @@
-{}
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "string"
+        },
+        {
+          "column_1": 123
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "string"
+        },
+        {
+          "column_1": 123
+        },
+        {
+          "column_1": 3.14
+        },
+        {
+          "column_1": true
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": 3.14
+        },
+        {
+          "column_1": true
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "type_list": [
+          "float",
+          "boolean"
+        ]
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": 3.14
+        },
+        {
+          "column_1": true
+        },
+        {
+          "column_1": 42
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": 3.14
+        },
+        {
+          "column_1": true
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "type_list": [
+          "float",
+          "boolean"
+        ]
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}

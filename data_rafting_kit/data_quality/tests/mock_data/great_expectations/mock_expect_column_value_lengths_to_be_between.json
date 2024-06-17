@@ -1,1 +1,113 @@
-{}
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "abc",
+          "max_length": 6,
+          "min_length": 4
+        },
+        {
+          "column_1": "uvwxyz",
+          "max_length": 4,
+          "min_length": 2
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "abcd",
+          "max_length": 6,
+          "min_length": 4
+        },
+        {
+          "column_1": "abcde",
+          "max_length": 6,
+          "min_length": 4
+        },
+        {
+          "column_1": "uvwxyz",
+          "max_length": 4,
+          "min_length": 2
+        },
+        {
+          "column_1": "pqrs",
+          "max_length": 5,
+          "min_length": 3
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "abcd",
+          "max_length": 6,
+          "min_length": 4
+        },
+        {
+          "column_1": "abcde",
+          "max_length": 6,
+          "min_length": 4
+        },
+        {
+          "column_1": "pqrs",
+          "max_length": 5,
+          "min_length": 3
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "inclusive": true,
+        "max_value": "max_length",
+        "min_value": "min_length"
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "abc",
+          "max_length": 4,
+          "min_length": 2
+        },
+        {
+          "column_1": "defg",
+          "max_length": 5,
+          "min_length": 3
+        },
+        {
+          "column_1": "ijklm",
+          "max_length": 6,
+          "min_length": 5
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "abc",
+          "max_length": 4,
+          "min_length": 2
+        },
+        {
+          "column_1": "defg",
+          "max_length": 5,
+          "min_length": 3
+        },
+        {
+          "column_1": "ijklm",
+          "max_length": 6,
+          "min_length": 5
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "inclusive": true,
+        "max_value": "max_length",
+        "min_value": "min_length"
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1",
+    "min_length",
+    "max_length"
+  ]
+}

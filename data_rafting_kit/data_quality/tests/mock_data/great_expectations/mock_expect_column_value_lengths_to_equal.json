@@ -1,1 +1,89 @@
-{}
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "abcdef",
+          "length": 5
+        },
+        {
+          "column_1": "xyz",
+          "length": 4
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "abcd",
+          "length": 4
+        },
+        {
+          "column_1": "abcdef",
+          "length": 5
+        },
+        {
+          "column_1": "xyz",
+          "length": 4
+        },
+        {
+          "column_1": "pqrst",
+          "length": 5
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "abcd",
+          "length": 4
+        },
+        {
+          "column_1": "pqrst",
+          "length": 5
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "value_length": "length"
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "abc",
+          "length": 3
+        },
+        {
+          "column_1": "defg",
+          "length": 4
+        },
+        {
+          "column_1": "ijklm",
+          "length": 5
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "abc",
+          "length": 3
+        },
+        {
+          "column_1": "defg",
+          "length": 4
+        },
+        {
+          "column_1": "ijklm",
+          "length": 5
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "value_length": "length"
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1",
+    "length"
+  ]
+}

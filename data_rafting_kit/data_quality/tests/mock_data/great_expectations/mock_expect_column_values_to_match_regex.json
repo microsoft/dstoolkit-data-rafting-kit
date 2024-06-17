@@ -1,1 +1,74 @@
-{}
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "123-456-7890"
+        },
+        {
+          "column_1": "not_an_email"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "test@example.com"
+        },
+        {
+          "column_1": "hello@domain.com"
+        },
+        {
+          "column_1": "123-456-7890"
+        },
+        {
+          "column_1": "not_an_email"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "test@example.com"
+        },
+        {
+          "column_1": "hello@domain.com"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "regex": "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "test@example.com"
+        },
+        {
+          "column_1": "hello@domain.com"
+        },
+        {
+          "column_1": "user@sub.domain.com"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "test@example.com"
+        },
+        {
+          "column_1": "hello@domain.com"
+        },
+        {
+          "column_1": "user@sub.domain.com"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "regex": "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}

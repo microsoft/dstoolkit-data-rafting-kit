@@ -1,1 +1,80 @@
-{}
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "2023-01-01 12:30:45"
+        },
+        {
+          "column_1": "2023-13-01"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "2023-01-01"
+        },
+        {
+          "column_1": "2023-01-02"
+        },
+        {
+          "column_1": "2023-01-03"
+        },
+        {
+          "column_1": "2023-01-01 12:30:45"
+        },
+        {
+          "column_1": "2023-13-01"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "2023-01-01"
+        },
+        {
+          "column_1": "2023-01-02"
+        },
+        {
+          "column_1": "2023-01-03"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "strftime_format": "%Y-%m-%d"
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "2023-01-01"
+        },
+        {
+          "column_1": "2023-01-02"
+        },
+        {
+          "column_1": "2023-01-03"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "2023-01-01"
+        },
+        {
+          "column_1": "2023-01-02"
+        },
+        {
+          "column_1": "2023-01-03"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "strftime_format": "%Y-%m-%d"
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}
