@@ -1,7 +1,11 @@
 {
   "mock_data": [
     {
-      "failing_rows": [],
+      "failing_rows": [
+        {
+          "column_1": 1
+        }
+      ],
       "fails": true,
       "input_rows": [
         {
@@ -27,7 +31,16 @@
           "column_2": 4
         }
       ],
-      "passing_rows": [],
+      "passing_rows": [
+        {
+          "column_1": 1,
+          "column_2": 2
+        },
+        {
+          "column_1": 3,
+          "column_2": 4
+        }
+      ],
       "spec": {
         "max_value": 3,
         "min_value": 1
