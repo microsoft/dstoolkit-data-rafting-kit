@@ -49,11 +49,13 @@
         }
       ],
       "spec": {
-        "columns": [
-          "column_A",
-          "column_B",
-          "column_C"
-        ]
+        "expect_compound_columns_to_be_unique": {
+          "columns": [
+            "column_A",
+            "column_B",
+            "column_C"
+          ]
+        }
       }
     },
     {
@@ -94,11 +96,13 @@
         }
       ],
       "spec": {
-        "columns": [
-          "column_A",
-          "column_B",
-          "column_C"
-        ]
+        "expect_compound_columns_to_be_unique": {
+          "columns": [
+            "column_A",
+            "column_B",
+            "column_C"
+          ]
+        }
       }
     }
   ],

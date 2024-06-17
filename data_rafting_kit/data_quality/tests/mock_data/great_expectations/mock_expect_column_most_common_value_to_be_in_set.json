@@ -67,7 +67,7 @@
       ],
       "spec": {
         "column": "column_1",
-        "value_set": [
+        "values": [
           "value1",
           "value2",
           "value3"
@@ -100,7 +100,7 @@
       "passing_rows": [],
       "spec": {
         "column": "column_1",
-        "value_set": [
+        "values": [
           "value1",
           "value2",
           "value3"

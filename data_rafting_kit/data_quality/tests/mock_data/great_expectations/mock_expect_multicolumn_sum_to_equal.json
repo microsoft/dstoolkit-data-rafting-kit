@@ -44,7 +44,7 @@
           "column_2",
           "column_3"
         ],
-        "sum_value": 6
+        "value": 6
       }
     },
     {
@@ -90,7 +90,7 @@
           "column_2",
           "column_3"
         ],
-        "sum_value": 6
+        "value": 6
       }
     }
   ],

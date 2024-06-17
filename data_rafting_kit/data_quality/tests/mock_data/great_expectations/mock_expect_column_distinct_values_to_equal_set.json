@@ -97,7 +97,7 @@
       ],
       "spec": {
         "column": "column_1",
-        "value_set": "expected_set"
+        "values": "expected_set"
       }
     },
     {
@@ -169,7 +169,7 @@
       ],
       "spec": {
         "column": "column_1",
-        "value_set": "expected_set"
+        "values": "expected_set"
       }
     }
   ],

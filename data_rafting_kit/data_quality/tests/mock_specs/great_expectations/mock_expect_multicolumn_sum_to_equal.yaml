@@ -2,4 +2,4 @@ type: expect_multicolumn_sum_to_equal
 name: expect_multicolumn_sum_to_equal
 params:
   columns: ['test_column', 'test_column_2']
-  sum_total: 100
+  value: 100
