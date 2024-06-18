@@ -4,7 +4,7 @@ import pytest
 from pyspark.sql import SparkSession
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def spark_session():
     """Fixture to set up Spark session for all tests."""
     spark = (
