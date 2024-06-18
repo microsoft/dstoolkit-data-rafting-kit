@@ -26,6 +26,7 @@ class DataQualityModeEnum(StrEnum):
     FAIL = "fail"
     SEPARATE = "separate"
     FLAG = "flag"
+    DROP = "drop"
 
 
 EXCLUDED_GREAT_EXPECTATION_CHECKS = [
@@ -313,15 +314,17 @@ class GreatExpectationsDataQuality(DataQualityBase):
             failed_checks_str = ", ".join(failed_checks)
             raise ValueError(f"Data quality check(s) failed: {failed_checks_str}")
 
-        elif spec.mode in [DataQualityModeEnum.SEPARATE, DataQualityModeEnum.FLAG]:
+        elif spec.mode in [
+            DataQualityModeEnum.SEPARATE,
+            DataQualityModeEnum.FLAG,
+            DataQualityModeEnum.DROP,
+        ]:
             failed_flag_column_name = f"failed_{spec.name}_dq"
             if results["success"] is True:
                 if spec.mode == DataQualityModeEnum.FLAG:
                     input_df = input_df.withColumn(
                         failed_flag_column_name, f.lit(False)
                     )
-
-                    return input_df
                 else:
                     failing_rows_df = self._spark.createDataFrame(
                         [], schema=input_df.schema
@@ -345,4 +348,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
                     )
                     input_df = input_df.subtract(failing_rows_df)
 
-                    return input_df, failing_rows_df
+                    if spec.mode == DataQualityModeEnum.SEPARATE:
+                        return input_df, failing_rows_df
+
+            return input_df
