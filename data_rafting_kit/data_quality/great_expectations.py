@@ -149,18 +149,21 @@ GREAT_EXPECTATIONS_DATA_QUALITY_SPECS = dynamic_great_expectations_data_quality_
 class GreatExpectationsDataQuality(DataQualityBase):
     """Represents a Great Expectations data quality expectation object."""
 
-    def escape_quotes(self, sql_expr: str) -> str:
+    def escape_quotes(self, sql_expr: any) -> str:
         """Escapes quotes in SQL expressions.
 
         Args:
         ----
-            sql_expr (str): The SQL expression to escape.
+            sql_expr (any): The SQL expression to escape.
 
         Returns:
         -------
             str: The escaped SQL expression.
         """
-        return sql_expr.replace("'", "\\'")
+        if isinstance(sql_expr, str):
+            return sql_expr.replace("'", "\\'")
+
+        return f"'{sql_expr}'"
 
     def get_filter_expression(
         self, unique_column_identifiers: list, results: list
@@ -344,7 +347,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
                     failed_flag_column_name, combined_filter_expression, input_df, spec
                 )
 
-        if failing_rows_df is not None:
-            return input_df, failing_rows_df
+            if failing_rows_df is not None:
+                return input_df, failing_rows_df
 
-        return input_df
+            return input_df
