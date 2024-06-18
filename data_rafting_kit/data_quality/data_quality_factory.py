@@ -23,8 +23,6 @@ class DataQualityFactory(BaseFactory):
         else:
             input_df = list(self._dfs.values())[-1]
 
-        input_df.localCheckpoint()
-
         (
             data_quality_class,
             data_quality_function,
