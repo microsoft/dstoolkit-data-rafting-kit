@@ -3,13 +3,13 @@
     {
       "failing_rows": [
         {
-          "column_1": "value1"
+          "column_1": 123
         },
         {
-          "column_1": "value2"
+          "column_1": 456
         },
         {
-          "column_1": "value3"
+          "column_1": 789
         }
       ],
       "fails": true,
