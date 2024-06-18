@@ -23,6 +23,8 @@ class DataQualityFactory(BaseFactory):
         else:
             input_df = list(self._dfs.values())[-1]
 
+        input_df.localCheckpoint()
+
         (
             data_quality_class,
             data_quality_function,
@@ -35,6 +37,7 @@ class DataQualityFactory(BaseFactory):
 
         if isinstance(df, tuple):
             self._dfs[f"{spec.name}_fails"] = df[1]
+
             self._dfs[spec.name] = df[0]
         else:
             self._dfs[spec.name] = df

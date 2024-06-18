@@ -1,4 +1,3 @@
-import re
 from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Any, Literal
@@ -150,105 +149,56 @@ GREAT_EXPECTATIONS_DATA_QUALITY_SPECS = dynamic_great_expectations_data_quality_
 class GreatExpectationsDataQuality(DataQualityBase):
     """Represents a Great Expectations data quality expectation object."""
 
-    def fix_unquoted_strings(self, sql_expr: str) -> str:
-        """Fixes unquoted strings in SQL expressions.
+    def escape_quotes(self, sql_expr: str) -> str:
+        """Escapes quotes in SQL expressions.
 
         Args:
         ----
-            sql_expr (str): The SQL expression to fix.
+            sql_expr (str): The SQL expression to escape.
 
         Returns:
         -------
-            str: The fixed SQL expression.
+            str: The escaped SQL expression.
         """
-        # Regex pattern to match unquoted strings inside parentheses
-        pattern = r"(\b(?:NOT\s+)?(?:IN)\s*\()([a-zA-Z0-9_,\s]+)(\))"
+        return sql_expr.replace("'", "\\'")
 
-        # Function to add quotes around the unquoted strings within parentheses
-        def add_quotes(match: str) -> str:
-            """Add quotes around the unquoted strings within parentheses.
-
-            Args:
-            ----
-                match (str): The matched string.
-
-            Returns:
-            -------
-                str: The fixed expression.
-            """
-            # Get the list of items inside the parentheses
-            items = match.group(2).split(",")
-            # Strip and quote each item
-            quoted_items = [
-                f"'{item.strip()}'"
-                if not item.strip().startswith("'")
-                else item.strip()
-                for item in items
-            ]
-            # Join the quoted items back into a string
-            quoted_str = ", ".join(quoted_items)
-            # Return the fixed expression
-            return f"{match.group(1)}{quoted_str}{match.group(3)}"
-
-        # Fix the expressions within parentheses
-        fixed_expr = re.sub(pattern, add_quotes, sql_expr)
-
-        # Regex pattern to match unquoted strings after comparison operators
-        comparison_pattern = r"(\s(=|!=|<|>|<=|>=|<=>)\s)([a-zA-Z0-9_]+)"
-
-        # Function to add quotes around the unquoted strings after comparison operators
-        def add_quotes_comparison(match: str) -> str:
-            """Add quotes around unquoted strings after comparison operators.
-
-            Args:
-            ----
-                match (str): The matched string.
-
-            Returns:
-            -------
-                str: The fixed expression.
-            """
-            # Get the comparison value
-            value = match.group(3)
-            # Quote the value if it's not already quoted
-            quoted_value = f"'{value}'" if not value.startswith("'") else value
-            # Return the fixed expression
-            return f"{match.group(1)}{quoted_value}"
-
-        # Fix the expressions after comparison operators
-        fixed_expr = re.sub(comparison_pattern, add_quotes_comparison, fixed_expr)
-
-        return fixed_expr
-
-    def get_filter_expression(self, results: list) -> str:
-        """Get the combined filter expression from the results.
+    def get_filter_expression(
+        self, unique_column_identifiers: list, results: list
+    ) -> str:
+        """Gets the filter expression for the failing rows.
 
         Args:
         ----
+            unique_column_identifiers (list): The unique column identifiers.
             results (list): The list of results.
 
         Returns:
         -------
-        str: The combined filter expression.
+            str: The filter expression.
         """
-        filter_expressions = []
+        row_filter_query = {}
+
+        for column_identifier in unique_column_identifiers:
+            row_filter_query[column_identifier] = set()
+
         for result in results.results:
-            if "unexpected_index_query" in result.result:
-                filter_expression_pattern = r"df\.filter\(F\.expr\((.*)\)\)"
-                filter_expression = re.search(
-                    filter_expression_pattern,
-                    result.result["unexpected_index_query"],
-                ).group(1)
-                print(filter_expression)
-                fixed_filter_expression = self.fix_unquoted_strings(filter_expression)
-                filter_expressions.append(f"({fixed_filter_expression})")
-            else:
-                filter_expressions.append("true")
+            unexpected_index_list = result.result.get("unexpected_index_list", [])
 
-        # Combine all filter expressions into a single expression
-        combined_filter_expression = " AND ".join(filter_expressions)
+            for unexpected_index in unexpected_index_list:
+                for column_identifier in unique_column_identifiers:
+                    row_filter_query[column_identifier].add(
+                        self.escape_quotes(unexpected_index[column_identifier])
+                    )
 
-        return combined_filter_expression
+        index_filter_query_set_parts = []
+        for column_identifier in unique_column_identifiers:
+            index_filter_query_set_parts.append(
+                f"{column_identifier} IN ({', '.join(map(str, row_filter_query[column_identifier]))})"
+            )
+
+        filtered_query = " AND ".join(index_filter_query_set_parts)
+
+        return filtered_query
 
     def expectation(
         self, spec: GreatExpectationBaseSpec, input_df: DataFrame
@@ -331,7 +281,9 @@ class GreatExpectationsDataQuality(DataQualityBase):
                     )
                     return input_df, failing_rows_df
             else:
-                combined_filter_expression = self.get_filter_expression(results)
+                combined_filter_expression = self.get_filter_expression(
+                    spec.unique_column_identifiers, results
+                )
 
                 if spec.mode == DataQualityModeEnum.FLAG:
                     input_df = input_df.withColumn(
@@ -346,6 +298,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
                     failing_rows_df = input_df.filter(
                         f.expr(combined_filter_expression)
                     )
+
                     input_df = input_df.subtract(failing_rows_df)
 
                     if spec.mode == DataQualityModeEnum.SEPARATE:
