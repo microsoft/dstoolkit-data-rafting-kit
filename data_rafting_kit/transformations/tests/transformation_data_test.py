@@ -4,10 +4,13 @@ from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
+from pyspark.sql.types import IntegerType, LongType, StringType, StructField, StructType
 from pyspark.testing import assertDataFrameEqual
 
 from data_rafting_kit.common.test_utils import (
-    extract_and_convert_model_name_to_file_name,  # ignore: F401
+    extract_and_convert_model_name_to_file_name,
+    logger,  # noqa
+    spark_session,  # noqa
 )
 from data_rafting_kit.transformations.transformation_factory import (
     TransformationFactory,
@@ -19,7 +22,7 @@ from data_rafting_kit.transformations.transformation_spec import (
 
 
 @pytest.mark.parametrize("transformation_spec_model", ALL_TRANSFORMATION_SPECS)
-def test_transformation_data(transformation_spec_model, spark_session, logger):
+def test_transformation_data(transformation_spec_model, spark_session, logger):  # noqa
     """Test that the transformation spec can be loaded from the mock spec file.
 
     Args:
@@ -61,15 +64,35 @@ def test_transformation_data(transformation_spec_model, spark_session, logger):
 
             input_rows_df = spark_session.createDataFrame(mock_dataset["input_rows"])
             dfs = OrderedDict()
+
+            if "input_rows_2" in mock_dataset:
+                input_rows_df_2 = spark_session.createDataFrame(
+                    mock_dataset["input_rows_2"]
+                )
+                dfs["input_2_df"] = input_rows_df_2
+
             dfs["input_df"] = input_rows_df
 
             TransformationFactory(spark_session, logger, dfs).process_transformation(
                 transformation_spec.root
             )
 
-            expected_output_rows = spark_session.createDataFrame(
-                mock_dataset["output_rows"]
-            )
+            if mock_data_file_name == "window":
+                expected_output_rows = spark_session.createDataFrame(
+                    mock_dataset["output_rows"],
+                    schema=StructType(
+                        [
+                            StructField("partition_column", StringType(), True),
+                            StructField("order_column", LongType(), True),
+                            StructField("data_column", StringType(), True),
+                            StructField("rank_column", IntegerType(), False),
+                        ]
+                    ),
+                )
+            else:
+                expected_output_rows = spark_session.createDataFrame(
+                    mock_dataset["output_rows"]
+                )
 
             # Alphabetic sort of columns to ensure order is consistent
             output_rows_sorted_columns = sorted(dfs["test_transformation"].columns)

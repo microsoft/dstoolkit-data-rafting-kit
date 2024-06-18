@@ -1,1 +1,95 @@
-{}
+{
+    "mock_data": [
+        {
+            "input_rows": [
+                {
+                    "column_1": "value1",
+                    "column_2": 10
+                },
+                {
+                    "column_1": "value2",
+                    "column_2": 20
+                },
+                {
+                    "column_1": "value3",
+                    "column_2": 30
+                }
+            ],
+            "input_rows_2": [
+                {
+                    "column_1": "value1",
+                    "column_3": "2024-01-01"
+                },
+                {
+                    "column_1": "value2",
+                    "column_3": "2024-01-02"
+                },
+                {
+                    "column_1": "value3",
+                    "column_3": "2024-01-03"
+                }
+            ],
+            "output_rows": [
+                {
+                    "column_1": "value1",
+                    "column_2": 10,
+                    "column_3": "2024-01-01"
+                },
+                {
+                    "column_1": "value2",
+                    "column_2": 20,
+                    "column_3": "2024-01-02"
+                },
+                {
+                    "column_1": "value3",
+                    "column_2": 30,
+                    "column_3": "2024-01-03"
+                }
+            ],
+            "spec": {
+                "type": "inner",
+                "join_on": ["column_1"],
+                "other_df": "input_2_df"
+            }
+        },
+        {
+            "input_rows": [
+                {
+                    "column_A": "A1",
+                    "column_B": 1
+                },
+                {
+                    "column_A": "A2",
+                    "column_B": 2
+                }
+            ],
+            "input_rows_2": [
+                {
+                    "column_A": "A1",
+                    "column_C": "C1"
+                },
+                {
+                    "column_A": "A2",
+                    "column_C": "C2"
+                }
+            ],
+            "output_rows": [
+                {
+                    "column_A": "A1",
+                    "column_B": 1,
+                    "column_C": "C1"
+                },
+                {
+                    "column_A": "A2",
+                    "column_B": 2,
+                    "column_C": "C2"
+                }
+            ],
+            "spec": {
+                "type": "inner",
+                "join_on": ["column_A"],
+                "other_df": "input_2_df"
+            }
+        }
+    ]
+}

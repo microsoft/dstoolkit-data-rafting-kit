@@ -67,7 +67,7 @@ class PysparkWindowFunctionParamSpec(BaseModel):
 class PysparkWindowTransformationSpec(TransformationBaseSpec):
     """PySpark window function transformation specification."""
 
-    type: Literal["window_function"]
+    type: Literal[TransformationEnum.WINDOW]
     params: PysparkWindowFunctionParamSpec
 
 

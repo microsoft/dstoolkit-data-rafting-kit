@@ -1,1 +1,113 @@
-{}
+{
+    "mock_data": [
+        {
+            "input_rows": [
+                {
+                    "mask_column": "(555) 123-4567"
+                },
+                {
+                    "mask_column": "(555) 987-6543"
+                }
+            ],
+            "output_rows": [
+                {
+                    "mask_column": "***** 123-4567"
+                },
+                {
+                    "mask_column": "***** 987-6543"
+                }
+            ],
+            "spec": {
+                "columns": [
+                    {
+                        "name": "mask_column",
+                        "type": "mask",
+                        "chars_to_mask": 5
+                    }
+                ]
+            }
+        },
+        {
+            "input_rows": [
+                {
+                    "replace_column": "(555) 123-4567"
+                },
+                {
+                    "replace_column": "(555) 987-6543"
+                }
+            ],
+            "output_rows": [
+                {
+                    "replace_column": "REPLACED"
+                },
+                {
+                    "replace_column": "REPLACED"
+                }
+            ],
+            "spec": {
+                "columns": [
+                    {
+                        "name": "replace_column",
+                        "type": "replace",
+                        "new_value": "REPLACED",
+                        "entire_value": true
+                    }
+                ]
+            }
+        },
+        {
+            "input_rows": [
+                {
+                    "hash_column": "(555) 123-4567"
+                },
+                {
+                    "hash_column": "(555) 987-6543"
+                }
+            ],
+            "output_rows": [
+                {
+                    "hash_column": "1a79a4d60de6718e8e5b326e338ae533"
+                },
+                {
+                    "hash_column": "a92a5b4d66fae799bca0c75e339f9343"
+                }
+            ],
+            "spec": {
+                "columns": [
+                    {
+                        "name": "hash_column",
+                        "type": "hash",
+                        "hash_type": "sha256"
+                    }
+                ]
+            }
+        },
+        {
+            "input_rows": [
+                {
+                    "redact_column": "(555) 123-4567"
+                },
+                {
+                    "redact_column": "(555) 987-6543"
+                }
+            ],
+            "output_rows": [
+                {
+                    "redact_column": "REDACTED"
+                },
+                {
+                    "redact_column": "REDACTED"
+                }
+            ],
+            "spec": {
+                "columns": [
+                    {
+                        "name": "redact_column",
+                        "type": "redact",
+                        "entire_value": true
+                    }
+                ]
+            }
+        }
+    ]
+}

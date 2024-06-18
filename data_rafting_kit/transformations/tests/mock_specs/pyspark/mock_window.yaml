@@ -1,4 +1,4 @@
-type: window_function
+type: window
 name: apply_window_function
 params:
   partition_by:
