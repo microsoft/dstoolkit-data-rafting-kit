@@ -61,8 +61,8 @@ def test_transformation_data(transformation_spec_model, spark_session, logger):
             dfs = OrderedDict()
             dfs["input_df"] = input_rows_df
 
-            TransformationFactory(spark_session, logger, dfs).process_data_quality(
-                transformation_spec
+            TransformationFactory(spark_session, logger, dfs).process_transformation(
+                transformation_spec.root
             )
 
             output_rows = spark_session.createDataFrame(mock_dataset["output_rows"])
