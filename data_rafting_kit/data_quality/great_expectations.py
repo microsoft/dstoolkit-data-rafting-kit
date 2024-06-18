@@ -191,7 +191,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
         fixed_expr = re.sub(pattern, add_quotes, sql_expr)
 
         # Regex pattern to match unquoted strings after comparison operators
-        comparison_pattern = r"(\s(=|!=|<|>|<=|>=)\s)([a-zA-Z0-9_]+)"
+        comparison_pattern = r"(\s(=|!=|<|>|<=|>=|<=>)\s)([a-zA-Z0-9_]+)"
 
         # Function to add quotes around the unquoted strings after comparison operators
         def add_quotes_comparison(match: str) -> str:
