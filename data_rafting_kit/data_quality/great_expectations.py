@@ -32,6 +32,8 @@ EXCLUDED_GREAT_EXPECTATION_CHECKS = [
     "expect_column_kl_divergence_to_be_less_than",
     "expect_column_quantile_values_to_be_between",
     "expect_table_row_count_to_equal_other_table",
+    "expect_column_values_to_match_strftime_format",
+    "expect_column_values_to_be_json_parseable",
 ]
 GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY = [
     x
