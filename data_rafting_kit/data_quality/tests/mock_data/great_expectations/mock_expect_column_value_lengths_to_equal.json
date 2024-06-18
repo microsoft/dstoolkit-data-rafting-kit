@@ -21,7 +21,7 @@
           "column_1": "xyz"
         },
         {
-          "column_1": "pqrst"
+          "column_1": "pqrs"
         }
       ],
       "passing_rows": [
@@ -29,15 +29,12 @@
           "column_1": "abcd"
         },
         {
-          "column_1": "pqrst"
+          "column_1": "pqrs"
         }
       ],
       "spec": {
         "column": "column_1",
-        "value_length": {
-          "max_value": 5,
-          "min_value": 3
-        }
+        "value": 4
       }
     },
     {
@@ -45,32 +42,29 @@
       "fails": false,
       "input_rows": [
         {
-          "column_1": "abc"
+          "column_1": "abcd"
         },
         {
           "column_1": "defg"
         },
         {
-          "column_1": "ijklm"
+          "column_1": "ijkl"
         }
       ],
       "passing_rows": [
         {
-          "column_1": "abc"
+          "column_1": "abcd"
         },
         {
           "column_1": "defg"
         },
         {
-          "column_1": "ijklm"
+          "column_1": "ijkl"
         }
       ],
       "spec": {
         "column": "column_1",
-        "value_length": {
-          "max_value": 5,
-          "min_value": 3
-        }
+        "value": 4
       }
     }
   ],
