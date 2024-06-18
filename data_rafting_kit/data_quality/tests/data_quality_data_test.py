@@ -86,7 +86,7 @@ def run_data_quality_check(mode, mock_spec, mock_dataset, spark_session, logger)
 
 
 @pytest.mark.parametrize("data_quality_spec_model", ALL_DATA_QUALITY_SPECS)
-def test_data_quality_check(data_quality_spec_model, spark_session, logger):
+def test_data_quality_data(data_quality_spec_model, spark_session, logger):
     """Test that the transformation spec can be loaded from the mock spec file.
 
     Args:

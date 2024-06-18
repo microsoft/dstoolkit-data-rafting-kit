@@ -32,8 +32,6 @@ EXCLUDED_GREAT_EXPECTATION_CHECKS = [
     "expect_column_kl_divergence_to_be_less_than",
     "expect_column_quantile_values_to_be_between",
     "expect_table_row_count_to_equal_other_table",
-    "expect_column_values_to_match_strftime_format",
-    "expect_column_values_to_be_json_parseable",
 ]
 GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY = [
     x
@@ -200,12 +198,13 @@ class GreatExpectationsDataQuality(DataQualityBase):
         index_filter_query_set_parts = []
         for column_identifier in unique_column_identifiers:
             if len(row_filter_query[column_identifier]) > 0:
+                formatted_values = ", ".join(row_filter_query[column_identifier])
                 index_filter_query_set_parts.append(
-                    f"{column_identifier} IN ({', '.join(map(str, row_filter_query[column_identifier]))})"
+                    f"{column_identifier} IN ({formatted_values})"
                 )
 
         filtered_query = " AND ".join(index_filter_query_set_parts)
-
+        print(filtered_query)
         return filtered_query
 
     def split_dataframe(
