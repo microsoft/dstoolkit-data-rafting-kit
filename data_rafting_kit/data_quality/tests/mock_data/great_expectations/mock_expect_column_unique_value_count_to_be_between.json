@@ -1,73 +1,49 @@
 {
   "mock_data": [
     {
-      "failing_rows": [],
-      "fails": false,
-      "input_rows": [
-        {
-          "column_1": "value1"
-        },
-        {
-          "column_1": "value2"
-        },
-        {
-          "column_1": "value3"
-        },
-        {
-          "column_1": "value1"
-        },
-        {
-          "column_1": "value2"
-        }
-      ],
-      "passing_rows": [
-        {
-          "column_1": "value1"
-        },
-        {
-          "column_1": "value2"
-        },
-        {
-          "column_1": "value3"
-        },
-        {
-          "column_1": "value1"
-        },
-        {
-          "column_1": "value2"
-        }
-      ],
-      "spec": {
-        "column": "column_1",
-        "max_value_count": 3,
-        "min_value_count": 2
-      }
-    },
-    {
       "failing_rows": [
         {
-          "column_1": "value1"
+          "column_1": "value1",
+          "id": 1
         },
         {
-          "column_1": "value2"
+          "column_1": "value2",
+          "id": 2
         },
         {
-          "column_1": "value3"
+          "column_1": "value3",
+          "id": 3
+        },
+        {
+          "column_1": "value1",
+          "id": 4
+        },
+        {
+          "column_1": "value2",
+          "id": 5
         }
       ],
       "fails": true,
       "input_rows": [
         {
-          "column_1": "value1"
+          "column_1": "value1",
+          "id": 1
         },
         {
-          "column_1": "value2"
+          "column_1": "value2",
+          "id": 2
         },
         {
-          "column_1": "value3"
+          "column_1": "value3",
+          "id": 3
         },
         {
-          "column_1": "value4"
+          "column_1": "value1",
+          "id": 4
+        },
+        {
+          "column_1": "value2",
+          "id": 5
         }
       ],
       "passing_rows": [],
@@ -76,9 +52,54 @@
         "max_value_count": 3,
         "min_value_count": 2
       }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "value1",
+          "id": 1
+        },
+        {
+          "column_1": "value2",
+          "id": 2
+        },
+        {
+          "column_1": "value3",
+          "id": 3
+        },
+        {
+          "column_1": "value4",
+          "id": 4
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "value1",
+          "id": 1
+        },
+        {
+          "column_1": "value2",
+          "id": 2
+        },
+        {
+          "column_1": "value3",
+          "id": 3
+        },
+        {
+          "column_1": "value4",
+          "id": 4
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "max_value_count": 4,
+        "min_value_count": 2
+      }
     }
   ],
   "unique_column_identifiers": [
-    "column_1"
+    "id"
   ]
 }

@@ -5,13 +5,21 @@
         {
           "column_1": "value1",
           "column_2": "value2"
+        },
+        {
+          "column_1": "value2",
+          "column_2": "value1"
         }
       ],
-      "fails": false,
+      "fails": true,
       "input_rows": [
         {
           "column_1": "value1",
           "column_2": "value2"
+        },
+        {
+          "column_1": "value2",
+          "column_2": "value1"
         }
       ],
       "passing_rows": [],
@@ -25,25 +33,30 @@
       "input_rows": [
         {
           "column_1": "value1",
-          "column_2": "value2",
-          "column_3": "value3"
+          "column_2": "value2"
+        },
+        {
+          "column_1": "value2",
+          "column_2": "value1"
         }
       ],
       "passing_rows": [
         {
           "column_1": "value1",
-          "column_2": "value2",
-          "column_3": "value3"
+          "column_2": "value2"
+        },
+        {
+          "column_1": "value2",
+          "column_2": "value1"
         }
       ],
       "spec": {
-        "column": "column_3"
+        "column": "column_1"
       }
     }
   ],
   "unique_column_identifiers": [
     "column_1",
-    "column_2",
-    "column_3"
+    "column_2"
   ]
 }
