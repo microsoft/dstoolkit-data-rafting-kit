@@ -1,5 +1,41 @@
 import re
 
+import pytest
+from pyspark.sql import SparkSession
+
+
+@pytest.fixture(scope="function")
+def spark_session():
+    """Fixture to set up Spark session for all tests."""
+    spark = (
+        SparkSession.builder.appName("DataQualityTests")
+        .master("local[*]")
+        .getOrCreate()
+    )
+    yield spark
+    spark.stop()
+
+
+@pytest.fixture(scope="session")
+def logger():
+    """Fixture to set up a fake logger for all tests."""
+
+    class FakeLogger:
+        def __init__(self):
+            self.logs = []
+
+        def info(self, message):
+            self.logs.append(f"INFO: {message}")
+
+        def error(self, message):
+            self.logs.append(f"ERROR: {message}")
+
+        def get_logs(self):
+            return self.logs
+
+    fake_logger = FakeLogger()
+    yield fake_logger
+
 
 def extract_and_convert_model_name_to_file_name(
     input_string, pattern
@@ -24,9 +60,7 @@ def extract_and_convert_model_name_to_file_name(
 
     # Convert to lowercase and replace camel case with underscores
     # First, insert underscores before each uppercase letter (except the first one)
-    converted_file_name = (
-        "mock_" + re.sub(r"(?<!^)(?=[A-Z])", "_", match.group(2)).lower()
-    )
+    converted_file_name = re.sub(r"(?<!^)(?=[A-Z])", "_", match.group(2)).lower()
 
     converted_directory_name = re.sub(r"(?<!^)(?=[A-Z])", "_", match.group(1)).lower()
 

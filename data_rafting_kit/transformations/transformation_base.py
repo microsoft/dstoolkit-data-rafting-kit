@@ -22,7 +22,7 @@ class TransformationEnum(StrEnum):
     JOIN = "join"
     WITH_COLUMNS = "with_columns"
     WITH_COLUMNS_RENAMED = "with_columns_renamed"
-    WINDOW_FUNCTION = "window_function"
+    WINDOW = "window"
     SELECT = "select"
 
 

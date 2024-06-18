@@ -35,7 +35,7 @@ class TransformationMapping:
         TransformationEnum.WITH_COLUMNS_RENAMED: (
             getattr(DataFrame, "withColumnsRenamed", None),
         ),
-        TransformationEnum.WINDOW_FUNCTION: (
+        TransformationEnum.WINDOW: (
             PysparkTransformation,
             PysparkTransformation.apply_window_function,
         ),
