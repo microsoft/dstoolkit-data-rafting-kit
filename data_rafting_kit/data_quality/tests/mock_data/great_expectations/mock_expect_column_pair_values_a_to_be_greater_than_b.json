@@ -3,16 +3,8 @@
     {
       "failing_rows": [
         {
-          "column_A": 10,
-          "column_B": 20
-        },
-        {
-          "column_A": 5,
-          "column_B": 5
-        },
-        {
-          "column_A": "abc",
-          "column_B": "def"
+          "column_A": "xyz",
+          "column_B": "abc"
         }
       ],
       "fails": true,
@@ -32,12 +24,12 @@
       ],
       "passing_rows": [
         {
-          "column_A": 100,
-          "column_B": 50
+          "column_A": 10,
+          "column_B": 5
         },
         {
-          "column_A": 20,
-          "column_B": 10
+          "column_A": 100,
+          "column_B": 50
         }
       ],
       "spec": {
@@ -60,9 +52,30 @@
         {
           "column_A": 20,
           "column_B": 10
+        },
+        {
+          "column_A": "abc",
+          "column_B": "xyz"
         }
       ],
-      "passing_rows": [],
+      "passing_rows": [
+        {
+          "column_A": 100,
+          "column_B": 200
+        },
+        {
+          "column_A": 50,
+          "column_B": 10
+        },
+        {
+          "column_A": 20,
+          "column_B": 10
+        },
+        {
+          "column_A": "abc",
+          "column_B": "xyz"
+        }
+      ],
       "spec": {
         "column_a": "column_A",
         "column_b": "column_B"
