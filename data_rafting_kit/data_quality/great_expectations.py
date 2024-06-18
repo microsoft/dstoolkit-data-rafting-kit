@@ -164,7 +164,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
 
     def get_filter_expression(
         self, unique_column_identifiers: list, results: list
-    ) -> str:
+    ) -> str | None:
         """Gets the filter expression for the failing rows.
 
         Args:
@@ -174,7 +174,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
 
         Returns:
         -------
-            str: The filter expression.
+            str | None: The filter expression. Returns none if all the rows fail.
         """
         row_filter_query = {}
 
@@ -182,23 +182,77 @@ class GreatExpectationsDataQuality(DataQualityBase):
             row_filter_query[column_identifier] = set()
 
         for result in results.results:
-            unexpected_index_list = result.result.get("unexpected_index_list", [])
+            if result.success is False:
+                unexpected_index_list = result.result.get("unexpected_index_list", [])
 
-            for unexpected_index in unexpected_index_list:
-                for column_identifier in unique_column_identifiers:
-                    row_filter_query[column_identifier].add(
-                        self.escape_quotes(unexpected_index[column_identifier])
-                    )
+                if len(unexpected_index_list) == 0:
+                    return None
+
+                for unexpected_index in unexpected_index_list:
+                    for column_identifier in unique_column_identifiers:
+                        row_filter_query[column_identifier].add(
+                            self.escape_quotes(unexpected_index[column_identifier])
+                        )
 
         index_filter_query_set_parts = []
         for column_identifier in unique_column_identifiers:
-            index_filter_query_set_parts.append(
-                f"{column_identifier} IN ({', '.join(map(str, row_filter_query[column_identifier]))})"
-            )
+            if len(row_filter_query[column_identifier]) > 0:
+                index_filter_query_set_parts.append(
+                    f"{column_identifier} IN ({', '.join(map(str, row_filter_query[column_identifier]))})"
+                )
 
         filtered_query = " AND ".join(index_filter_query_set_parts)
 
         return filtered_query
+
+    def split_dataframe(
+        self,
+        failed_flag_column_name,
+        combined_filter_expression,
+        input_df: DataFrame,
+        spec: GreatExpectationBaseSpec,
+    ) -> tuple[DataFrame, DataFrame | None]:
+        """Splits the input DataFrame based on the data quality mode.
+
+        Args:
+        ----
+            failed_flag_column_name (str): The failed flag column name.
+            combined_filter_expression (str): The combined filter expression.
+            input_df (DataFrame): The input DataFrame.
+            spec (GreatExpectationBaseSpec): The data quality expectation specification.
+
+        Returns:
+        -------
+            tuple[DataFrame, DataFrame | None]: The output DataFrame and the failing rows DataFrame.
+        """
+        if spec.mode == DataQualityModeEnum.FLAG:
+            if combined_filter_expression is None:
+                input_df = input_df.withColumn(
+                    failed_flag_column_name,
+                    f.lit(False),
+                )
+            else:
+                input_df = input_df.withColumn(
+                    failed_flag_column_name,
+                    f.when(f.expr(combined_filter_expression), f.lit(True)).otherwise(
+                        f.lit(False)
+                    ),
+                )
+
+            return input_df, None
+        elif spec.mode in [DataQualityModeEnum.SEPARATE, DataQualityModeEnum.DROP]:
+            if combined_filter_expression is None:
+                failing_rows_df = input_df
+                input_df = self._spark.createDataFrame([], schema=input_df.schema)
+            else:
+                failing_rows_df = input_df.filter(f.expr(combined_filter_expression))
+
+                input_df = input_df.subtract(failing_rows_df)
+
+            if spec.mode == DataQualityModeEnum.DROP:
+                return input_df, None
+
+            return input_df, failing_rows_df
 
     def expectation(
         self, spec: GreatExpectationBaseSpec, input_df: DataFrame
@@ -272,6 +326,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
             failed_flag_column_name = f"failed_{spec.name}_dq"
             if results["success"] is True:
                 if spec.mode == DataQualityModeEnum.FLAG:
+                    failing_rows_df = None
                     input_df = input_df.withColumn(
                         failed_flag_column_name, f.lit(False)
                     )
@@ -279,29 +334,16 @@ class GreatExpectationsDataQuality(DataQualityBase):
                     failing_rows_df = self._spark.createDataFrame(
                         [], schema=input_df.schema
                     )
-                    return input_df, failing_rows_df
             else:
                 combined_filter_expression = self.get_filter_expression(
                     spec.unique_column_identifiers, results
                 )
 
-                if spec.mode == DataQualityModeEnum.FLAG:
-                    input_df = input_df.withColumn(
-                        failed_flag_column_name,
-                        f.when(
-                            f.expr(combined_filter_expression), f.lit(True)
-                        ).otherwise(f.lit(False)),
-                    )
+                input_df, failing_rows_df = self.split_dataframe(
+                    failed_flag_column_name, combined_filter_expression, input_df, spec
+                )
 
-                    return input_df
-                elif spec.mode == DataQualityModeEnum.SEPARATE:
-                    failing_rows_df = input_df.filter(
-                        f.expr(combined_filter_expression)
-                    )
+        if failing_rows_df is not None:
+            return input_df, failing_rows_df
 
-                    input_df = input_df.subtract(failing_rows_df)
-
-                    if spec.mode == DataQualityModeEnum.SEPARATE:
-                        return input_df, failing_rows_df
-
-            return input_df
+        return input_df
