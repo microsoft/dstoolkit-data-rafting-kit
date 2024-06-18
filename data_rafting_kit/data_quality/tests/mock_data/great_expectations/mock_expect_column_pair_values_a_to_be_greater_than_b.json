@@ -41,8 +41,8 @@
         }
       ],
       "spec": {
-        "column_A": "column_A",
-        "column_B": "column_B"
+        "column_a": "column_A",
+        "column_b": "column_B"
       }
     },
     {
@@ -64,8 +64,8 @@
       ],
       "passing_rows": [],
       "spec": {
-        "column_A": "column_A",
-        "column_B": "column_B"
+        "column_a": "column_A",
+        "column_b": "column_B"
       }
     }
   ],

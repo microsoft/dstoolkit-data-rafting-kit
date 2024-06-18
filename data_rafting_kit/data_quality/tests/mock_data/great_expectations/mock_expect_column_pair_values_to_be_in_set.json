@@ -4,15 +4,11 @@
       "failing_rows": [
         {
           "column_A": "value1",
-          "column_B": "value2"
+          "column_B": "value1"
         },
         {
-          "column_A": 10,
-          "column_B": 20
-        },
-        {
-          "column_A": "value1",
-          "column_B": "value3"
+          "column_A": 100,
+          "column_B": 100
         }
       ],
       "fails": true,
@@ -26,8 +22,12 @@
           "column_B": 100
         },
         {
-          "column_A": "value2",
+          "column_A": "value1",
           "column_B": "value2"
+        },
+        {
+          "column_A": "value2",
+          "column_B": "value1"
         }
       ],
       "passing_rows": [
@@ -72,7 +72,20 @@
           "column_B": "value3"
         }
       ],
-      "passing_rows": [],
+      "passing_rows": [
+        {
+          "column_A": "value1",
+          "column_B": "value2"
+        },
+        {
+          "column_A": "value2",
+          "column_B": "value1"
+        },
+        {
+          "column_A": "value3",
+          "column_B": "value3"
+        }
+      ],
       "spec": {
         "column_a": "column_A",
         "column_b": "column_B",
