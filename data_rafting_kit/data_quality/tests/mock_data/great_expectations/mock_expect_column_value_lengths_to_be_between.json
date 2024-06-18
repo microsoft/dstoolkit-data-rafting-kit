@@ -3,7 +3,7 @@
     {
       "failing_rows": [
         {
-          "column_1": "abc"
+          "column_1": "abcde"
         },
         {
           "column_1": "uvwxyz"
@@ -29,16 +29,13 @@
           "column_1": "abcd"
         },
         {
-          "column_1": "abcde"
-        },
-        {
           "column_1": "pqrs"
         }
       ],
       "spec": {
         "column": "column_1",
         "inclusive": true,
-        "max_value": 6,
+        "max_value": 4,
         "min_value": 3
       }
     },
