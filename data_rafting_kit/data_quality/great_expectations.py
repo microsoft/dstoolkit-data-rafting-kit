@@ -242,8 +242,9 @@ class GreatExpectationsDataQuality(DataQualityBase):
             return input_df, None
         elif spec.mode in [DataQualityModeEnum.SEPARATE, DataQualityModeEnum.DROP]:
             if combined_filter_expression is None:
-                failing_rows_df = input_df
-                input_df = self._spark.createDataFrame([], schema=input_df.schema)
+                empty_df = self._spark.createDataFrame([], schema=input_df.schema)
+
+                return empty_df, input_df
             else:
                 failing_rows_df = input_df.filter(f.expr(combined_filter_expression))
 
