@@ -29,7 +29,7 @@ def test_transformation_spec_loads(transformation_spec_model):
     try:
         with open(
             Path(
-                f"./data_rafting_kit/transformations/tests/mock_specs/{mock_directory}/{mock_spec_file_name}.yaml"
+                f"./data_rafting_kit/transformations/tests/mock_specs/{mock_directory}/mock_{mock_spec_file_name}.yaml"
             )
         ) as file:
             mock_spec = yaml.safe_load(file)
