@@ -1,1 +1,103 @@
-{}
+{
+    "mock_data": [
+      {
+        "input_rows": [
+          {
+            "test_column": 1,
+            "test_column_2": 10,
+            "column_3": "2024-01-01"
+          },
+          {
+            "test_column": 2,
+            "test_column_2": 20,
+            "column_3": "2024-01-02"
+          },
+          {
+            "test_column": 3,
+            "test_column_2": 30,
+            "column_3": "2024-01-03"
+          }
+        ],
+        "output_rows": [
+          {
+            "test_column": 2,
+            "test_column_2": 10,
+            "column_3": "2024-01-01",
+            "new_column": 11
+          },
+          {
+            "test_column": 3,
+            "test_column_2": 20,
+            "column_3": "2024-01-02",
+            "new_column": 22
+          },
+          {
+            "test_column": 4,
+            "test_column_2": 30,
+            "column_3": "2024-01-03",
+            "new_column": 33
+          }
+        ],
+        "spec": {
+          "columns": [
+            {
+              "name": "test_column",
+              "expr": "test_column + 1"
+            },
+            {
+              "name": "test_column_2",
+              "expr": "test_column_2"
+            },
+            {
+              "name": "new_column",
+              "expr": "test_column + test_column_2"
+            }
+          ]
+        }
+      },
+      {
+        "input_rows": [
+          {
+            "column_1": 100,
+            "column_2": 200,
+            "column_3": "300"
+          },
+          {
+            "column_1": 110,
+            "column_2": 210,
+            "column_3": "310"
+          }
+        ],
+        "output_rows": [
+          {
+            "column_1": 101,
+            "column_2": 200,
+            "column_3": "300",
+            "new_column": "100-200"
+          },
+          {
+            "column_1": 111,
+            "column_2": 210,
+            "column_3": "310",
+            "new_column": "110-210"
+          }
+        ],
+        "spec": {
+          "columns": [
+            {
+              "name": "column_1",
+              "expr": "column_1 + 1"
+            },
+            {
+              "name": "column_2",
+              "expr": "column_2"
+            },
+            {
+              "name": "new_column",
+              "expr": "column_1 || '-' || column_2"
+            }
+          ]
+        }
+      }
+    ]
+  }

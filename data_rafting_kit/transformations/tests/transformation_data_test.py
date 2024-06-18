@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from pyspark.testing import assertDataFrameEqual
 
 from data_rafting_kit.common.test_utils import (
-    extract_and_convert_model_name_to_file_name,
+    extract_and_convert_model_name_to_file_name,  # ignore: F401
 )
 from data_rafting_kit.transformations.transformation_factory import (
     TransformationFactory,
@@ -51,8 +51,10 @@ def test_transformation_data(transformation_spec_model, spark_session, logger):
         mock_spec = {
             "name": "test_transformation",
             "type": mock_data_file_name,
-            "params": mock_dataset["spec"],
         }
+
+        if len(mock_dataset["spec"]) > 0:
+            mock_spec["params"] = mock_dataset["spec"]
 
         try:
             transformation_spec = TransformationRootSpec.model_validate(mock_spec)
@@ -65,9 +67,20 @@ def test_transformation_data(transformation_spec_model, spark_session, logger):
                 transformation_spec.root
             )
 
-            output_rows = spark_session.createDataFrame(mock_dataset["output_rows"])
+            expected_output_rows = spark_session.createDataFrame(
+                mock_dataset["output_rows"]
+            )
 
-            assertDataFrameEqual(dfs["test_transformation"], output_rows)
+            # Alphabetic sort of columns to ensure order is consistent
+            output_rows_sorted_columns = sorted(dfs["test_transformation"].columns)
+            output_rows = dfs["test_transformation"].select(*output_rows_sorted_columns)
+
+            expected_output_rows_sorted_columns = sorted(expected_output_rows.columns)
+            expected_output_rows = expected_output_rows.select(
+                *expected_output_rows_sorted_columns
+            )
+
+            assertDataFrameEqual(output_rows, expected_output_rows)
 
         except ValidationError as e:
             print(f"Full loaded spec: {mock_spec}")

@@ -6,7 +6,6 @@ from data_rafting_kit.transformations.transformation_mapping import (
     TransformationMapping,
 )
 from data_rafting_kit.transformations.transformation_spec import (
-    PYSPARK_DYNAMIC_TRANSFORMATIONS_PARAMATER_REPLACEMENT_MAP,
     TransformationBaseSpec,
 )
 
@@ -33,13 +32,6 @@ class TransformationFactory(BaseFactory):
             )[0]
 
             params = spec.params.model_dump(by_alias=False)
-            if spec.type in PYSPARK_DYNAMIC_TRANSFORMATIONS_PARAMATER_REPLACEMENT_MAP:
-                replacement_map = (
-                    PYSPARK_DYNAMIC_TRANSFORMATIONS_PARAMATER_REPLACEMENT_MAP[spec.type]
-                )
-                for original, replacement in replacement_map.items():
-                    if original in params:
-                        params[replacement] = params.pop(original)
 
             sig = inspect.signature(transformation_function)
             if any(

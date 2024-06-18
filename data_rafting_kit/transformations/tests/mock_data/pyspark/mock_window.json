@@ -1,1 +1,60 @@
-{}
+{
+    "mock_data": [
+      {
+        "input_rows": [
+          {
+            "partition_column": "A",
+            "order_column": 1,
+            "data_column": "Value1"
+          },
+          {
+            "partition_column": "A",
+            "order_column": 2,
+            "data_column": "Value2"
+          },
+          {
+            "partition_column": "B",
+            "order_column": 3,
+            "data_column": "Value3"
+          },
+          {
+            "partition_column": "B",
+            "order_column": 4,
+            "data_column": "Value4"
+          }
+        ],
+        "output_rows": [
+          {
+            "partition_column": "A",
+            "order_column": 1,
+            "data_column": "Value1",
+            "row_number_column": 1
+          },
+          {
+            "partition_column": "A",
+            "order_column": 2,
+            "data_column": "Value2",
+            "row_number_column": 2
+          },
+          {
+            "partition_column": "B",
+            "order_column": 3,
+            "data_column": "Value3",
+            "row_number_column": 1
+          },
+          {
+            "partition_column": "B",
+            "order_column": 4,
+            "data_column": "Value4",
+            "row_number_column": 2
+          }
+        ],
+        "spec": {
+          "partition_by": ["partition_column"],
+          "order_by": ["order_column"],
+          "window_function": "row_number",
+          "column": "row_number_column"
+        }
+      }
+    ]
+  }

@@ -12,7 +12,6 @@ from data_rafting_kit.transformations.transformation_base import (
 
 # Store the transformations we can infer automatically from the PySpark API. Here we can avoid writing specs
 PYSPARK_DYNAMIC_TRANSFORMATIONS = (
-    TransformationEnum.AGG,
     TransformationEnum.DISTINCT,
     TransformationEnum.DROP,
     TransformationEnum.DROP_DUPLICATES,

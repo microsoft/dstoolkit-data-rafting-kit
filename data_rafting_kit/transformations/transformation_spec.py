@@ -4,7 +4,7 @@ import re
 import typing
 from typing import Annotated, Literal, Union
 
-from pydantic import ConfigDict, Field, RootModel, create_model
+from pydantic import BaseModel, ConfigDict, Field, RootModel, create_model
 
 from data_rafting_kit.transformations.presido import PRESIDO_TRANSFORMATION_SPECS
 from data_rafting_kit.transformations.pyspark import (
@@ -99,6 +99,13 @@ PYSPARK_DYNAMIC_TRANSFORMATIONS_PARAMATER_REPLACEMENT_MAP = {
     "with_columns_renamed": {"colsMap": "columns_map"},
 }
 
+
+class EmptyParamsSpec(BaseModel):
+    """Empty parameters spec for dynamic transformations that don't have any parameters."""
+
+    pass
+
+
 dynamic_pyspark_transformation_models = []
 for transformation in PYSPARK_DYNAMIC_TRANSFORMATIONS:
     param_fields = {}
@@ -156,7 +163,7 @@ for transformation in PYSPARK_DYNAMIC_TRANSFORMATIONS:
     else:
         fields = {
             "type": Annotated[Literal[transformation], Field(...)],
-            "params": Annotated[None, Field(default_factory=dict)],
+            "params": Annotated[None, Field(default_factory=EmptyParamsSpec)],
         }
 
     normalised_transformation_name = (

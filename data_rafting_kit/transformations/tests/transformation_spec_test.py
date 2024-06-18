@@ -6,6 +6,7 @@ from pydantic import ValidationError
 
 from data_rafting_kit.common.test_utils import (
     extract_and_convert_model_name_to_file_name,
+    logger,  # noqa
 )
 from data_rafting_kit.transformations.transformation_spec import (
     ALL_TRANSFORMATION_SPECS,
