@@ -13,6 +13,7 @@ class TargetEnum(StrEnum):
 
     FABRIC = "fabric"
     DATABRICKS = "databricks"
+    LOCAL = "local"
 
 
 class EnvSpec(BaseModel):
