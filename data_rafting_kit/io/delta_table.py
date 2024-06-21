@@ -66,6 +66,7 @@ class DeltaTableOutputParamSpec(OutputBaseParamSpec):
     partition_by: list[str] | None = Field(default=None)
     optimize: DeltaTableOptimizeSpec | None = Field(default=None, alias="optimise")
     merge_spec: DeltaTableMergeSpec | None = Field(default=None)
+    streaming: bool | None = Field(default=False)
 
     @model_validator(mode="after")
     def validate_merge_spec(self):
@@ -88,6 +89,7 @@ class DeltaTableInputParamSpec(InputBaseParamSpec):
 
     table: str | None = Field(default=None)
     location: str | None = Field(default=None)
+    streaming: bool | None = Field(default=False)
 
 
 class DeltaTableInputSpec(InputBaseSpec):
@@ -113,7 +115,9 @@ class DeltaTableIO(IOBase):
         """
         self._logger.info("Reading from Delta Table...")
 
-        reader = self._spark.read.options(**spec.params.options)
+        reader = self._spark.readStream if spec.params.streaming else self._spark.read
+
+        reader = reader.options(**spec.params.options)
 
         if spec.params.table is not None:
             return reader.table(spec.params.table)
@@ -249,7 +253,11 @@ class DeltaTableIO(IOBase):
                 spec.params.mode = DeltaTableModeEnum.OVERWRITE
 
             writer = (
-                input_df.write.format("delta")
+                self._spark.writeStream if spec.params.streaming else self._spark.write
+            )
+
+            writer = (
+                writer.format("delta")
                 .options(**spec.params.options)
                 .mode(spec.params.mode)
             )
