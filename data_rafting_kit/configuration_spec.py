@@ -1,6 +1,6 @@
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from data_rafting_kit.data_quality.data_quality_spec import DataQualityRootSpec
 from data_rafting_kit.io.io_spec import InputRootSpec, OutputRootSpec
@@ -16,10 +16,34 @@ class TargetEnum(StrEnum):
     LOCAL = "local"
 
 
+class SecretSpec(BaseModel):
+    """Secret specification. Used to specify the secret storage and key vault URI."""
+
+    secret_storage: TargetEnum
+    key_vault_uri: str | None = Field(default=None)
+
+    @model_validator(mode="after")
+    def validate_secret_spec(self):
+        """Validates the secret spec."""
+        if self.secret_storage == TargetEnum.FABRIC and self.key_vault_uri is None:
+            raise ValueError("Key vault URI is required for fabric secret storage.")
+
+        return self
+
+
 class EnvSpec(BaseModel):
     """Environment specification. Used to specify changes to the environment and config."""
 
     target: TargetEnum
+    secrets: SecretSpec | None = Field(default=None)
+
+    @model_validator(mode="after")
+    def default_secrets_spec_creator(self):
+        """Validates and adds default values for the secret storage."""
+        if self.secrets is None:
+            self.secrets = SecretSpec(secret_storage=self.target)
+
+        return self
 
 
 class PipelineSpec(BaseModel):
