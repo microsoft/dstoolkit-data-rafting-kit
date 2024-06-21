@@ -249,8 +249,8 @@ class DeltaTableIO(IOBase):
                 spec.params.mode = DeltaTableModeEnum.OVERWRITE
 
             writer = (
-                input_df.write.options(**spec.params.options)
-                .format("delta")
+                input_df.write.format("delta")
+                .options(**spec.params.options)
                 .mode(spec.params.mode)
             )
 

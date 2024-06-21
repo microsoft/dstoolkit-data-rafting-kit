@@ -2,7 +2,7 @@ import os
 
 from pydantic import BaseModel
 
-from data_rafting_kit.configuration_spec import EnvSpec, TargetEnum
+from data_rafting_kit.env_spec import EnvSpec, TargetEnum
 
 
 class Secret(BaseModel):

@@ -1,4 +1,5 @@
 from data_rafting_kit.io.delta_table import DeltaTableIO
+from data_rafting_kit.io.event_hub import EventHubIO
 from data_rafting_kit.io.file import FileIO
 from data_rafting_kit.io.io_base import IOEnum
 
@@ -21,6 +22,7 @@ class IOMapping:
         map = {
             IOEnum.DELTA_TABLE: (DeltaTableIO, DeltaTableIO.read),
             IOEnum.FILE: (FileIO, FileIO.read),
+            IOEnum.EVENT_HUB: (EventHubIO, EventHubIO.read),
         }
 
         if key not in map:
@@ -43,6 +45,7 @@ class IOMapping:
         map = {
             IOEnum.DELTA_TABLE: (DeltaTableIO, DeltaTableIO.write),
             IOEnum.FILE: (FileIO, FileIO.write),
+            IOEnum.EVENT_HUB: (EventHubIO, EventHubIO.write),
         }
 
         if key not in map:

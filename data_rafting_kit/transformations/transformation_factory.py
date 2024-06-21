@@ -46,7 +46,7 @@ class TransformationFactory(BaseFactory):
                 transformation_function,
             ) = TransformationMapping.get_transformation_map(spec.type)
             df = getattr(
-                transformation_class(self._spark, self._logger, self._dfs),
+                transformation_class(self._spark, self._logger, self._dfs, self._env),
                 transformation_function.__name__,
             )(spec, input_df)
 

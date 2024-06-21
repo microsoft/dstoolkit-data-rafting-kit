@@ -13,6 +13,7 @@ class IOEnum(StrEnum):
 
     DELTA_TABLE = "delta_table"
     FILE = "file"
+    EVENT_HUB = "event_hub"
 
 
 class SchemaFieldSpec(BaseModel):
@@ -75,14 +76,15 @@ class IOBase:
 
     """
 
-    def __init__(self, spark: SparkSession, logger: Logger):
+    def __init__(self, spark: SparkSession, logger: Logger, env):
         """Initializes an instance of the IO class.
 
         Args:
         ----
             spark (SparkSession): The SparkSession object.
             logger (Logger): The logger object.
-
+            env (EnvSpec): The environment specification.
         """
         self._spark = spark
         self._logger = logger
+        self._env = env
