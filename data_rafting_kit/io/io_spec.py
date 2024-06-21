@@ -1,5 +1,6 @@
 from pydantic import Field, RootModel
 
+from data_rafting_kit.io.console import ConsoleOutputSpec
 from data_rafting_kit.io.delta_table import DeltaTableInputSpec, DeltaTableOutputSpec
 from data_rafting_kit.io.event_hub import EventHubInputSpec, EventHubOutputSpec
 from data_rafting_kit.io.file import FileInputSpec, FileOutputSpec
@@ -17,6 +18,6 @@ class InputRootSpec(RootModel):
 class OutputRootSpec(RootModel):
     """Root output specification. This class is used to automatically switch between output specs based on the discriminator field."""
 
-    root: DeltaTableOutputSpec | FileOutputSpec | EventHubOutputSpec = Field(
+    root: DeltaTableOutputSpec | FileOutputSpec | EventHubOutputSpec | ConsoleOutputSpec = Field(
         ..., discriminator="type"
     )

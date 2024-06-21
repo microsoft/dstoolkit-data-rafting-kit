@@ -1,3 +1,4 @@
+from data_rafting_kit.io.console import ConsoleIO
 from data_rafting_kit.io.delta_table import DeltaTableIO
 from data_rafting_kit.io.event_hub import EventHubIO
 from data_rafting_kit.io.file import FileIO
@@ -46,6 +47,7 @@ class IOMapping:
             IOEnum.DELTA_TABLE: (DeltaTableIO, DeltaTableIO.write),
             IOEnum.FILE: (FileIO, FileIO.write),
             IOEnum.EVENT_HUB: (EventHubIO, EventHubIO.write),
+            IOEnum.CONSOLE: (ConsoleIO, ConsoleIO.write),
         }
 
         if key not in map:

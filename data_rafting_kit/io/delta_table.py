@@ -1,4 +1,3 @@
-from enum import StrEnum
 from typing import Literal
 
 from delta.tables import DeltaTable
@@ -6,6 +5,7 @@ from pydantic import BaseModel, Field, model_validator
 from pyspark.sql import DataFrame
 
 from data_rafting_kit.io.io_base import (
+    BatchOutputModeEnum,
     InputBaseParamSpec,
     InputBaseSpec,
     IOBase,
@@ -13,16 +13,6 @@ from data_rafting_kit.io.io_base import (
     OutputBaseParamSpec,
     OutputBaseSpec,
 )
-
-
-class DeltaTableModeEnum(StrEnum):
-    """Enumeration class for Delta Table modes."""
-
-    APPEND = "append"
-    OVERWRITE = "overwrite"
-    ERROR = "error"
-    IGNORE = "ignore"
-    MERGE = "merge"
 
 
 class DeltaTableOptimizeSpec(BaseModel):
@@ -62,17 +52,18 @@ class DeltaTableOutputParamSpec(OutputBaseParamSpec):
 
     table: str | None = Field(default=None)
     location: str | None = Field(default=None)
-    mode: str | None = Field(default=DeltaTableModeEnum.APPEND)
     partition_by: list[str] | None = Field(default=None)
     optimize: DeltaTableOptimizeSpec | None = Field(default=None, alias="optimise")
     merge_spec: DeltaTableMergeSpec | None = Field(default=None)
-    streaming: bool | None = Field(default=False)
 
     @model_validator(mode="after")
-    def validate_merge_spec(self):
-        """Validates the merge specification."""
-        if self.mode == DeltaTableModeEnum.MERGE and self.merge_spec is None:
+    def validate_delta_table_output_param_spec(self):
+        """Validates the output specification."""
+        if self.mode == BatchOutputModeEnum.MERGE and self.merge_spec is None:
             raise ValueError("Merge specification is required when mode is 'merge'.")
+
+        if self.table is None and self.location is None:
+            raise ValueError("Table or location is required.")
 
         return self
 
@@ -89,7 +80,14 @@ class DeltaTableInputParamSpec(InputBaseParamSpec):
 
     table: str | None = Field(default=None)
     location: str | None = Field(default=None)
-    streaming: bool | None = Field(default=False)
+
+    @model_validator(mode="after")
+    def validate_delta_table_input_param_spec(self):
+        """Validates the input specification."""
+        if self.table is None and self.location is None:
+            raise ValueError("Table or location is required.")
+
+        return self
 
 
 class DeltaTableInputSpec(InputBaseSpec):
@@ -238,29 +236,30 @@ class DeltaTableIO(IOBase):
         self._logger.info("Writing to Delta Table...")
 
         table_exists = self.table_exists(spec)
-        if spec.params.mode == DeltaTableModeEnum.MERGE and table_exists:
+        if spec.params.mode == BatchOutputModeEnum.MERGE and table_exists:
             # Perform a merge operation
             self.merge_into_table(spec, input_df)
 
         elif (
-            spec.params.mode == DeltaTableModeEnum.MERGE
+            spec.params.mode == BatchOutputModeEnum.MERGE
             and not table_exists
             and spec.params.merge_spec.create_target_if_not_exists is False
         ):
             raise ValueError("Table does not exist. Cannot perform merge operation.")
         else:
-            if spec.params.mode == DeltaTableModeEnum.MERGE:
-                spec.params.mode = DeltaTableModeEnum.OVERWRITE
+            if spec.params.mode == BatchOutputModeEnum.MERGE:
+                spec.params.mode = BatchOutputModeEnum.OVERWRITE
 
-            writer = (
-                self._spark.writeStream if spec.params.streaming else self._spark.write
-            )
+            if spec.params.streaming is not None:
+                writer = input_df.writeStream.outputMode(spec.params.mode)
 
-            writer = (
-                writer.format("delta")
-                .options(**spec.params.options)
-                .mode(spec.params.mode)
-            )
+                if spec.params.streaming.trigger is not None:
+                    writer = writer.trigger(**spec.params.streaming.trigger)
+
+            else:
+                writer = input_df.write.mode(spec.params.mode)
+
+            writer = writer.format("delta").options(**spec.params.options)
 
             if spec.params.partition_by is not None:
                 writer = writer.partitionBy(**spec.params.partition_by)
@@ -270,4 +269,9 @@ class DeltaTableIO(IOBase):
             else:
                 writer.save(spec.params.location)
 
+            if spec.params.streaming is not None:
+                writer.start()
+
         self.optimize_table(spec)
+
+        return writer

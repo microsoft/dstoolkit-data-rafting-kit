@@ -125,5 +125,10 @@ class EventHubIO(IOBase):
         options = self.get_kafka_options(spec)
         options.update(spec.params.options)
 
-        writer = input_df.writeStream.format("kafka").options(**options)
-        writer.start()
+        writer = (
+            input_df.writeStream.format("kafka")
+            .outputMode(spec.params.mode)
+            .options(**options)
+        )
+
+        return writer

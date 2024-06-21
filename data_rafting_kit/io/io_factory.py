@@ -82,4 +82,10 @@ class IOFactory(BaseFactory):
         if spec.params.expected_schema is not None:
             self.validate_schema(spec, input_df)
 
-        getattr(io_object, output_function.__name__)(spec, input_df)
+        writer = getattr(io_object, output_function.__name__)(spec, input_df)
+
+        if writer is not None and spec.params.streaming is not None:
+            writer = writer.start()
+
+            if spec.params.streaming.await_termination:
+                writer.awaitTermination()
