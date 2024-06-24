@@ -49,9 +49,9 @@ class EventHubOutputParamSpec(OutputBaseParamSpec):
             if isinstance(data["streaming"], bool):
                 data["streaming"] = {}
 
-            if "checkpoint_location" not in data["streaming"]:
+            if "checkpoint" not in data["streaming"]:
                 data["streaming"][
-                    "checkpoint_location"
+                    "checkpoint"
                 ] = f"/.checkpoints/event_hub/{data['namespace']}/{data['hub']}"
 
         return data
@@ -155,7 +155,9 @@ class EventHubIO(IOBase):
         options = self.get_kafka_options(spec)
         options.update(spec.params.options)
 
-        stream = self._spark.readStream.format("kafka").options(**options).load()
+        reader = self._spark.readStream if spec.params.streaming else self._spark.read
+
+        stream = reader.format("kafka").options(**options).load()
 
         if spec.params.format is not None:
             schema = to_pyspark_schema(spec.params.format_schema)
@@ -197,10 +199,11 @@ class EventHubIO(IOBase):
 
         stream = input_df.withColumn("value", f.col("value").cast(t.BinaryType()))
 
-        writer = (
-            stream.writeStream.format("kafka")
-            .outputMode(spec.params.mode)
-            .options(**options)
-        )
+        if spec.params.streaming is not None:
+            writer = stream.writeStream.outputMode(spec.params.mode.value)
+        else:
+            writer = stream.write.mode(spec.params.mode)
+
+        writer = writer.format("kafka").options(**options)
 
         return writer

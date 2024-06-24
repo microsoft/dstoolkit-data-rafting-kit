@@ -27,8 +27,8 @@ class ConsoleOutputParamSpec(OutputBaseParamSpec):
             if isinstance(data["streaming"], bool):
                 data["streaming"] = {}
 
-            if "checkpoint_location" not in data["streaming"]:
-                data["streaming"]["checkpoint_location"] = ""
+            if "checkpoint" not in data["streaming"]:
+                data["streaming"]["checkpoint"] = ""
 
         return data
 

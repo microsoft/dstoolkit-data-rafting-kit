@@ -64,14 +64,14 @@ class DeltaTableOutputParamSpec(OutputBaseParamSpec):
             if isinstance(data["streaming"], bool):
                 data["streaming"] = {}
 
-            if "checkpoint_location" not in data["streaming"]:
+            if "checkpoint" not in data["streaming"]:
                 table_name = (
                     data["table"]
                     if "table" in data and data["table"] is not None
                     else data["location"].split("/")[-1]
                 )
                 data["streaming"][
-                    "checkpoint_location"
+                    "checkpoint"
                 ] = f"/.checkpoints/delta_table/{table_name}"
 
         return data
@@ -275,7 +275,7 @@ class DeltaTableIO(IOBase):
                 spec.params.mode = BatchOutputModeEnum.OVERWRITE
 
             if spec.params.streaming is not None:
-                writer = input_df.writeStream.outputMode(spec.params.mode)
+                writer = input_df.writeStream.outputMode(spec.params.mode.value)
             else:
                 writer = input_df.write.mode(spec.params.mode)
 

@@ -36,11 +36,9 @@ class FileOutputParamSpec(OutputBaseParamSpec):
         if data["streaming"] is not None:
             if isinstance(data["streaming"], bool):
                 data["streaming"] = {}
-            if "checkpoint_location" not in data["streaming"]:
+            if "checkpoint" not in data["streaming"]:
                 file_location = data["location"].split("/")[-1]
-                data["streaming"][
-                    "checkpoint_location"
-                ] = f"/.checkpoints/file/{file_location}"
+                data["streaming"]["checkpoint"] = f"/.checkpoints/file/{file_location}"
 
         return data
 
@@ -98,7 +96,7 @@ class FileIO(IOBase):
         self._logger.info("Writing to File...")
 
         writer = (
-            input_df.writeStream.outputMode(spec.params.mode)
+            input_df.writeStream.outputMode(spec.params.mode.value)
             if spec.params.streaming
             else input_df.write.mode(spec.params.mode)
         )

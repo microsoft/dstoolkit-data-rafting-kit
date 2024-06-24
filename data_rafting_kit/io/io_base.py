@@ -55,7 +55,7 @@ class StreamingOutputSpec(BaseModel):
 
     await_termination: bool | None = Field(default=True)
     trigger: dict | None = Field(default=None)
-    checkpoint_location: str
+    checkpoint: str
 
     @model_validator(mode="after")
     def validate_streaming_output_spec(self):
@@ -94,7 +94,7 @@ class OutputBaseParamSpec(BaseModel):
         StreamingOutputModeEnum.APPEND,
         StreamingOutputModeEnum.COMPLETE,
         StreamingOutputModeEnum.UPDATE,
-    ] | None = Field(default=BatchOutputModeEnum.APPEND.value)
+    ] | None = Field(default=BatchOutputModeEnum.APPEND)
     streaming: StreamingOutputSpec | bool | None = Field(default=None)
 
     @model_validator(mode="after")
