@@ -135,14 +135,16 @@ class DataRaftingKit:
         dfs = OrderedDict()
         self._logger.info("Executing Data Pipeline")
 
-        io_factory = IOFactory(self._spark, self._logger, dfs)
+        io_factory = IOFactory(self._spark, self._logger, dfs, data_pipeline_spec.env)
 
         for input_spec in data_pipeline_spec.pipeline.inputs:
             self._logger.info("Reading from %s", input_spec.root.name)
 
             io_factory.process_input(input_spec.root)
 
-        transformation_factory = TransformationFactory(self._spark, self._logger, dfs)
+        transformation_factory = TransformationFactory(
+            self._spark, self._logger, dfs, data_pipeline_spec.env
+        )
         for transformation_spec in data_pipeline_spec.pipeline.transformations:
             self._logger.info(
                 "Applying transformation %s", transformation_spec.root.type
@@ -150,7 +152,9 @@ class DataRaftingKit:
 
             transformation_factory.process_transformation(transformation_spec.root)
 
-        data_quality_factory = DataQualityFactory(self._spark, self._logger, dfs)
+        data_quality_factory = DataQualityFactory(
+            self._spark, self._logger, dfs, data_pipeline_spec.env
+        )
         for data_quality_check_spec in data_pipeline_spec.pipeline.data_quality:
             self._logger.info(
                 "Applying data quality check %s", data_quality_check_spec.name
@@ -162,6 +166,7 @@ class DataRaftingKit:
                 self._logger.info("Writing to %s", output_spec.root.name)
 
                 io_factory.process_output(output_spec.root)
+                io_factory.process_optimisation(output_spec.root)
 
         self._logger.info("Data Pipeline Execution Complete")
 
@@ -205,7 +210,9 @@ class DataRaftingKit:
 
             expected_dfs = OrderedDict()
 
-            io_factory = IOFactory(self._spark, self._logger, expected_dfs)
+            io_factory = IOFactory(
+                self._spark, self._logger, expected_dfs, test_pipeline_spec.env
+            )
 
             # Analyse the outputs to determine if the test passed
             for expected_output_spec in test_spec.expected_outputs:

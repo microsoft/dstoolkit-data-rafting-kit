@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import Field
+from pydantic import model_validator
 from pyspark.sql import DataFrame
 
 from data_rafting_kit.io.io_base import (
@@ -12,15 +12,6 @@ from data_rafting_kit.io.io_base import (
     OutputBaseParamSpec,
     OutputBaseSpec,
 )
-
-
-class FileModeEnum(StrEnum):
-    """Enumeration class for File modes."""
-
-    APPEND = "append"
-    OVERWRITE = "overwrite"
-    ERROR = "error"
-    IGNORE = "ignore"
 
 
 # The following classes are used to define the input and output specifications for the File.
@@ -37,7 +28,19 @@ class FileOutputParamSpec(OutputBaseParamSpec):
 
     format: Literal[FileFormatEnum.CSV, FileFormatEnum.JSON, FileFormatEnum.PARQUET]
     location: str
-    mode: str | None = Field(default=FileModeEnum.APPEND)
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_delta_table_output_param_spec_before(cls, data: dict) -> dict:
+        """Validates the Delta Table output param spec."""
+        if data["streaming"] is not None:
+            if isinstance(data["streaming"], bool):
+                data["streaming"] = {}
+            if "checkpoint" not in data["streaming"]:
+                file_location = data["location"].split("/")[-1]
+                data["streaming"]["checkpoint"] = f"/.checkpoints/file/{file_location}"
+
+        return data
 
 
 class FileOutputSpec(OutputBaseSpec):
@@ -77,11 +80,10 @@ class FileIO(IOBase):
         """
         self._logger.info("Reading from File...")
 
-        return (
-            self._spark.read.options(**spec.params.options)
-            .format(spec.params.format)
-            .load(spec.params.location)
-        )
+        reader = self._spark.readStream if spec.params.streaming else self._spark.read
+        reader = reader.options(**spec.params.options)
+
+        return reader.format(spec.params.format).load(spec.params.location)
 
     def write(self, spec: FileOutputSpec, input_df: DataFrame):
         """Writes to a file on the file system.
@@ -94,9 +96,12 @@ class FileIO(IOBase):
         self._logger.info("Writing to File...")
 
         writer = (
-            input_df.write.options(**spec.params.options)
-            .mode(spec.params.mode)
-            .format(spec.params.format)
+            input_df.writeStream.outputMode(spec.params.mode.value)
+            if spec.params.streaming
+            else input_df.write.mode(spec.params.mode)
         )
+        writer = writer.format(spec.params.format)
 
-        writer.save(spec.params.location)
+        writer = writer.option("path", spec.params.location)
+
+        return writer

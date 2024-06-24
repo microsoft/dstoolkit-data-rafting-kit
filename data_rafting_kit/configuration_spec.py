@@ -1,24 +1,10 @@
-from enum import StrEnum
-
 from pydantic import BaseModel, ConfigDict, Field
 
 from data_rafting_kit.data_quality.data_quality_spec import DataQualityRootSpec
+from data_rafting_kit.env_spec import EnvSpec
 from data_rafting_kit.io.io_spec import InputRootSpec, OutputRootSpec
 from data_rafting_kit.testing.testing_spec import TestingRootSpec
 from data_rafting_kit.transformations.transformation_spec import TransformationRootSpec
-
-
-class TargetEnum(StrEnum):
-    """Enum for target platforms."""
-
-    FABRIC = "fabric"
-    DATABRICKS = "databricks"
-
-
-class EnvSpec(BaseModel):
-    """Environment specification. Used to specify changes to the environment and config."""
-
-    target: TargetEnum
 
 
 class PipelineSpec(BaseModel):
