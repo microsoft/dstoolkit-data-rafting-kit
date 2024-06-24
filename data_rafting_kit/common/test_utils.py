@@ -3,7 +3,7 @@ import re
 import pytest
 from pyspark.sql import SparkSession
 
-from data_rafting_kit.common.env_spec import EnvSpec
+from data_rafting_kit.env_spec import EnvSpec
 
 
 @pytest.fixture(scope="function")
