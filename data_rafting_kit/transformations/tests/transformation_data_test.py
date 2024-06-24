@@ -8,6 +8,7 @@ from pyspark.sql.types import IntegerType, LongType, StringType, StructField, St
 from pyspark.testing import assertDataFrameEqual
 
 from data_rafting_kit.common.test_utils import (
+    env_spec,  # noqa
     extract_and_convert_model_name_to_file_name,
     logger,  # noqa
     spark_session,  # noqa
@@ -22,7 +23,9 @@ from data_rafting_kit.transformations.transformation_spec import (
 
 
 @pytest.mark.parametrize("transformation_spec_model", ALL_TRANSFORMATION_SPECS)
-def test_transformation_data(transformation_spec_model, spark_session, logger):  # noqa
+def test_transformation_data(
+    transformation_spec_model, spark_session, logger, env_spec  # noqa
+):
     """Test that the transformation spec can be loaded from the mock spec file.
 
     Args:
@@ -30,6 +33,7 @@ def test_transformation_data(transformation_spec_model, spark_session, logger): 
         transformation_spec_model (Pydantic BaseModel): The transformation model to test.
         spark_session (SparkSession): The Spark session fixture.
         logger (FakeLogger): The fake logger fixture.
+        env_spec (EnvSpec): The fake environment spec fixture.
     """
     pattern = r"^(Pyspark|Presido)(.*)TransformationSpec$"
     mock_directory, mock_data_file_name = extract_and_convert_model_name_to_file_name(
@@ -73,9 +77,9 @@ def test_transformation_data(transformation_spec_model, spark_session, logger): 
 
             dfs["input_df"] = input_rows_df
 
-            TransformationFactory(spark_session, logger, dfs).process_transformation(
-                transformation_spec.root
-            )
+            TransformationFactory(
+                spark_session, logger, dfs, env_spec
+            ).process_transformation(transformation_spec.root)
 
             if mock_data_file_name == "window":
                 expected_output_rows = spark_session.createDataFrame(
