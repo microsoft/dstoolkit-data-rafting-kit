@@ -54,3 +54,24 @@ class IOMapping:
             raise NotImplementedError(f"Output Type {key} not implemented")
 
         return map[key]
+
+    @staticmethod
+    def get_optimisation_map(key: IOEnum) -> object:
+        """Maps the output type to the corresponding class.
+
+        Args:
+        ----
+            key (IOEnum): The key to map to a class and method.
+
+        Returns:
+        -------
+        dict: The dictionary mapping the output type to the corresponding class.
+        """
+        map = {
+            IOEnum.DELTA_TABLE: (DeltaTableIO, DeltaTableIO.optimize_table),
+        }
+
+        if key not in map:
+            return None, None
+
+        return map[key]

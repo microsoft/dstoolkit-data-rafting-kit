@@ -166,6 +166,7 @@ class DataRaftingKit:
                 self._logger.info("Writing to %s", output_spec.root.name)
 
                 io_factory.process_output(output_spec.root)
+                io_factory.process_optimisation(output_spec.root)
 
         self._logger.info("Data Pipeline Execution Complete")
 

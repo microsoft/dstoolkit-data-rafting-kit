@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, model_validator
 from pyspark.sql import SparkSession
 
 from data_rafting_kit.common.base_spec import BaseSpec
+from data_rafting_kit.common.schema import SchemaFieldSpec
 
 
 class IOEnum(StrEnum):
@@ -31,33 +32,8 @@ class StreamingOutputModeEnum(StrEnum):
     """Enumeration class for Delta Table modes."""
 
     APPEND = "append"
-    OVERWRITE = "overwrite"
-    ERROR = "error"
-    IGNORE = "ignore"
-    MERGE = "merge"
-
-
-class SchemaFieldSpec(BaseModel):
-    """Schema field."""
-
-    name: str
-    type: Literal[
-        "string",
-        "binary",
-        "boolean",
-        "date",
-        "timestamp",
-        "decimal",
-        "double",
-        "float",
-        "byte",
-        "integer",
-        "long",
-        "short",
-        "array",
-        "map",
-    ]
-    nullable: bool | None = Field(default=True)
+    COMPLETE = "complete"
+    UPDATE = "update"
 
 
 class InputBaseParamSpec(BaseModel):
@@ -79,6 +55,7 @@ class StreamingOutputSpec(BaseModel):
 
     await_termination: bool | None = Field(default=True)
     trigger: dict | None = Field(default=None)
+    checkpoint_location: str
 
     @model_validator(mode="after")
     def validate_streaming_output_spec(self):
@@ -108,7 +85,16 @@ class OutputBaseParamSpec(BaseModel):
 
     expected_schema: list[SchemaFieldSpec] | None = Field(default=None)
     options: dict | None = Field(default_factory=dict)
-    mode: str | None = Field(default=BatchOutputModeEnum.APPEND)
+    mode: Literal[
+        BatchOutputModeEnum.APPEND,
+        BatchOutputModeEnum.OVERWRITE,
+        BatchOutputModeEnum.ERROR,
+        BatchOutputModeEnum.IGNORE,
+        BatchOutputModeEnum.MERGE,
+        StreamingOutputModeEnum.APPEND,
+        StreamingOutputModeEnum.COMPLETE,
+        StreamingOutputModeEnum.UPDATE,
+    ] | None = Field(default=BatchOutputModeEnum.APPEND.value)
     streaming: StreamingOutputSpec | bool | None = Field(default=None)
 
     @model_validator(mode="after")

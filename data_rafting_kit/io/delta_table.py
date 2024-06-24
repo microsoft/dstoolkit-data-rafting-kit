@@ -56,11 +56,35 @@ class DeltaTableOutputParamSpec(OutputBaseParamSpec):
     optimize: DeltaTableOptimizeSpec | None = Field(default=None, alias="optimise")
     merge_spec: DeltaTableMergeSpec | None = Field(default=None)
 
+    @model_validator(mode="before")
+    @classmethod
+    def validate_delta_table_output_param_spec_before(cls, data: dict) -> dict:
+        """Validates the Delta Table output param spec."""
+        if data["streaming"] is not None:
+            if isinstance(data["streaming"], bool):
+                data["streaming"] = {}
+
+            if "checkpoint_location" not in data["streaming"]:
+                table_name = (
+                    data["table"]
+                    if "table" in data and data["table"] is not None
+                    else data["location"].split("/")[-1]
+                )
+                data["streaming"][
+                    "checkpoint_location"
+                ] = f"/.checkpoints/delta_table/{table_name}"
+
+        return data
+
     @model_validator(mode="after")
-    def validate_delta_table_output_param_spec(self):
+    def validate_delta_table_output_param_spec_after(self):
         """Validates the output specification."""
         if self.mode == BatchOutputModeEnum.MERGE and self.merge_spec is None:
             raise ValueError("Merge specification is required when mode is 'merge'.")
+        elif self.mode != BatchOutputModeEnum.MERGE and self.merge_spec is not None:
+            raise ValueError(
+                "Merge specification is not allowed when mode is not 'merge'."
+            )
 
         if self.table is None and self.location is None:
             raise ValueError("Table or location is required.")
@@ -252,10 +276,6 @@ class DeltaTableIO(IOBase):
 
             if spec.params.streaming is not None:
                 writer = input_df.writeStream.outputMode(spec.params.mode)
-
-                if spec.params.streaming.trigger is not None:
-                    writer = writer.trigger(**spec.params.streaming.trigger)
-
             else:
                 writer = input_df.write.mode(spec.params.mode)
 
@@ -264,14 +284,12 @@ class DeltaTableIO(IOBase):
             if spec.params.partition_by is not None:
                 writer = writer.partitionBy(**spec.params.partition_by)
 
-            if spec.params.table is not None:
-                writer.saveAsTable(spec.params.table)
+            if spec.params.streaming is None:
+                if spec.params.table is not None:
+                    writer.saveAsTable(spec.params.table)
+                else:
+                    writer.save(spec.params.location)
             else:
-                writer.save(spec.params.location)
-
-            if spec.params.streaming is not None:
-                writer.start()
-
-        self.optimize_table(spec)
+                writer = writer.option("path", spec.params.location)
 
         return writer

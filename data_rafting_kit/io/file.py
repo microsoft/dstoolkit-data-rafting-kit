@@ -1,6 +1,7 @@
 from enum import StrEnum
 from typing import Literal
 
+from pydantic import model_validator
 from pyspark.sql import DataFrame
 
 from data_rafting_kit.io.io_base import (
@@ -27,6 +28,21 @@ class FileOutputParamSpec(OutputBaseParamSpec):
 
     format: Literal[FileFormatEnum.CSV, FileFormatEnum.JSON, FileFormatEnum.PARQUET]
     location: str
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_delta_table_output_param_spec_before(cls, data: dict) -> dict:
+        """Validates the Delta Table output param spec."""
+        if data["streaming"] is not None:
+            if isinstance(data["streaming"], bool):
+                data["streaming"] = {}
+            if "checkpoint_location" not in data["streaming"]:
+                file_location = data["location"].split("/")[-1]
+                data["streaming"][
+                    "checkpoint_location"
+                ] = f"/.checkpoints/file/{file_location}"
+
+        return data
 
 
 class FileOutputSpec(OutputBaseSpec):
@@ -88,6 +104,6 @@ class FileIO(IOBase):
         )
         writer = writer.format(spec.params.format)
 
-        writer.save(spec.params.location)
+        writer = writer.option("path", spec.params.location)
 
         return writer

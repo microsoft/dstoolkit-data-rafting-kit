@@ -1,8 +1,17 @@
+from enum import StrEnum
 from typing import Literal
 
+import pyspark.sql.functions as f
+import pyspark.sql.types as t
 from pydantic import Field, model_validator
 from pyspark.sql import DataFrame
+from pyspark.sql.avro.functions import from_avro, to_avro
 
+from data_rafting_kit.common.schema import (
+    SchemaFieldSpec,
+    to_pyspark_schema,
+    to_pyspark_struct,
+)
 from data_rafting_kit.common.secret_management import Secret
 from data_rafting_kit.io.io_base import (
     InputBaseParamSpec,
@@ -14,19 +23,44 @@ from data_rafting_kit.io.io_base import (
 )
 
 
+class SerializeDeserializeEnum(StrEnum):
+    """Enumeration class for serialization and deserialization types."""
+
+    JSON = "json"
+    AVRO = "avro"
+
+
 class EventHubOutputParamSpec(OutputBaseParamSpec):
     """EventHub output parameters."""
 
     namespace: str
-    hub: str
+    hub: str | None = Field(default=None)
     connection_string_key: str
-    checkpoint_location: str | None = Field(default=None)
+    format: Literal[
+        SerializeDeserializeEnum.AVRO, SerializeDeserializeEnum.JSON
+    ] | None = Field(default=None)
+    format_schema: list[SchemaFieldSpec] | None = Field(default=None)
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_event_hub_output_param_spec_before(cls, data: dict) -> dict:
+        """Validates the Delta Table output param spec."""
+        if data["streaming"] is not None:
+            if isinstance(data["streaming"], bool):
+                data["streaming"] = {}
+
+            if "checkpoint_location" not in data["streaming"]:
+                data["streaming"][
+                    "checkpoint_location"
+                ] = f"/.checkpoints/event_hub/{data['namespace']}/{data['hub']}"
+
+        return data
 
     @model_validator(mode="after")
-    def validate_event_hub_output_spec(self):
+    def validate_event_hub_output_spec_after(self):
         """Validates the EventHub output spec."""
-        if self.checkpoint_location is None:
-            self.checkpoint_location = f"{self.namespace}/{self.hub}"
+        if self.format is not None and self.format_schema is None:
+            raise ValueError("format_schema must be provided when format is provided.")
 
         return self
 
@@ -44,6 +78,18 @@ class EventHubInputParamSpec(InputBaseParamSpec):
     namespace: str
     hub: str
     connection_string_key: str
+    format: Literal[
+        SerializeDeserializeEnum.AVRO, SerializeDeserializeEnum.JSON
+    ] | None = Field(default=None)
+    format_schema: list[SchemaFieldSpec] | None = Field(default=None)
+
+    @model_validator(mode="after")
+    def validate_event_hub_input_param_spec(self):
+        """Validates the EventHub input spec."""
+        if self.format is not None and self.format_schema is None:
+            raise ValueError("format_schema must be provided when format is provided.")
+
+        return self
 
 
 class EventHubInputSpec(InputBaseSpec):
@@ -79,7 +125,9 @@ class EventHubIO(IOBase):
         options[
             "kafka.bootstrap.servers"
         ] = f"{spec.params.namespace}.servicebus.windows.net:9093"
-        options["subscribe"] = spec.params.hub
+
+        if spec.params.hub is not None:
+            options["subscribe"] = spec.params.hub
 
         connection_string = Secret.fetch(
             self._spark, self._env, spec.params.connection_string_key
@@ -88,9 +136,6 @@ class EventHubIO(IOBase):
         options[
             "kafka.sasl.jaas.config"
         ] = f'org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="{connection_string.value}";'
-
-        if isinstance(spec, EventHubOutputSpec):
-            options["checkpointLocation"] = spec.params.checkpoint_location
 
         return options
 
@@ -110,7 +155,22 @@ class EventHubIO(IOBase):
         options = self.get_kafka_options(spec)
         options.update(spec.params.options)
 
-        return self._spark.readStream.format("kafka").options(**options).load()
+        stream = self._spark.readStream.format("kafka").options(**options).load()
+
+        if spec.params.format is not None:
+            schema = to_pyspark_schema(spec.params.format_schema)
+            stream = stream.withColumn("value", f.col("value").cast(t.StringType()))
+
+            if spec.params.format == SerializeDeserializeEnum.AVRO:
+                stream = stream.withColumn("value", from_avro(f.col("value"), schema))
+            elif spec.params.format == SerializeDeserializeEnum.JSON:
+                stream = stream.withColumn("value", f.from_json(f.col("value"), schema))
+
+            columns = [*stream.columns, "value.*"]
+            columns.remove("value")
+            stream = stream.select(columns)
+
+        return stream
 
     def write(self, spec: EventHubOutputSpec, input_df: DataFrame):
         """Writes to a EventHub on the EventHub system.
@@ -125,8 +185,20 @@ class EventHubIO(IOBase):
         options = self.get_kafka_options(spec)
         options.update(spec.params.options)
 
+        if spec.params.format is not None:
+            schema = to_pyspark_struct(spec.params.format_schema)
+
+            if spec.params.format == SerializeDeserializeEnum.AVRO:
+                input_df = input_df.withColumn(
+                    "value", to_avro(f.struct(input_df.columns), schema)
+                )
+            elif spec.params.format == SerializeDeserializeEnum.JSON:
+                input_df = input_df.withColumn("value", f.to_json(schema))
+
+        stream = input_df.withColumn("value", f.col("value").cast(t.BinaryType()))
+
         writer = (
-            input_df.writeStream.format("kafka")
+            stream.writeStream.format("kafka")
             .outputMode(spec.params.mode)
             .options(**options)
         )
