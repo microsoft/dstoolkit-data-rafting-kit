@@ -1,12 +1,15 @@
 # Data Rafting Kit - A declarative framework for PySpark Pipelines
 
-Data Rafting Kit enables a YAML based approach to PySpark pipelines with integrated features such as data quality checks. Instead of spending time figuring out the syntax or building common PySpark, simply write your pipelines in a YAML format and run via the library. We target the use of Azure based services, primarily Microsoft Fabric and Azure Databricks, but this library can be used in any PySpark environment.
+Data Rafting Kit enables a YAML based approach to PySpark pipelines with integrated features such as data quality checks. Instead of spending time figuring out the syntax or building common PySpark, simply write your pipelines in a YAML format and run via the library. We target the use of Azure based services, primarily Microsoft Fabric and Azure Databricks, but this library should be usable in any PySpark environment.
+
+This helper library aims to make it easier to build Fabric based pipelines that interact with Azure services.
 
 A simple pipeline with data quality checks can be defined in a few lines of YAML:
 
 ```yaml
 env:
   target: fabric
+
 pipeline:
   inputs:
     - type: delta_table
@@ -53,7 +56,13 @@ pipeline:
 
 Naming a library is hard... In the real world, a raft flows down a stream carrying a load. In our data world, this library carries data along a data stream.
 
-# Key Features
+### Why a new library?
+
+A declarative approach to pipelines and data pipelines is not a new concept but there is no existing library / framework dedicated to Microsoft Fabric and Azure specific services. The YAML approach in this project aims to replicate a similar style to [Azure DevOps Pipelines](https://learn.microsoft.com/en-us/azure/devops/pipelines/get-started/what-is-azure-pipelines?view=azure-devops) to make it easy to spin up quick pipelines with similar syntax. In this repository, we provide an pipeline implementation library written from scratch with Microsoft Fabric in mind.
+
+*This project is still in early development. The functionality provided may not cover every use case yet.*
+
+## Key Features
 
 - Easy YAML syntax, to quickly build repeatable pipelines
 - Inbuilt parametrisation of pipelines
@@ -67,6 +76,7 @@ Naming a library is hard... In the real world, a raft flows down a stream carryi
 - All dependency management is with [Poetry](https://python-poetry.org/). Make sure you have Poetry setup on your system.
 - Run `poetry install`, followed by `poetry build` to produce a `.whl` file.
 - Upload to your Spark cluster and get building!
+- A [DevContainer](https://containers.dev/) is provided for easy local development.
 
 ## Runtime Dependencies
 
@@ -77,7 +87,15 @@ This project requires Python 3.11 or greater to run. For Spark runtimes, the fol
 
 ## Samples
 
-Sample pipelines can be found under `./samples`.
+Sample pipelines can be found under `./samples`. We aim to keep these up to date with different options.
+
+## Credit
+
+This project makes key use of some dependencies to power some of the features. These repositories have made implementing this project far easier. Thanks to:
+
+- [Great Expectations](https://github.com/great-expectations/great_expectations)
+- [Microsoft Presidio](https://github.com/microsoft/presidio)
+- [Pydantic](https://github.com/pydantic/pydantic)
 
 ## Contributing
 
