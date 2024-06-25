@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from pydantic import BaseModel
 
 from data_rafting_kit.data_quality_checks.data_quality_base import (

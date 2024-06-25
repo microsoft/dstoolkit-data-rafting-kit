@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from typing import ClassVar
 
 from pyspark.sql import DataFrame

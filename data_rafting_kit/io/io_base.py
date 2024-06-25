@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from enum import StrEnum
 from logging import Logger
 from typing import Literal

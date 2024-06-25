@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from pyspark.errors import PySparkAssertionError
 from pyspark.testing import assertSchemaEqual
 

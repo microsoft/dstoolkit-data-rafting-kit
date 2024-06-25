@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from pydantic import BaseModel, ConfigDict, Field
 
 from data_rafting_kit.data_quality.data_quality_spec import DataQualityRootSpec
