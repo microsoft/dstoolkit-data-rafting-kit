@@ -4,11 +4,13 @@ from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
-from pyspark.sql import SparkSession
 from pyspark.testing import assertDataFrameEqual
 
 from data_rafting_kit.common.test_utils import (
+    env_spec,  # noqa
     extract_and_convert_model_name_to_file_name,
+    logger,  # noqa
+    spark_session,  # noqa
 )
 from data_rafting_kit.data_quality.data_quality_factory import DataQualityFactory
 from data_rafting_kit.data_quality.data_quality_spec import (
@@ -18,40 +20,14 @@ from data_rafting_kit.data_quality.data_quality_spec import (
 from data_rafting_kit.data_quality.great_expectations import DataQualityModeEnum
 
 
-@pytest.fixture(scope="session")
-def spark_session():
-    """Fixture to set up Spark session for all tests."""
-    spark = (
-        SparkSession.builder.appName("DataQualityTests")
-        .master("local[*]")
-        .getOrCreate()
-    )
-    yield spark
-    spark.stop()
-
-
-@pytest.fixture(scope="session")
-def logger():
-    """Fixture to set up a fake logger for all tests."""
-
-    class FakeLogger:
-        def __init__(self):
-            self.logs = []
-
-        def info(self, message):
-            self.logs.append(f"INFO: {message}")
-
-        def error(self, message):
-            self.logs.append(f"ERROR: {message}")
-
-        def get_logs(self):
-            return self.logs
-
-    fake_logger = FakeLogger()
-    yield fake_logger
-
-
-def run_data_quality_check(mode, mock_spec, mock_dataset, spark_session, logger):
+def run_data_quality_check(  # noqa: PLR0913
+    mode,
+    mock_spec,
+    mock_dataset,
+    spark_session,  # noqa
+    logger,  # noqa
+    env_spec,  # noqa
+):
     """Run the data quality check for the given spec and dataset.
 
     Args:
@@ -61,6 +37,7 @@ def run_data_quality_check(mode, mock_spec, mock_dataset, spark_session, logger)
         mock_dataset (dict): The mock data quality dataset.
         spark_session (SparkSession): The Spark session fixture.
         logger (FakeLogger): The fake logger fixture.
+        env_spec (EnvSpec): The environment spec.
     """
     data_quality_check_spec = DataQualityRootSpec.model_validate(mock_spec)
 
@@ -76,7 +53,7 @@ def run_data_quality_check(mode, mock_spec, mock_dataset, spark_session, logger)
     dfs = OrderedDict()
     dfs["input_df"] = input_rows_df
 
-    DataQualityFactory(spark_session, logger, dfs).process_data_quality(
+    DataQualityFactory(spark_session, logger, dfs, env_spec).process_data_quality(
         data_quality_check_spec
     )
 
@@ -91,7 +68,9 @@ def run_data_quality_check(mode, mock_spec, mock_dataset, spark_session, logger)
 
 
 @pytest.mark.parametrize("data_quality_spec_model", ALL_DATA_QUALITY_SPECS)
-def test_data_quality_data(data_quality_spec_model, spark_session, logger):
+def test_data_quality_data(
+    data_quality_spec_model, spark_session, logger, env_spec  # noqa
+):
     """Test that the transformation spec can be loaded from the mock spec file.
 
     Args:
@@ -99,6 +78,7 @@ def test_data_quality_data(data_quality_spec_model, spark_session, logger):
         data_quality_spec_model (Pydantic BaseModel): The data quality model to test.
         spark_session (SparkSession): The Spark session fixture.
         logger (FakeLogger): The fake logger fixture.
+        env_spec (EnvSpec): The environment spec.
     """
     pattern = r"^(GreatExpectations)(.*)DataQualitySpec$"
     mock_directory, mock_data_file_name = extract_and_convert_model_name_to_file_name(
@@ -134,11 +114,16 @@ def test_data_quality_data(data_quality_spec_model, spark_session, logger):
                 if mode == DataQualityModeEnum.FAIL and mock_dataset["fails"]:
                     with pytest.raises(ValueError):
                         run_data_quality_check(
-                            mode, mock_spec, mock_dataset, spark_session, logger
+                            mode,
+                            mock_spec,
+                            mock_dataset,
+                            spark_session,
+                            logger,
+                            env_spec,
                         )
                 else:
                     run_data_quality_check(
-                        mode, mock_spec, mock_dataset, spark_session, logger
+                        mode, mock_spec, mock_dataset, spark_session, logger, env_spec
                     )
 
             except ValidationError as e:

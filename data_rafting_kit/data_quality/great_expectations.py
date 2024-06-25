@@ -149,51 +149,6 @@ for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
 GREAT_EXPECTATIONS_DATA_QUALITY_SPECS = dynamic_great_expectations_data_quality_models
 
 
-class GreatExpectationBaseSpec(DataQualityBaseSpec):
-    """Base expectation parameter specification."""
-
-    pass
-
-
-dynamic_great_expectations_data_quality_models = []
-for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
-    param_fields = {}
-    expectation_class = get_expectation_impl(expectation_name)
-    arg_keys = set(expectation_class.args_keys + expectation_class.success_keys)
-
-    for arg in arg_keys:
-        if arg in EXCLUDED_ARG_TYPES:
-            continue
-        elif arg in STANDARD_ARG_TYPES:
-            param_fields[arg] = STANDARD_ARG_TYPES[arg]
-        else:
-            raise ValueError(f"Couldn't find type for {arg} in {expectation_class}")
-
-    param_config = ConfigDict(allow_population_by_field_name=True)
-    dynamic_data_quality_param_model = create_model(
-        f"{expectation_name}_params", **param_fields, __config__=param_config
-    )
-
-    fields = {
-        "type": Annotated[Literal[expectation_name], Field(...)],
-        "params": Annotated[dynamic_data_quality_param_model, Field(...)],
-    }
-
-    normalised_expectation_name = (
-        expectation_name.replace("_", " ").title().replace(" ", "")
-    )
-    model_name = f"GreatExpectations{normalised_expectation_name}DataQualitySpec"
-
-    dynamic_great_expectations_data_quality_model = create_model(
-        model_name, **fields, __base__=BaseModel
-    )
-    dynamic_great_expectations_data_quality_models.append(
-        dynamic_great_expectations_data_quality_model
-    )
-
-GREAT_EXPECTATIONS_DATA_QUALITY_SPECS = dynamic_great_expectations_data_quality_models
-
-
 class GreatExpectationsDataQuality(DataQualityBase):
     """Represents a Great Expectations data quality expectation object."""
 
