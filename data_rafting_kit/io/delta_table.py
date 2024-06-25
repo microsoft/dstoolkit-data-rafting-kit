@@ -1,4 +1,3 @@
-from enum import StrEnum
 from typing import Literal
 
 from delta.tables import DeltaTable
@@ -6,6 +5,7 @@ from pydantic import BaseModel, Field, model_validator
 from pyspark.sql import DataFrame
 
 from data_rafting_kit.io.io_base import (
+    BatchOutputModeEnum,
     InputBaseParamSpec,
     InputBaseSpec,
     IOBase,
@@ -13,16 +13,6 @@ from data_rafting_kit.io.io_base import (
     OutputBaseParamSpec,
     OutputBaseSpec,
 )
-
-
-class DeltaTableModeEnum(StrEnum):
-    """Enumeration class for Delta Table modes."""
-
-    APPEND = "append"
-    OVERWRITE = "overwrite"
-    ERROR = "error"
-    IGNORE = "ignore"
-    MERGE = "merge"
 
 
 class DeltaTableOptimizeSpec(BaseModel):
@@ -62,16 +52,42 @@ class DeltaTableOutputParamSpec(OutputBaseParamSpec):
 
     table: str | None = Field(default=None)
     location: str | None = Field(default=None)
-    mode: str | None = Field(default=DeltaTableModeEnum.APPEND)
     partition_by: list[str] | None = Field(default=None)
     optimize: DeltaTableOptimizeSpec | None = Field(default=None, alias="optimise")
     merge_spec: DeltaTableMergeSpec | None = Field(default=None)
 
+    @model_validator(mode="before")
+    @classmethod
+    def validate_delta_table_output_param_spec_before(cls, data: dict) -> dict:
+        """Validates the Delta Table output param spec."""
+        if data["streaming"] is not None:
+            if isinstance(data["streaming"], bool):
+                data["streaming"] = {}
+
+            if "checkpoint" not in data["streaming"]:
+                table_name = (
+                    data["table"]
+                    if "table" in data and data["table"] is not None
+                    else data["location"].split("/")[-1]
+                )
+                data["streaming"][
+                    "checkpoint"
+                ] = f"/.checkpoints/delta_table/{table_name}"
+
+        return data
+
     @model_validator(mode="after")
-    def validate_merge_spec(self):
-        """Validates the merge specification."""
-        if self.mode == DeltaTableModeEnum.MERGE and self.merge_spec is None:
+    def validate_delta_table_output_param_spec_after(self):
+        """Validates the output specification."""
+        if self.mode == BatchOutputModeEnum.MERGE and self.merge_spec is None:
             raise ValueError("Merge specification is required when mode is 'merge'.")
+        elif self.mode != BatchOutputModeEnum.MERGE and self.merge_spec is not None:
+            raise ValueError(
+                "Merge specification is not allowed when mode is not 'merge'."
+            )
+
+        if self.table is None and self.location is None:
+            raise ValueError("Table or location is required.")
 
         return self
 
@@ -88,6 +104,14 @@ class DeltaTableInputParamSpec(InputBaseParamSpec):
 
     table: str | None = Field(default=None)
     location: str | None = Field(default=None)
+
+    @model_validator(mode="after")
+    def validate_delta_table_input_param_spec(self):
+        """Validates the input specification."""
+        if self.table is None and self.location is None:
+            raise ValueError("Table or location is required.")
+
+        return self
 
 
 class DeltaTableInputSpec(InputBaseSpec):
@@ -113,7 +137,9 @@ class DeltaTableIO(IOBase):
         """
         self._logger.info("Reading from Delta Table...")
 
-        reader = self._spark.read.options(**spec.params.options)
+        reader = self._spark.readStream if spec.params.streaming else self._spark.read
+
+        reader = reader.options(**spec.params.options)
 
         if spec.params.table is not None:
             return reader.table(spec.params.table)
@@ -234,32 +260,36 @@ class DeltaTableIO(IOBase):
         self._logger.info("Writing to Delta Table...")
 
         table_exists = self.table_exists(spec)
-        if spec.params.mode == DeltaTableModeEnum.MERGE and table_exists:
+        if spec.params.mode == BatchOutputModeEnum.MERGE and table_exists:
             # Perform a merge operation
             self.merge_into_table(spec, input_df)
 
         elif (
-            spec.params.mode == DeltaTableModeEnum.MERGE
+            spec.params.mode == BatchOutputModeEnum.MERGE
             and not table_exists
             and spec.params.merge_spec.create_target_if_not_exists is False
         ):
             raise ValueError("Table does not exist. Cannot perform merge operation.")
         else:
-            if spec.params.mode == DeltaTableModeEnum.MERGE:
-                spec.params.mode = DeltaTableModeEnum.OVERWRITE
+            if spec.params.mode == BatchOutputModeEnum.MERGE:
+                spec.params.mode = BatchOutputModeEnum.OVERWRITE
 
-            writer = (
-                input_df.write.options(**spec.params.options)
-                .format("delta")
-                .mode(spec.params.mode)
-            )
+            if spec.params.streaming is not None:
+                writer = input_df.writeStream.outputMode(spec.params.mode.value)
+            else:
+                writer = input_df.write.mode(spec.params.mode)
+
+            writer = writer.format("delta").options(**spec.params.options)
 
             if spec.params.partition_by is not None:
                 writer = writer.partitionBy(**spec.params.partition_by)
 
-            if spec.params.table is not None:
-                writer.saveAsTable(spec.params.table)
+            if spec.params.streaming is None:
+                if spec.params.table is not None:
+                    writer.saveAsTable(spec.params.table)
+                else:
+                    writer.save(spec.params.location)
             else:
-                writer.save(spec.params.location)
+                writer = writer.option("path", spec.params.location)
 
-        self.optimize_table(spec)
+        return writer

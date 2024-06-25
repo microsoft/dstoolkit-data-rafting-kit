@@ -29,7 +29,7 @@ class DataQualityFactory(BaseFactory):
         ) = DataQualityMapping.get_data_quality_map("great_expectations")
 
         df = getattr(
-            data_quality_class(self._spark, self._logger, self._dfs),
+            data_quality_class(self._spark, self._logger, self._dfs, self._env),
             data_quality_function.__name__,
         )(spec, input_df)
 

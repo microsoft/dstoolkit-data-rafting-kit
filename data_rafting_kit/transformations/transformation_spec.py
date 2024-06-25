@@ -4,18 +4,14 @@ import re
 import typing
 from typing import Annotated, Literal, Union
 
-from pydantic import ConfigDict, Field, RootModel, create_model
+from pydantic import BaseModel, ConfigDict, Field, RootModel, create_model
 
-from data_rafting_kit.transformations.presido import (
-    PRESIDO_TRANSFORMATION_SPECS,
-)
+from data_rafting_kit.transformations.presido import PRESIDO_TRANSFORMATION_SPECS
 from data_rafting_kit.transformations.pyspark import (
     PYSPARK_DYNAMIC_TRANSFORMATIONS,
     PYSPARK_TRANSFORMATION_SPECS,
 )
-from data_rafting_kit.transformations.transformation_base import (
-    TransformationBaseSpec,
-)
+from data_rafting_kit.transformations.transformation_base import TransformationBaseSpec
 from data_rafting_kit.transformations.transformation_mapping import (
     TransformationMapping,
 )
@@ -31,6 +27,7 @@ def is_builtin(t: type) -> bool:
     Returns:
     -------
     bool: True if the type is a builtin type, False otherwise.
+
     """
     return t.__name__ in dir(builtins)
 
@@ -45,15 +42,16 @@ def clean_type(t: type) -> type | None:
     Returns:
     -------
         type: The cleaned type.
+
     """
     origin = getattr(t, "__origin__", None)
     if origin is not None:
         if origin is typing.Union:
             args = [a for a in t.__args__ if is_builtin(a) or clean_type(a)]
             return (
-                typing.Optional[args[0]]  # noqa: UP007
+                typing.Optional[args[0]]
                 if len(args) == 1
-                else typing.Union[tuple(args)]  # noqa: UP007
+                else typing.Union[tuple(args)]
                 if args
                 else None
             )
@@ -83,6 +81,7 @@ def is_type_optional(t: type) -> bool:
     Returns:
     -------
     bool: True if the type is optional, False otherwise.
+
     """
     origin = getattr(t, "__origin__", None)
 
@@ -99,6 +98,13 @@ PYSPARK_DYNAMIC_TRANSFORMATIONS_PARAMATER_REPLACEMENT_MAP = {
     "drop": {"cols": "column"},
     "with_columns_renamed": {"colsMap": "columns_map"},
 }
+
+
+class EmptyParamsSpec(BaseModel):
+    """Empty parameters spec for dynamic transformations that don't have any parameters."""
+
+    pass
+
 
 dynamic_pyspark_transformation_models = []
 for transformation in PYSPARK_DYNAMIC_TRANSFORMATIONS:
@@ -157,7 +163,7 @@ for transformation in PYSPARK_DYNAMIC_TRANSFORMATIONS:
     else:
         fields = {
             "type": Annotated[Literal[transformation], Field(...)],
-            "params": Annotated[None, Field(default_factory=dict)],
+            "params": Annotated[None, Field(default_factory=EmptyParamsSpec)],
         }
 
     normalised_transformation_name = (
@@ -174,10 +180,11 @@ ALL_TRANSFORMATION_SPECS = (
     + PYSPARK_TRANSFORMATION_SPECS
     + dynamic_pyspark_transformation_models
 )
+
 TransformationRootSpec = create_model(
     "TransformationRootSpec",
     root=Annotated[
-        Union[tuple(ALL_TRANSFORMATION_SPECS)],  # noqa: UP007
+        Union[tuple(ALL_TRANSFORMATION_SPECS)],
         Field(..., discriminator="type"),
     ],
     __base__=RootModel,
