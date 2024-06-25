@@ -208,7 +208,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
         elif isinstance(sql_expr, str):
             escaped_sql_expr = sql_expr.replace("'", "\\'")
             return f"'{escaped_sql_expr}'"
-        return f"'{sql_expr}'"  # Ensure non-string values are also quoted
+        return f"'{sql_expr}'"
 
     def get_filter_expression(
         self, unique_column_identifiers: list, results: list
@@ -282,6 +282,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
         Returns:
         -------
             tuple[DataFrame, DataFrame | None]: The output DataFrame and the failing rows DataFrame.
+
         """
         if spec.mode == DataQualityModeEnum.FLAG:
             if combined_filter_expression is None:
@@ -327,6 +328,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
         -------
             DataFrame: The output DataFrame.
             DataFrame: The failing rows DataFrame.
+
         """
         context = gx.get_context()
         asset = context.sources.add_spark(
