@@ -32,6 +32,11 @@ EXCLUDED_GREAT_EXPECTATION_CHECKS = [
     "expect_column_kl_divergence_to_be_less_than",
     "expect_column_quantile_values_to_be_between",
     "expect_table_row_count_to_equal_other_table",
+    "expect_column_values_to_be_dateutil_parseable",
+    "expect_column_values_to_match_like_pattern",
+    "expect_column_values_to_match_like_pattern_list",
+    "expect_column_values_to_not_match_like_pattern",
+    "expect_column_values_to_not_match_like_pattern_list",
 ]
 GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY = [
     x
@@ -46,7 +51,7 @@ STANDARD_ARG_TYPES = {
     "column_B": (str, Field(required=True, alias="column_b")),
     "type_": (str, Field(required=True, alias="type")),
     "values": (list[str | int | float], Field(required=True, alias="values")),
-    "value_set": (list[str | int | float], Field(required=True, alias="values")),
+    "value_set": (list[str | int | float], Field(required=True, alias="value_set")),
     "value": (int, Field(required=True, alias="value")),
     "min_value": (
         float | datetime | str | None,
