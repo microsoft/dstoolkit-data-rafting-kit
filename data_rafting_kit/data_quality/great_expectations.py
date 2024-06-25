@@ -51,7 +51,7 @@ STANDARD_ARG_TYPES = {
     "column_B": (str, Field(required=True, alias="column_b")),
     "type_": (str, Field(required=True, alias="type")),
     "values": (list[str | int | float], Field(required=True, alias="values")),
-    "value_set": (list[str | int | float], Field(required=True, alias="value_set")),
+    "value_set": (list[str | int | float], Field(required=True, alias="values")),
     "value": (int, Field(required=True, alias="value")),
     "min_value": (
         float | datetime | str | None,
