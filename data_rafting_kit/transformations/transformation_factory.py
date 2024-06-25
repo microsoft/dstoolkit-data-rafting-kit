@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 import inspect
 
 from data_rafting_kit.common.base_factory import BaseFactory

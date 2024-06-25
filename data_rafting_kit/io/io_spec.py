@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from pydantic import Field, RootModel
 
 from data_rafting_kit.io.console import ConsoleOutputSpec

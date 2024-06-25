@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 import json
 from collections import OrderedDict
 from pathlib import Path

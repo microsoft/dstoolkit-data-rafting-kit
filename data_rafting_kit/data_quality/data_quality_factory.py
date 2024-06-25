@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from great_expectations.core import ExpectationSuite
 from great_expectations.exceptions import GreatExpectationsError
 
