@@ -81,6 +81,11 @@ def run_data_quality_check(mode, mock_spec, mock_dataset, spark_session, logger)
     )
 
     if mode == DataQualityModeEnum.SEPARATE:
+        print("Expected DataFrame:")
+        passing_rows.show()
+        print("Actual DataFrame:")
+        dfs["test_dq"].show()
+
         assertDataFrameEqual(dfs["test_dq"], passing_rows)
         assertDataFrameEqual(dfs["test_dq_fails"], failing_rows)
 

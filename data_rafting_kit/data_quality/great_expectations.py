@@ -144,10 +144,55 @@ for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
 GREAT_EXPECTATIONS_DATA_QUALITY_SPECS = dynamic_great_expectations_data_quality_models
 
 
+class GreatExpectationBaseSpec(DataQualityBaseSpec):
+    """Base expectation parameter specification."""
+
+    pass
+
+
+dynamic_great_expectations_data_quality_models = []
+for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
+    param_fields = {}
+    expectation_class = get_expectation_impl(expectation_name)
+    arg_keys = set(expectation_class.args_keys + expectation_class.success_keys)
+
+    for arg in arg_keys:
+        if arg in EXCLUDED_ARG_TYPES:
+            continue
+        elif arg in STANDARD_ARG_TYPES:
+            param_fields[arg] = STANDARD_ARG_TYPES[arg]
+        else:
+            raise ValueError(f"Couldn't find type for {arg} in {expectation_class}")
+
+    param_config = ConfigDict(allow_population_by_field_name=True)
+    dynamic_data_quality_param_model = create_model(
+        f"{expectation_name}_params", **param_fields, __config__=param_config
+    )
+
+    fields = {
+        "type": Annotated[Literal[expectation_name], Field(...)],
+        "params": Annotated[dynamic_data_quality_param_model, Field(...)],
+    }
+
+    normalised_expectation_name = (
+        expectation_name.replace("_", " ").title().replace(" ", "")
+    )
+    model_name = f"GreatExpectations{normalised_expectation_name}DataQualitySpec"
+
+    dynamic_great_expectations_data_quality_model = create_model(
+        model_name, **fields, __base__=BaseModel
+    )
+    dynamic_great_expectations_data_quality_models.append(
+        dynamic_great_expectations_data_quality_model
+    )
+
+GREAT_EXPECTATIONS_DATA_QUALITY_SPECS = dynamic_great_expectations_data_quality_models
+
+
 class GreatExpectationsDataQuality(DataQualityBase):
     """Represents a Great Expectations data quality expectation object."""
 
-    def escape_quotes(self, sql_expr: any) -> str:
+    def escape_quotes(self, sql_expr: Any) -> str:
         """Escapes quotes in SQL expressions.
 
         Args:
@@ -158,10 +203,12 @@ class GreatExpectationsDataQuality(DataQualityBase):
         -------
             str: The escaped SQL expression.
         """
-        if isinstance(sql_expr, str):
-            return sql_expr.replace("'", "\\'")
-
-        return f"'{sql_expr}'"
+        if isinstance(sql_expr, list):
+            return f"[{', '.join([self.escape_quotes(item) for item in sql_expr])}]"
+        elif isinstance(sql_expr, str):
+            escaped_sql_expr = sql_expr.replace("'", "\\'")
+            return f"'{escaped_sql_expr}'"
+        return f"'{sql_expr}'"  # Ensure non-string values are also quoted
 
     def get_filter_expression(
         self, unique_column_identifiers: list, results: list
@@ -185,15 +232,24 @@ class GreatExpectationsDataQuality(DataQualityBase):
         for result in results.results:
             if result.success is False:
                 unexpected_index_list = result.result.get("unexpected_index_list", [])
-
+                print(f"Unexpected index list: {unexpected_index_list}")
                 if len(unexpected_index_list) == 0:
-                    return None
-
-                for unexpected_index in unexpected_index_list:
-                    for column_identifier in unique_column_identifiers:
-                        row_filter_query[column_identifier].add(
-                            self.escape_quotes(unexpected_index[column_identifier])
-                        )
+                    # Handle case where unexpected_index_list is not provided
+                    unexpected_values = result.result.get("unexpected_values", [])
+                    print(f"Unexpected values: {unexpected_values}")
+                    if len(unexpected_values) > 0:
+                        column = result.expectation_config["kwargs"]["column"]
+                        row_filter_query[column] = {
+                            self.escape_quotes(value) for value in unexpected_values
+                        }
+                    else:
+                        return None
+                else:
+                    for unexpected_index in unexpected_index_list:
+                        for column_identifier in unique_column_identifiers:
+                            row_filter_query[column_identifier].add(
+                                self.escape_quotes(unexpected_index[column_identifier])
+                            )
 
         index_filter_query_set_parts = []
         for column_identifier in unique_column_identifiers:
@@ -204,8 +260,8 @@ class GreatExpectationsDataQuality(DataQualityBase):
                 )
 
         filtered_query = " AND ".join(index_filter_query_set_parts)
-        print(filtered_query)
-        return filtered_query
+        print(f"Generated filter query: {filtered_query}")
+        return filtered_query if filtered_query else None
 
     def split_dataframe(
         self,
@@ -311,6 +367,17 @@ class GreatExpectationsDataQuality(DataQualityBase):
             only_return_failures=True,
         )
 
+        print("Validation Results:")
+        print(results)
+
+        # Add debug statement here to check unexpected index list
+        for result in results.results:
+            if result.success is False:
+                unexpected_index_list = result.result.get("unexpected_index_list", [])
+                print(
+                    f"Unexpected index list for {result.expectation_config['expectation_type']}: {unexpected_index_list}"
+                )
+
         failed_checks = [
             result["expectation_config"]["expectation_type"]
             for result in results.results
@@ -342,11 +409,16 @@ class GreatExpectationsDataQuality(DataQualityBase):
                     spec.unique_column_identifiers, results
                 )
 
+                print("Combined Filter Expression:")
+                print(combined_filter_expression)
+
                 input_df, failing_rows_df = self.split_dataframe(
                     failed_flag_column_name, combined_filter_expression, input_df, spec
                 )
 
             if failing_rows_df is not None:
+                print("Failing Rows DataFrame:")
+                failing_rows_df.show()
                 return input_df, failing_rows_df
 
             return input_df
