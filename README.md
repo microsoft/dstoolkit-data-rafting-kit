@@ -97,6 +97,10 @@ This project makes key use of some dependencies to power some of the features. T
 - [Microsoft Presidio](https://github.com/microsoft/presidio)
 - [Pydantic](https://github.com/pydantic/pydantic)
 
+The following abandoned library has provided some initial inspiration for direction of a YAML based approach for data pipelines:
+
+- [DataDuct](https://github.com/coursera/dataduct)
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
