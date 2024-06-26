@@ -171,7 +171,42 @@ class GreatExpectationsDataQuality(DataQualityBase):
         elif isinstance(sql_expr, str):
             escaped_sql_expr = sql_expr.replace("'", "\\'")
             return f"'{escaped_sql_expr}'"
+        elif sql_expr is None:
+            return "NULL"
         return f"'{sql_expr}'"
+
+    def row_filter_list_to_query_expression(
+        self, row_filter_query: dict, unique_column_identifiers: list[str]
+    ) -> str:
+        """Converts the row filter query to a query expression.
+
+        Args:
+        ----
+            row_filter_query (dict): The row filter query.
+            unique_column_identifiers (list[str]): The unique column identifiers.
+
+        Returns:
+        -------
+        str: The query expression.
+        """
+        index_filter_query_set_parts = []
+        for column_identifier in unique_column_identifiers:
+            if len(row_filter_query[column_identifier]) == 1:
+                if "NULL" in row_filter_query[column_identifier]:
+                    index_filter_query_set_parts.append(f"{column_identifier} IS NULL")
+                else:
+                    index_filter_query_set_parts.append(
+                        f"{column_identifier} = {row_filter_query[column_identifier].pop()}"
+                    )
+            elif len(row_filter_query[column_identifier]) > 0:
+                formatted_values = ", ".join(row_filter_query[column_identifier])
+                index_filter_query_set_parts.append(
+                    f"{column_identifier} IN ({formatted_values})"
+                )
+
+        filtered_query = " AND ".join(index_filter_query_set_parts)
+        print(f"Generated filter query: {filtered_query}")
+        return filtered_query if filtered_query else None
 
     def get_filter_expression(
         self, unique_column_identifiers: list, results: list
@@ -180,8 +215,8 @@ class GreatExpectationsDataQuality(DataQualityBase):
 
         Args:
         ----
-            unique_column_identifiers (list): The unique column identifiers.
-            results (list): The list of results.
+            unique_column_identifiers (list[str]): The unique column identifiers.
+            results (list): The validation results.
 
         Returns:
         -------
@@ -214,17 +249,9 @@ class GreatExpectationsDataQuality(DataQualityBase):
                                 self.escape_quotes(unexpected_index[column_identifier])
                             )
 
-        index_filter_query_set_parts = []
-        for column_identifier in unique_column_identifiers:
-            if len(row_filter_query[column_identifier]) > 0:
-                formatted_values = ", ".join(row_filter_query[column_identifier])
-                index_filter_query_set_parts.append(
-                    f"{column_identifier} IN ({formatted_values})"
-                )
-
-        filtered_query = " AND ".join(index_filter_query_set_parts)
-        print(f"Generated filter query: {filtered_query}")
-        return filtered_query if filtered_query else None
+        return self.row_filter_list_to_query_expression(
+            row_filter_query, unique_column_identifiers
+        )
 
     def split_dataframe(
         self,
