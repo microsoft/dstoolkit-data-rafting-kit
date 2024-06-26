@@ -1,0 +1,96 @@
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "id": 1,
+          "test_column": "Not a JSON string"
+        },
+        {
+          "id": 2,
+          "test_column": "{\"name\": \"Doe\", \"age\": \"invalid\"}"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "id": 1,
+          "test_column": "{\"name\": \"John\", \"age\": 30}"
+        },
+        {
+          "id": 2,
+          "test_column": "{\"name\": \"Jane\", \"age\": 25}"
+        },
+        {
+          "id": 3,
+          "test_column": "Not a JSON string"
+        },
+        {
+          "id": 4,
+          "test_column": "{\"name\": \"Doe\", \"age\": \"invalid\"}"
+        }
+      ],
+      "passing_rows": [
+        {
+          "id": 1,
+          "test_column": "{\"name\": \"John\", \"age\": 30}"
+        },
+        {
+          "id": 2,
+          "test_column": "{\"name\": \"Jane\", \"age\": 25}"
+        }
+      ],
+      "spec": {
+        "column": "test_column"
+      }
+    },
+    {
+      "failing_rows": [
+        {
+          "id": 3,
+          "test_column": "{\"city\": \"Invalid\", \"population\": \"string instead of number\"}"
+        },
+        {
+          "id": 4,
+          "test_column": "This is not JSON"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "id": 1,
+          "test_column": "{\"city\": \"New York\", \"population\": 8500000}"
+        },
+        {
+          "id": 2,
+          "test_column": "{\"city\": \"Los Angeles\", \"population\": 4000000}"
+        },
+        {
+          "id": 3,
+          "test_column": "{\"city\": \"Invalid\", \"population\": \"string instead of number\"}"
+        },
+        {
+          "id": 4,
+          "test_column": "This is not JSON"
+        }
+      ],
+      "passing_rows": [
+        {
+          "id": 1,
+          "test_column": "{\"city\": \"New York\", \"population\": 8500000}"
+        },
+        {
+          "id": 2,
+          "test_column": "{\"city\": \"Los Angeles\", \"population\": 4000000}"
+        }
+      ],
+      "spec": {
+        "column": "test_column"
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "id",
+    "test_column"
+  ]
+}

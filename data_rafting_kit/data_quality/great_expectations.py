@@ -40,6 +40,8 @@ EXCLUDED_GREAT_EXPECTATION_CHECKS = [
     "expect_column_values_to_not_match_like_pattern",
     "expect_column_values_to_not_match_like_pattern_list",
     "expect_column_values_to_match_strftime_format",
+    "expect_column_values_to_be_in_type_list",
+    "expect_column_values_to_be_of_type",
 ]
 GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY = [
     x
