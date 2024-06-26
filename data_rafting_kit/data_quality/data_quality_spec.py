@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from typing import Annotated, Union
 
 from pydantic import Field, RootModel, create_model

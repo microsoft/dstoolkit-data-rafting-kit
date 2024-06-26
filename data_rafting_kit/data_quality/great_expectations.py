@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Any, Literal

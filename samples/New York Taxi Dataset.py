@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # New York Taxi Dataset Example

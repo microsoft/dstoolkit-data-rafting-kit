@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from pydantic import BaseModel, Field
 
 from data_rafting_kit.io.io_spec import InputRootSpec

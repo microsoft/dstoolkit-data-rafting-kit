@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 from data_rafting_kit.io.console import ConsoleIO
 from data_rafting_kit.io.delta_table import DeltaTableIO
 from data_rafting_kit.io.event_hub import EventHubIO
