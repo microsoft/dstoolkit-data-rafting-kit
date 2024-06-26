@@ -6,8 +6,8 @@ from enum import StrEnum
 from typing import Annotated, Any, Literal
 
 import great_expectations as gx
-import pyspark
 import pyspark.sql.functions as f
+import pyspark.sql.utils as pyspark_utils
 from great_expectations.core import ExpectationSuite
 from great_expectations.expectations.expectation import ExpectationConfiguration
 from great_expectations.expectations.registry import (
@@ -519,9 +519,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
                         [], schema=input_df.schema
                     )
             else:
-                combined_filter_expression = self.get_filter_expression_by_sql(
-                    spec.unique_column_identifiers, results
-                )
+                combined_filter_expression = self.get_filter_expression_by_sql(results)
 
                 print("Combined Filter Expression:")
                 print(combined_filter_expression)
@@ -533,7 +531,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
                         input_df,
                         spec,
                     )
-                except pyspark.sql.utils.AnalysisException:
+                except pyspark_utils.AnalysisException:
                     combined_filter_expression = self.get_filter_expression_by_index(
                         spec.unique_column_identifiers, results
                     )
