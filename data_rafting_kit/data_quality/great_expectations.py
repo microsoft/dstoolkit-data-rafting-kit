@@ -1,10 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+import re
 from datetime import datetime
 from enum import StrEnum
 from typing import Annotated, Any, Literal
 
 import great_expectations as gx
+import pyspark
 import pyspark.sql.functions as f
 from great_expectations.core import ExpectationSuite
 from great_expectations.expectations.expectation import ExpectationConfiguration
@@ -157,6 +159,76 @@ GREAT_EXPECTATIONS_DATA_QUALITY_SPECS = dynamic_great_expectations_data_quality_
 class GreatExpectationsDataQuality(DataQualityBase):
     """Represents a Great Expectations data quality expectation object."""
 
+    def fix_unquoted_strings(self, sql_expr: str) -> str:
+        """Fixes unquoted strings in SQL expressions.
+
+        Args:
+        ----
+            sql_expr (str): The SQL expression to fix.
+
+        Returns:
+        -------
+            str: The fixed SQL expression.
+        """
+        # Regex pattern to match unquoted strings inside parentheses
+        pattern = r"(\b(?:NOT\s+)?(?:IN|RLIKE)\s*\()([a-zA-Z0-9_,\s]+)(\))"
+
+        # Function to add quotes around the unquoted strings within parentheses
+        def add_quotes(match: str) -> str:
+            """Add quotes around the unquoted strings within parentheses.
+
+            Args:
+            ----
+                match (str): The matched string.
+
+            Returns:
+            -------
+                str: The fixed expression.
+            """
+            # Get the list of items inside the parentheses
+            items = match.group(2).split(",")
+            # Strip and quote each item
+            quoted_items = [
+                f"'{item.strip()}'"
+                if not item.strip().startswith("'")
+                else item.strip()
+                for item in items
+            ]
+            # Join the quoted items back into a string
+            quoted_str = ", ".join(quoted_items)
+            # Return the fixed expression
+            return f"{match.group(1)}{quoted_str}{match.group(3)}"
+
+        # Fix the expressions within parentheses
+        fixed_expr = re.sub(pattern, add_quotes, sql_expr)
+
+        # Regex pattern to match unquoted strings after comparison operators
+        comparison_pattern = r"(\s(=|!=|<|>|<=|>=)\s)([a-zA-Z0-9_]+)"
+
+        # Function to add quotes around the unquoted strings after comparison operators
+        def add_quotes_comparison(match: str) -> str:
+            """Add quotes around unquoted strings after comparison operators.
+
+            Args:
+            ----
+                match (str): The matched string.
+
+            Returns:
+            -------
+                str: The fixed expression.
+            """
+            # Get the comparison value
+            value = match.group(3)
+            # Quote the value if it's not already quoted
+            quoted_value = f"'{value}'" if not value.startswith("'") else value
+            # Return the fixed expression
+            return f"{match.group(1)}{quoted_value}"
+
+        # Fix the expressions after comparison operators
+        fixed_expr = re.sub(comparison_pattern, add_quotes_comparison, fixed_expr)
+
+        return fixed_expr
+
     def escape_quotes(self, sql_expr: Any) -> str:
         """Escapes quotes in SQL expressions.
 
@@ -210,7 +282,37 @@ class GreatExpectationsDataQuality(DataQualityBase):
         print(f"Generated filter query: {filtered_query}")
         return filtered_query if filtered_query else None
 
-    def get_filter_expression(
+    def get_filter_expression_by_sql(self, results: list) -> str:
+        """Get the combined filter expression from the results.
+
+        Args:
+        ----
+            results (list): The list of results.
+
+        Returns:
+        -------
+        str: The combined filter expression.
+        """
+        filter_expressions = []
+        for result in results.results:
+            if "unexpected_index_query" in result.result:
+                filter_expression_pattern = r"df\.filter\(F\.expr\((.*)\)\)"
+                filter_expression = re.search(
+                    filter_expression_pattern,
+                    result.result["unexpected_index_query"],
+                ).group(1)
+                print(filter_expression)
+                fixed_filter_expression = self.fix_unquoted_strings(filter_expression)
+                filter_expressions.append(f"({fixed_filter_expression})")
+            else:
+                filter_expressions.append("true")
+
+        # Combine all filter expressions into a single expression
+        combined_filter_expression = " AND ".join(filter_expressions)
+
+        return combined_filter_expression
+
+    def get_filter_expression_by_index(
         self, unique_column_identifiers: list, results: list
     ) -> str | None:
         """Gets the filter expression for the failing rows.
@@ -306,6 +408,41 @@ class GreatExpectationsDataQuality(DataQualityBase):
 
             return input_df, failing_rows_df
 
+    def build_expectation_configuration(
+        self, spec: GreatExpectationBaseSpec, input_df: DataFrame
+    ) -> ExpectationSuite:
+        """Builds the expectation configuration.
+
+        Args:
+        ----
+            spec (GreatExpectationBaseSpec): The data quality expectation specification.
+            input_df (DataFrame): The input DataFrame.
+
+        Returns:
+        -------
+        ExpectationSuite: The expectation suite.
+        """
+        expectation_configs = []
+        for expectation in spec.checks:
+            expectation_config = ExpectationConfiguration(
+                expectation_type=expectation.root.type,
+                kwargs=expectation.root.params.model_dump(by_alias=False),
+            )
+            expectation_configs.append(expectation_config)
+
+        expectation_suite = ExpectationSuite(
+            expectation_suite_name=spec.name, expectations=expectation_configs
+        )
+
+        # Check that the column identifiers exist in the input DataFrame
+        for column in spec.unique_column_identifiers:
+            if column not in input_df.columns:
+                raise ValueError(
+                    f"Column Identifier {column} not found in input DataFrame"
+                )
+
+        return expectation_suite
+
     def expectation(
         self, spec: GreatExpectationBaseSpec, input_df: DataFrame
     ) -> tuple[DataFrame, DataFrame] | DataFrame:
@@ -331,24 +468,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
             batch_request=asset.build_batch_request(dataframe=input_df)
         )
 
-        expectation_configs = []
-        for expectation in spec.checks:
-            expectation_config = ExpectationConfiguration(
-                expectation_type=expectation.root.type,
-                kwargs=expectation.root.params.model_dump(by_alias=False),
-            )
-            expectation_configs.append(expectation_config)
-
-        expectation_suite = ExpectationSuite(
-            expectation_suite_name=spec.name, expectations=expectation_configs
-        )
-
-        # Check that the column identifiers exist in the input DataFrame
-        for column in spec.unique_column_identifiers:
-            if column not in input_df.columns:
-                raise ValueError(
-                    f"Column Identifier {column} not found in input DataFrame"
-                )
+        expectation_suite = self.build_expectation_configuration(spec, input_df)
 
         results = validator.validate(
             expectation_suite=expectation_suite,
@@ -399,16 +519,34 @@ class GreatExpectationsDataQuality(DataQualityBase):
                         [], schema=input_df.schema
                     )
             else:
-                combined_filter_expression = self.get_filter_expression(
+                combined_filter_expression = self.get_filter_expression_by_sql(
                     spec.unique_column_identifiers, results
                 )
 
                 print("Combined Filter Expression:")
                 print(combined_filter_expression)
 
-                input_df, failing_rows_df = self.split_dataframe(
-                    failed_flag_column_name, combined_filter_expression, input_df, spec
-                )
+                try:
+                    input_df, failing_rows_df = self.split_dataframe(
+                        failed_flag_column_name,
+                        combined_filter_expression,
+                        input_df,
+                        spec,
+                    )
+                except pyspark.sql.utils.AnalysisException:
+                    combined_filter_expression = self.get_filter_expression_by_index(
+                        spec.unique_column_identifiers, results
+                    )
+
+                    print("Combined Filter Expression:")
+                    print(combined_filter_expression)
+
+                    input_df, failing_rows_df = self.split_dataframe(
+                        failed_flag_column_name,
+                        combined_filter_expression,
+                        input_df,
+                        spec,
+                    )
 
             if failing_rows_df is not None:
                 print("Failing Rows DataFrame:")
