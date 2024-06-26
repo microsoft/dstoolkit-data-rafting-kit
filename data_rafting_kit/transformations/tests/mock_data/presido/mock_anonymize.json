@@ -1,31 +1,31 @@
 {
-    "mock_data": [
+  "mock_data": [
+    {
+      "input_rows": [
         {
-            "input_rows": [
-                {
-                    "mask_column": "(555) 123-4567"
-                },
-                {
-                    "mask_column": "(555) 987-6543"
-                }
-            ],
-            "output_rows": [
-                {
-                    "mask_column": "***** 123-4567"
-                },
-                {
-                    "mask_column": "***** 987-6543"
-                }
-            ],
-            "spec": {
-                "columns": [
-                    {
-                        "name": "mask_column",
-                        "type": "mask",
-                        "chars_to_mask": 5
-                    }
-                ]
-            }
+          "mask_column": "(555) 123-4567"
+        },
+        {
+          "mask_column": "(555) 987-6543"
         }
-    ]
+      ],
+      "output_rows": [
+        {
+          "mask_column": "***** 123-4567"
+        },
+        {
+          "mask_column": "***** 987-6543"
+        }
+      ],
+      "spec": {
+        "columns": [
+          {
+            "chars_to_mask": 5,
+            "name": "mask_column",
+            "type": "mask"
+          }
+        ]
+      }
+    }
+  ]
 }

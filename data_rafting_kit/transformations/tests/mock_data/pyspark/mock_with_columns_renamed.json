@@ -1,78 +1,78 @@
 {
-    "mock_data": [
-      {
-        "input_rows": [
-          {
-            "column_1": "value1",
-            "column_2": 10,
-            "column_3": "2024-01-01"
-          },
-          {
-            "column_1": "value2",
-            "column_2": 20,
-            "column_3": "2024-01-02"
-          },
-          {
-            "column_1": "value3",
-            "column_2": 30,
-            "column_3": "2024-01-03"
-          }
-        ],
-        "output_rows": [
-          {
-            "column_3": "2024-01-01",
-            "new_column_1": "value1",
-            "new_column_2": 10
-          },
-          {
-            "column_3": "2024-01-02",
-            "new_column_1": "value2",
-            "new_column_2": 20
-          },
-          {
-            "column_3": "2024-01-03",
-            "new_column_1": "value3",
-            "new_column_2": 30
-          }
-        ],
-        "spec": {
-          "columns_map": {
-            "column_1": "new_column_1",
-            "column_2": "new_column_2"
-          }
+  "mock_data": [
+    {
+      "input_rows": [
+        {
+          "column_1": "value1",
+          "column_2": 10,
+          "column_3": "2024-01-01"
+        },
+        {
+          "column_1": "value2",
+          "column_2": 20,
+          "column_3": "2024-01-02"
+        },
+        {
+          "column_1": "value3",
+          "column_2": 30,
+          "column_3": "2024-01-03"
         }
-      },
-      {
-        "input_rows": [
-          {
-            "test_1": "alpha",
-            "test_2": "beta",
-            "column_3": "2024-01-10"
-          },
-          {
-            "test_1": "gamma",
-            "test_2": "delta",
-            "column_3": "2024-01-11"
-          }
-        ],
-        "output_rows": [
-          {
-            "column_3": "2024-01-10",
-            "new_test_1": "alpha",
-            "new_test_2": "beta"
-          },
-          {
-            "column_3": "2024-01-11",
-            "new_test_1": "gamma",
-            "new_test_2": "delta"
-          }
-        ],
-        "spec": {
-          "columns_map": {
-            "test_1": "new_test_1",
-            "test_2": "new_test_2"
-          }
+      ],
+      "output_rows": [
+        {
+          "column_3": "2024-01-01",
+          "new_column_1": "value1",
+          "new_column_2": 10
+        },
+        {
+          "column_3": "2024-01-02",
+          "new_column_1": "value2",
+          "new_column_2": 20
+        },
+        {
+          "column_3": "2024-01-03",
+          "new_column_1": "value3",
+          "new_column_2": 30
+        }
+      ],
+      "spec": {
+        "columns_map": {
+          "column_1": "new_column_1",
+          "column_2": "new_column_2"
         }
       }
-    ]
-  }
+    },
+    {
+      "input_rows": [
+        {
+          "column_3": "2024-01-10",
+          "test_1": "alpha",
+          "test_2": "beta"
+        },
+        {
+          "column_3": "2024-01-11",
+          "test_1": "gamma",
+          "test_2": "delta"
+        }
+      ],
+      "output_rows": [
+        {
+          "column_3": "2024-01-10",
+          "new_test_1": "alpha",
+          "new_test_2": "beta"
+        },
+        {
+          "column_3": "2024-01-11",
+          "new_test_1": "gamma",
+          "new_test_2": "delta"
+        }
+      ],
+      "spec": {
+        "columns_map": {
+          "test_1": "new_test_1",
+          "test_2": "new_test_2"
+        }
+      }
+    }
+  ]
+}

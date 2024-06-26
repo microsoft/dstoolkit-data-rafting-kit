@@ -1,60 +1,64 @@
 {
-    "mock_data": [
-      {
-        "input_rows": [
-          {
-            "partition_column": "A",
-            "order_column": 1,
-            "data_column": "Value1"
-          },
-          {
-            "partition_column": "A",
-            "order_column": 2,
-            "data_column": "Value2"
-          },
-          {
-            "partition_column": "B",
-            "order_column": 3,
-            "data_column": "Value3"
-          },
-          {
-            "partition_column": "B",
-            "order_column": 4,
-            "data_column": "Value4"
-          }
-        ],
-        "output_rows": [
-          {
-            "partition_column": "A",
-            "order_column": 1,
-            "data_column": "Value1",
-            "rank_column": 1
-          },
-          {
-            "partition_column": "A",
-            "order_column": 2,
-            "data_column": "Value2",
-            "rank_column": 2
-          },
-          {
-            "partition_column": "B",
-            "order_column": 3,
-            "data_column": "Value3",
-            "rank_column": 1
-          },
-          {
-            "partition_column": "B",
-            "order_column": 4,
-            "data_column": "Value4",
-            "rank_column": 2
-          }
-        ],
-        "spec": {
-          "partition_by": ["partition_column"],
-          "order_by": ["order_column"],
-          "window_function": "rank",
-          "column": "rank_column"
+  "mock_data": [
+    {
+      "input_rows": [
+        {
+          "data_column": "Value1",
+          "order_column": 1,
+          "partition_column": "A"
+        },
+        {
+          "data_column": "Value2",
+          "order_column": 2,
+          "partition_column": "A"
+        },
+        {
+          "data_column": "Value3",
+          "order_column": 3,
+          "partition_column": "B"
+        },
+        {
+          "data_column": "Value4",
+          "order_column": 4,
+          "partition_column": "B"
         }
+      ],
+      "output_rows": [
+        {
+          "data_column": "Value1",
+          "order_column": 1,
+          "partition_column": "A",
+          "rank_column": 1
+        },
+        {
+          "data_column": "Value2",
+          "order_column": 2,
+          "partition_column": "A",
+          "rank_column": 2
+        },
+        {
+          "data_column": "Value3",
+          "order_column": 3,
+          "partition_column": "B",
+          "rank_column": 1
+        },
+        {
+          "data_column": "Value4",
+          "order_column": 4,
+          "partition_column": "B",
+          "rank_column": 2
+        }
+      ],
+      "spec": {
+        "column": "rank_column",
+        "order_by": [
+          "order_column"
+        ],
+        "partition_by": [
+          "partition_column"
+        ],
+        "window_function": "rank"
       }
-    ]
-  }
+    }
+  ]
+}
