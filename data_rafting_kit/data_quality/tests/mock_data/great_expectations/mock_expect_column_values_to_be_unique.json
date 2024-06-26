@@ -3,7 +3,10 @@
     {
       "failing_rows": [
         {
-          "column_1": "value2"
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value1"
         }
       ],
       "fails": true,
@@ -22,9 +25,6 @@
         }
       ],
       "passing_rows": [
-        {
-          "column_1": "value1"
-        },
         {
           "column_1": "value2"
         },

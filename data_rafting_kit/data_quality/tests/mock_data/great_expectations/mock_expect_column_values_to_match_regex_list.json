@@ -4,9 +4,6 @@
       "failing_rows": [
         {
           "column_1": "1234"
-        },
-        {
-          "column_1": "abc"
         }
       ],
       "fails": true,

@@ -18,16 +18,10 @@
           "column_1": "value1"
         },
         {
-          "column_1": null
-        },
-        {
           "column_1": "value2"
         }
       ],
       "passing_rows": [
-        {
-          "column_1": null
-        },
         {
           "column_1": null
         }

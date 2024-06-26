@@ -3,12 +3,6 @@
     {
       "failing_rows": [
         {
-          "column_1": 2
-        },
-        {
-          "column_1": 4
-        },
-        {
           "column_1": 3
         }
       ],
