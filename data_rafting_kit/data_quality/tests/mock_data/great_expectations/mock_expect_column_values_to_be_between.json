@@ -3,7 +3,7 @@
     {
       "failing_rows": [
         {
-          "column_1": 5
+          "column_1": 2
         },
         {
           "column_1": 20
@@ -29,7 +29,7 @@
       ],
       "passing_rows": [
         {
-          "column_1": 2
+          "column_1": 5
         },
         {
           "column_1": 10

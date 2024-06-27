@@ -171,7 +171,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
             str: The fixed SQL expression.
         """
         # Regex pattern to match unquoted strings inside parentheses
-        pattern = r"(\b(?:NOT\s+)?(?:IN|RLIKE)\s*\()([a-zA-Z0-9_,\s]+)(\))"
+        pattern = r"(\b(?:NOT\s+)?(?:IN|RLIKE)\s*\()([a-zA-Z0-9_',\s]+)(\))"
 
         # Function to add quotes around the unquoted strings within parentheses
         def add_quotes(match: str) -> str:
@@ -190,7 +190,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
             # Strip and quote each item
             quoted_items = [
                 f"'{item.strip()}'"
-                if not item.strip().startswith("'")
+                if not (item.strip().startswith("'") or item.strip().isdigit())
                 else item.strip()
                 for item in items
             ]
@@ -220,7 +220,13 @@ class GreatExpectationsDataQuality(DataQualityBase):
             # Get the comparison value
             value = match.group(3)
             # Quote the value if it's not already quoted
-            quoted_value = f"'{value}'" if not value.startswith("'") else value
+            quoted_value = (
+                f"'{value}'"
+                if not (
+                    value.startswith("'") or value.isdigit() or value.isidentifier()
+                )
+                else value
+            )
             # Return the fixed expression
             return f"{match.group(1)}{quoted_value}"
 

@@ -7,20 +7,20 @@
           "id": 1
         },
         {
-          "column_1": "value2",
-          "id": 2
-        },
-        {
-          "column_1": "value3",
-          "id": 3
-        },
-        {
           "column_1": "value1",
           "id": 4
         },
         {
           "column_1": "value2",
+          "id": 2
+        },
+        {
+          "column_1": "value2",
           "id": 5
+        },
+        {
+          "column_1": "value3",
+          "id": 3
         }
       ],
       "fails": true,
@@ -30,27 +30,27 @@
           "id": 1
         },
         {
-          "column_1": "value2",
-          "id": 2
-        },
-        {
-          "column_1": "value3",
-          "id": 3
-        },
-        {
           "column_1": "value1",
           "id": 4
         },
         {
           "column_1": "value2",
+          "id": 2
+        },
+        {
+          "column_1": "value2",
           "id": 5
+        },
+        {
+          "column_1": "value3",
+          "id": 3
         }
       ],
       "passing_rows": [],
       "spec": {
         "column": "column_1",
-        "max_value_count": 3,
-        "min_value_count": 2
+        "max_value_count": 2,
+        "min_value_count": 1
       }
     },
     {
@@ -95,7 +95,7 @@
       "spec": {
         "column": "column_1",
         "max_value_count": 4,
-        "min_value_count": 2
+        "min_value_count": 1
       }
     }
   ],

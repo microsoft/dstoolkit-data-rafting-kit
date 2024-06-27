@@ -3,33 +3,33 @@
     {
       "failing_rows": [
         {
-          "column_A": "xyz",
-          "column_B": "abc"
+          "column_A": 10,
+          "column_B": 15
+        },
+        {
+          "column_A": 50,
+          "column_B": 100
         }
       ],
       "fails": true,
       "input_rows": [
         {
           "column_A": 10,
-          "column_B": 5
+          "column_B": 15
         },
         {
-          "column_A": 100,
-          "column_B": 50
+          "column_A": 50,
+          "column_B": 100
         },
         {
-          "column_A": "xyz",
-          "column_B": "abc"
+          "column_A": 20,
+          "column_B": 10
         }
       ],
       "passing_rows": [
         {
-          "column_A": 10,
-          "column_B": 5
-        },
-        {
-          "column_A": 100,
-          "column_B": 50
+          "column_A": 20,
+          "column_B": 10
         }
       ],
       "spec": {
@@ -43,37 +43,37 @@
       "input_rows": [
         {
           "column_A": 100,
-          "column_B": 200
+          "column_B": 50
         },
         {
-          "column_A": 50,
+          "column_A": 30,
+          "column_B": 20
+        },
+        {
+          "column_A": 25,
           "column_B": 10
         },
         {
-          "column_A": 20,
-          "column_B": 10
-        },
-        {
-          "column_A": "abc",
-          "column_B": "xyz"
+          "column_A": 40,
+          "column_B": 20
         }
       ],
       "passing_rows": [
         {
           "column_A": 100,
-          "column_B": 200
+          "column_B": 50
         },
         {
-          "column_A": 50,
+          "column_A": 30,
+          "column_B": 20
+        },
+        {
+          "column_A": 25,
           "column_B": 10
         },
         {
-          "column_A": 20,
-          "column_B": 10
-        },
-        {
-          "column_A": "abc",
-          "column_B": "xyz"
+          "column_A": 40,
+          "column_B": 20
         }
       ],
       "spec": {
