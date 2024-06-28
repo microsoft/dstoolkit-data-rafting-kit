@@ -33,7 +33,10 @@ class TransformationFactory(BaseFactory):
                 spec.type, df=input_df
             )[0]
 
-            params = spec.params.model_dump(by_alias=False)
+            if hasattr(spec, "params"):
+                params = spec.params.model_dump(by_alias=False)
+            else:
+                params = {}
 
             sig = inspect.signature(transformation_function)
             if any(
