@@ -39,10 +39,6 @@
     {
       "failing_rows": [
         {
-          "id": 3,
-          "test_column": "{\"city\": \"Invalid\", \"population\": \"string instead of number\"}"
-        },
-        {
           "id": 4,
           "test_column": "This is not JSON"
         }
@@ -59,10 +55,6 @@
         },
         {
           "id": 3,
-          "test_column": "{\"city\": \"Invalid\", \"population\": \"string instead of number\"}"
-        },
-        {
-          "id": 4,
           "test_column": "This is not JSON"
         }
       ],

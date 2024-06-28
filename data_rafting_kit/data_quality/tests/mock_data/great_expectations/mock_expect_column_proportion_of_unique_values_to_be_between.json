@@ -7,6 +7,9 @@
         },
         {
           "column_1": "value2"
+        },
+        {
+          "column_1": "value3"
         }
       ],
       "fails": true,
@@ -21,17 +24,7 @@
           "column_1": "value3"
         }
       ],
-      "passing_rows": [
-        {
-          "column_1": "unique1"
-        },
-        {
-          "column_1": "unique2"
-        },
-        {
-          "column_1": "unique3"
-        }
-      ],
+      "passing_rows": [],
       "spec": {
         "column": "column_1",
         "max_value": 0.9,
@@ -49,7 +42,7 @@
           "column_1": "unique2"
         },
         {
-          "column_1": "unique3"
+          "column_1": "unique1"
         }
       ],
       "passing_rows": [
@@ -60,12 +53,12 @@
           "column_1": "unique2"
         },
         {
-          "column_1": "unique3"
+          "column_1": "unique1"
         }
       ],
       "spec": {
         "column": "column_1",
-        "max_value": 0.9,
+        "max_value": 0.8,
         "min_value": 0.5
       }
     }

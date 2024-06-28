@@ -75,7 +75,6 @@
     }
   ],
   "unique_column_identifiers": [
-    "column_1",
-    "z_score"
+    "column_1"
   ]
 }
