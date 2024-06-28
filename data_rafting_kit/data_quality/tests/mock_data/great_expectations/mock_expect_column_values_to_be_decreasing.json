@@ -4,9 +4,6 @@
       "failing_rows": [
         {
           "column_1": 1000
-        },
-        {
-          "column_1": 100
         }
       ],
       "fails": true,
@@ -16,9 +13,6 @@
         },
         {
           "column_1": 1000
-        },
-        {
-          "column_1": 100
         }
       ],
       "passing_rows": [

@@ -39,7 +39,7 @@
     {
       "failing_rows": [
         {
-          "id": 4,
+          "id": 3,
           "test_column": "This is not JSON"
         }
       ],
