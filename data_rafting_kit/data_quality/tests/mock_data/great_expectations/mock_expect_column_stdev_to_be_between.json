@@ -70,7 +70,7 @@
       ],
       "spec": {
         "column": "column_1",
-        "max_value": 2,
+        "max_value": 3,
         "min_value": 1
       }
     }

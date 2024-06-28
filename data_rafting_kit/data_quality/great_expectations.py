@@ -285,7 +285,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
                 )
 
         filtered_query = " AND ".join(index_filter_query_set_parts)
-        print(f"Generated filter query: {filtered_query}")
+
         return filtered_query if filtered_query else None
 
     def get_filter_expression_by_sql(self, results: list) -> str:
@@ -307,7 +307,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
                     filter_expression_pattern,
                     result.result["unexpected_index_query"],
                 ).group(1)
-                print(filter_expression)
+
                 fixed_filter_expression = self.fix_unquoted_strings(filter_expression)
                 filter_expressions.append(f"({fixed_filter_expression})")
             else:
@@ -340,11 +340,11 @@ class GreatExpectationsDataQuality(DataQualityBase):
         for result in results.results:
             if result.success is False:
                 unexpected_index_list = result.result.get("unexpected_index_list", [])
-                print(f"Unexpected index list: {unexpected_index_list}")
+
                 if len(unexpected_index_list) == 0:
                     # Handle case where unexpected_index_list is not provided
                     unexpected_values = result.result.get("unexpected_values", [])
-                    print(f"Unexpected values: {unexpected_values}")
+
                     if len(unexpected_values) > 0:
                         column = result.expectation_config["kwargs"]["column"]
                         row_filter_query[column] = {
@@ -487,17 +487,6 @@ class GreatExpectationsDataQuality(DataQualityBase):
             only_return_failures=True,
         )
 
-        print("Validation Results:")
-        print(results)
-
-        # Add debug statement here to check unexpected index list
-        for result in results.results:
-            if result.success is False:
-                unexpected_index_list = result.result.get("unexpected_index_list", [])
-                print(
-                    f"Unexpected index list for {result.expectation_config['expectation_type']}: {unexpected_index_list}"
-                )
-
         failed_checks = [
             result["expectation_config"]["expectation_type"]
             for result in results.results
@@ -527,9 +516,6 @@ class GreatExpectationsDataQuality(DataQualityBase):
             else:
                 combined_filter_expression = self.get_filter_expression_by_sql(results)
 
-                print("Combined Filter Expression:")
-                print(combined_filter_expression)
-
                 try:
                     input_df, failing_rows_df = self.split_dataframe(
                         failed_flag_column_name,
@@ -542,9 +528,6 @@ class GreatExpectationsDataQuality(DataQualityBase):
                         spec.unique_column_identifiers, results
                     )
 
-                    print("Combined Filter Expression:")
-                    print(combined_filter_expression)
-
                     input_df, failing_rows_df = self.split_dataframe(
                         failed_flag_column_name,
                         combined_filter_expression,
@@ -553,8 +536,6 @@ class GreatExpectationsDataQuality(DataQualityBase):
                     )
 
             if failing_rows_df is not None:
-                print("Failing Rows DataFrame:")
-                failing_rows_df.show()
                 return input_df, failing_rows_df
 
             return input_df
