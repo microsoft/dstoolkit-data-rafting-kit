@@ -29,35 +29,6 @@
       "spec": {
         "column": "column_1"
       }
-    },
-    {
-      "failing_rows": [],
-      "fails": false,
-      "input_rows": [
-        {
-          "column_1": null
-        },
-        {
-          "column_1": null
-        },
-        {
-          "column_1": null
-        }
-      ],
-      "passing_rows": [
-        {
-          "column_1": null
-        },
-        {
-          "column_1": null
-        },
-        {
-          "column_1": null
-        }
-      ],
-      "spec": {
-        "column": "column_1"
-      }
     }
   ],
   "unique_column_identifiers": [
