@@ -3,7 +3,7 @@
     {
       "failing_rows": [
         {
-          "id": 1,
+          "id": 3,
           "test_column": "Not a JSON string"
         }
       ],

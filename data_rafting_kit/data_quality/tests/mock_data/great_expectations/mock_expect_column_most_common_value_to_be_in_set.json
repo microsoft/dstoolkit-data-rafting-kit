@@ -4,22 +4,7 @@
       "failing_rows": [
         {
           "column_1": [
-            "value1",
-            "value2",
-            "value3",
-            "value3",
-            "value4"
-          ]
-        },
-        {
-          "column_1": [
-            "A",
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "E"
+            "value1"
           ]
         }
       ],
@@ -27,41 +12,14 @@
       "input_rows": [
         {
           "column_1": [
-            "value1",
-            "value2",
-            "value3",
-            "value3",
-            "value4"
-          ]
-        },
-        {
-          "column_1": [
-            "A",
-            "A",
-            "B",
-            "C",
-            "D",
-            "E",
-            "E"
+            "value1"
           ]
         }
       ],
       "passing_rows": [
         {
           "column_1": [
-            "value1",
-            "value1",
-            "value1",
-            "value2"
-          ]
-        },
-        {
-          "column_1": [
-            "X",
-            "X",
-            "Y",
-            "Y",
-            "Z"
+            "value1"
           ]
         }
       ],
