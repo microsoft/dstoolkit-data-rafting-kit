@@ -14,9 +14,10 @@ from great_expectations.expectations.registry import (
     get_expectation_impl,
     list_registered_expectation_implementations,
 )
-from pydantic import BaseModel, ConfigDict, Field, create_model
+from pydantic import Field, create_model
 from pyspark.sql import DataFrame
 
+from data_rafting_kit.common.base_spec import BaseParamSpec
 from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityBase,
     DataQualityBaseSpec,
@@ -131,9 +132,8 @@ for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
         else:
             raise ValueError(f"Couldn't find type for {arg} in {expectation_class}")
 
-    param_config = ConfigDict(allow_population_by_field_name=True)
     dynamic_data_quality_param_model = create_model(
-        f"{expectation_name}_params", **param_fields, __config__=param_config
+        f"{expectation_name}_params", **param_fields, __base__=BaseParamSpec
     )
 
     fields = {
@@ -147,7 +147,7 @@ for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
     model_name = f"GreatExpectations{normalised_expectation_name}DataQualitySpec"
 
     dynamic_great_expectations_data_quality_model = create_model(
-        model_name, **fields, __base__=BaseModel
+        model_name, **fields, __base__=GreatExpectationBaseSpec
     )
     dynamic_great_expectations_data_quality_models.append(
         dynamic_great_expectations_data_quality_model

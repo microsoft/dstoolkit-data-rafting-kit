@@ -3,9 +3,10 @@
 from typing import Literal
 
 from delta.tables import DeltaTable
-from pydantic import BaseModel, Field, model_validator
+from pydantic import Field, model_validator
 from pyspark.sql import DataFrame
 
+from data_rafting_kit.common.base_spec import BaseParamSpec
 from data_rafting_kit.io.io_base import (
     BatchOutputModeEnum,
     InputBaseParamSpec,
@@ -17,7 +18,7 @@ from data_rafting_kit.io.io_base import (
 )
 
 
-class DeltaTableOptimizeSpec(BaseModel):
+class DeltaTableOptimizeSpec(BaseParamSpec):
     """Delta Table optimize specification."""
 
     z_order: list[str] | None = Field(default=None)
@@ -25,14 +26,14 @@ class DeltaTableOptimizeSpec(BaseModel):
     compact: bool | None = Field(default=None)
 
 
-class ColumnSourceTargetPair(BaseModel):
+class ColumnSourceTargetPair(BaseParamSpec):
     """Column source and target pair."""
 
     column: str
     source: str
 
 
-class DeltaTableMergeSpec(BaseModel):
+class DeltaTableMergeSpec(BaseParamSpec):
     """Delta Table merge specification."""
 
     create_target_if_not_exists: bool | None = Field(default=True)

@@ -9,9 +9,10 @@ import pyspark.sql.types as t
 from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
 from presidio_anonymizer.entities import OperatorConfig
-from pydantic import BaseModel, Field, RootModel
+from pydantic import Field, RootModel
 from pyspark.sql import DataFrame
 
+from data_rafting_kit.common.base_spec import BaseParamSpec
 from data_rafting_kit.transformations.transformation_base import (
     TransformationBase,
     TransformationBaseSpec,
@@ -28,7 +29,7 @@ class PresidoOperatorEnum(StrEnum):
     MASK = "mask"
 
 
-class PresidoReplaceOperatorSpec(BaseModel):
+class PresidoReplaceOperatorSpec(BaseParamSpec):
     """Presido Replace Operator Specification."""
 
     type: Literal[PresidoOperatorEnum.REPLACE]
@@ -37,7 +38,7 @@ class PresidoReplaceOperatorSpec(BaseModel):
     entire_value: bool = False
 
 
-class PresidoRedactOperatorSpec(BaseModel):
+class PresidoRedactOperatorSpec(BaseParamSpec):
     """Presido Redact Operator Specification."""
 
     type: Literal[PresidoOperatorEnum.REDACT]
@@ -45,7 +46,7 @@ class PresidoRedactOperatorSpec(BaseModel):
     entire_value: bool = False
 
 
-class PresidoHashOperatorSpec(BaseModel):
+class PresidoHashOperatorSpec(BaseParamSpec):
     """Presido Hash Operator Specification."""
 
     type: Literal[PresidoOperatorEnum.HASH]
@@ -53,7 +54,7 @@ class PresidoHashOperatorSpec(BaseModel):
     hash_type: str | None = Field(default="sha256")
 
 
-class PresidoMaskOperatorSpec(BaseModel):
+class PresidoMaskOperatorSpec(BaseParamSpec):
     """Presido Mask Operator Specification."""
 
     type: Literal[PresidoOperatorEnum.MASK]
@@ -71,7 +72,7 @@ class PresidoOperatorSpec(RootModel):
     )
 
 
-class PresidoAnonymizeTransformationParamSpec(BaseModel):
+class PresidoAnonymizeTransformationParamSpec(BaseParamSpec):
     """PySpark With Columns Transformation Parameters."""
 
     columns: list[PresidoOperatorSpec]

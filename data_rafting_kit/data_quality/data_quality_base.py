@@ -22,15 +22,6 @@ class DataQualityBaseSpec(BaseSpec):
     input_df: str | None = Field(default=None)
 
 
-class DataQualityResult:
-    """Represents the result of a data quality check."""
-
-    def __init__(self, success, message):
-        """Initializes an instance of the DataQualityResult class."""
-        self.success = success
-        self.message = message
-
-
 class DataQualityBase:
     """Represents a data quality object for data pipelines.
 

@@ -49,8 +49,8 @@
       "passing_rows": [],
       "spec": {
         "column": "column_1",
-        "max_value_count": 2,
-        "min_value_count": 1
+        "max_value": 2,
+        "min_value": 1
       }
     },
     {
@@ -94,8 +94,8 @@
       ],
       "spec": {
         "column": "column_1",
-        "max_value_count": 4,
-        "min_value_count": 1
+        "max_value": 4,
+        "min_value": 1
       }
     }
   ],

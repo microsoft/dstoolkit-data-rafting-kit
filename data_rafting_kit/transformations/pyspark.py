@@ -3,9 +3,10 @@
 from typing import Literal
 
 import pyspark.sql.functions as f
-from pydantic import BaseModel, Field
+from pydantic import Field
 from pyspark.sql import DataFrame, Window
 
+from data_rafting_kit.common.base_spec import BaseParamSpec
 from data_rafting_kit.transformations.transformation_base import (
     TransformationBase,
     TransformationBaseSpec,
@@ -22,7 +23,7 @@ PYSPARK_DYNAMIC_TRANSFORMATIONS = (
 )
 
 
-class PysparkJoinTransformationParamSpec(BaseModel):
+class PysparkJoinTransformationParamSpec(BaseParamSpec):
     """PySpark Join Transformation Parameters."""
 
     other_df: str
@@ -37,14 +38,14 @@ class PysparkJoinTransformationSpec(TransformationBaseSpec):
     params: PysparkJoinTransformationParamSpec
 
 
-class PySparkColumnExpressionSpec(BaseModel):
+class PySparkColumnExpressionSpec(BaseParamSpec):
     """PySpark Column Expression Specification."""
 
     name: str
     expr: str
 
 
-class PysparkWithColumnsTransformationParamSpec(BaseModel):
+class PysparkWithColumnsTransformationParamSpec(BaseParamSpec):
     """PySpark With Columns Transformation Parameters."""
 
     columns: list[PySparkColumnExpressionSpec]
@@ -57,7 +58,7 @@ class PysparkWithColumnsTransformationSpec(TransformationBaseSpec):
     params: PysparkWithColumnsTransformationParamSpec
 
 
-class PysparkWindowFunctionParamSpec(BaseModel):
+class PysparkWindowFunctionParamSpec(BaseParamSpec):
     """Parameters for the custom window function transformation."""
 
     partition_by: list[str]
@@ -73,7 +74,7 @@ class PysparkWindowTransformationSpec(TransformationBaseSpec):
     params: PysparkWindowFunctionParamSpec
 
 
-class PysparkSelectTransformationParamSpec(BaseModel):
+class PysparkSelectTransformationParamSpec(BaseParamSpec):
     """PySpark Select Transformation Parameters."""
 
     columns: list[str]
