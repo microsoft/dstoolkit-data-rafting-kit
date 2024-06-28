@@ -3,32 +3,44 @@
     {
       "failing_rows": [
         {
-          "column_1": [
-            "value1"
-          ]
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        },
+        {
+          "column_1": "value2"
         }
       ],
       "fails": true,
       "input_rows": [
         {
-          "column_1": [
-            "value1"
-          ]
-        }
-      ],
-      "passing_rows": [
+          "column_1": "value1"
+        },
         {
-          "column_1": [
-            "value1"
-          ]
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        },
+        {
+          "column_1": "value2"
         }
       ],
+      "passing_rows": [],
       "spec": {
         "column": "column_1",
         "values": [
-          "value1",
-          "value2",
-          "value3"
+          "value2"
         ]
       }
     },
@@ -37,31 +49,42 @@
       "fails": false,
       "input_rows": [
         {
-          "column_1": [
-            "value1",
-            "value1",
-            "value2",
-            "value3"
-          ]
+          "column_1": "value1"
         },
         {
-          "column_1": [
-            "A",
-            "A",
-            "B",
-            "B",
-            "B",
-            "C"
-          ]
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        },
+        {
+          "column_1": "value2"
         }
       ],
-      "passing_rows": [],
+      "passing_rows": [
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        },
+        {
+          "column_1": "value2"
+        }
+      ],
       "spec": {
         "column": "column_1",
         "values": [
-          "value1",
-          "value2",
-          "value3"
+          "value1"
         ]
       }
     }

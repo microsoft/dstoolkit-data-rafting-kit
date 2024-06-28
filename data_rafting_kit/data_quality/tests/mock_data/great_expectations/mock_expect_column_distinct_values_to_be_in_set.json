@@ -3,6 +3,15 @@
     {
       "failing_rows": [
         {
+          "column_1": "value1"
+        },
+        {
+          "column_1": "value2"
+        },
+        {
+          "column_1": "value3"
+        },
+        {
           "column_1": "value4"
         },
         {
@@ -27,17 +36,7 @@
           "column_1": "value5"
         }
       ],
-      "passing_rows": [
-        {
-          "column_1": "value1"
-        },
-        {
-          "column_1": "value2"
-        },
-        {
-          "column_1": "value3"
-        }
-      ],
+      "passing_rows": [],
       "spec": {
         "column": "column_1",
         "values": [
