@@ -1,5 +1,0 @@
-type: expect_column_values_to_be_of_type
-name: expect_column_values_to_be_of_type
-params:
-  column: 'test_column'
-  type: 'StringType'

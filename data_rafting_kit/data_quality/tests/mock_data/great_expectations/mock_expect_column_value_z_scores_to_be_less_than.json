@@ -1,0 +1,80 @@
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": 2
+        },
+        {
+          "column_1": 6
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": 3
+        },
+        {
+          "column_1": 2
+        },
+        {
+          "column_1": 4
+        },
+        {
+          "column_1": 6
+        },
+        {
+          "column_1": 5
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": 3
+        },
+        {
+          "column_1": 4
+        },
+        {
+          "column_1": 5
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "threshold": 1.0
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": 1
+        },
+        {
+          "column_1": 2
+        },
+        {
+          "column_1": 3
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": 1
+        },
+        {
+          "column_1": 2
+        },
+        {
+          "column_1": 3
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "threshold": 2.0
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}

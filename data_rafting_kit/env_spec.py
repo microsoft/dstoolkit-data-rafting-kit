@@ -3,7 +3,7 @@
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class TargetEnum(StrEnum):
@@ -28,6 +28,11 @@ class SecretSpec(BaseModel):
 
         return self
 
+    model_config = ConfigDict(
+        validate_default=True,
+        extra_values="forbid",
+    )
+
 
 class EnvSpec(BaseModel):
     """Environment specification. Used to specify changes to the environment and config."""
@@ -42,3 +47,8 @@ class EnvSpec(BaseModel):
             self.secrets = SecretSpec(secret_storage=self.target)
 
         return self
+
+    model_config = ConfigDict(
+        validate_default=True,
+        extra_values="forbid",
+    )

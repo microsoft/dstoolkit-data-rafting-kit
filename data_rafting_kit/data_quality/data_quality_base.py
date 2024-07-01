@@ -4,10 +4,8 @@ from collections import OrderedDict
 from enum import StrEnum
 from logging import Logger
 
-from pydantic import Field
+from pydantic import BaseModel, ConfigDict, Field
 from pyspark.sql import SparkSession
-
-from data_rafting_kit.common.base_spec import BaseSpec
 
 
 class DataQualityExpectationEnum(StrEnum):
@@ -16,19 +14,15 @@ class DataQualityExpectationEnum(StrEnum):
     GREAT_EXPECTATIONS = "great_expectations"
 
 
-class DataQualityBaseSpec(BaseSpec):
+class DataQualityBaseSpec(BaseModel):
     """Base output specification."""
 
     input_df: str | None = Field(default=None)
 
-
-class DataQualityResult:
-    """Represents the result of a data quality check."""
-
-    def __init__(self, success, message):
-        """Initializes an instance of the DataQualityResult class."""
-        self.success = success
-        self.message = message
+    model_config = ConfigDict(
+        validate_default=True,
+        extra_values="forbid",
+    )
 
 
 class DataQualityBase:

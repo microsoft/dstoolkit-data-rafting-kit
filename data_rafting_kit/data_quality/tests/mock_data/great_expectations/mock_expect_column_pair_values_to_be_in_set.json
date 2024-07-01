@@ -1,0 +1,113 @@
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_A": "value1",
+          "column_B": "value1"
+        },
+        {
+          "column_A": 100,
+          "column_B": 100
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_A": "value1",
+          "column_B": "value1"
+        },
+        {
+          "column_A": 100,
+          "column_B": 100
+        },
+        {
+          "column_A": "value1",
+          "column_B": "value2"
+        },
+        {
+          "column_A": "value2",
+          "column_B": "value1"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_A": "value1",
+          "column_B": "value2"
+        },
+        {
+          "column_A": "value2",
+          "column_B": "value1"
+        }
+      ],
+      "spec": {
+        "column_a": "column_A",
+        "column_b": "column_B",
+        "value_pairs": [
+          [
+            "value1",
+            "value2"
+          ],
+          [
+            "value2",
+            "value1"
+          ]
+        ]
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_A": "value1",
+          "column_B": "value2"
+        },
+        {
+          "column_A": "value2",
+          "column_B": "value1"
+        },
+        {
+          "column_A": "value3",
+          "column_B": "value3"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_A": "value1",
+          "column_B": "value2"
+        },
+        {
+          "column_A": "value2",
+          "column_B": "value1"
+        },
+        {
+          "column_A": "value3",
+          "column_B": "value3"
+        }
+      ],
+      "spec": {
+        "column_a": "column_A",
+        "column_b": "column_B",
+        "value_pairs": [
+          [
+            "value1",
+            "value2"
+          ],
+          [
+            "value2",
+            "value1"
+          ],
+          [
+            "value3",
+            "value3"
+          ]
+        ]
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_A",
+    "column_B"
+  ]
+}

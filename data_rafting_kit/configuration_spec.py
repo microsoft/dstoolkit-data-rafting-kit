@@ -26,7 +26,6 @@ class ConfigurationSpec(BaseModel):
     tests: TestingRootSpec | None = Field(default=None)
 
     model_config = ConfigDict(
-        strict=True,
         validate_default=True,
         extra_values="forbid",
     )

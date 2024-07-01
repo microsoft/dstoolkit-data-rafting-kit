@@ -4,10 +4,10 @@ from enum import StrEnum
 from logging import Logger
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import Field, model_validator
 from pyspark.sql import SparkSession
 
-from data_rafting_kit.common.base_spec import BaseSpec
+from data_rafting_kit.common.base_spec import BaseParamSpec, BaseSpec
 from data_rafting_kit.common.schema import SchemaFieldSpec
 
 
@@ -38,7 +38,7 @@ class StreamingOutputModeEnum(StrEnum):
     UPDATE = "update"
 
 
-class InputBaseParamSpec(BaseModel):
+class InputBaseParamSpec(BaseParamSpec):
     """Base input parameter specification."""
 
     expected_schema: list[SchemaFieldSpec] | None = Field(default=None)
@@ -52,7 +52,7 @@ class InputBaseSpec(BaseSpec):
     pass
 
 
-class StreamingOutputSpec(BaseModel):
+class StreamingOutputSpec(BaseParamSpec):
     """Streaming output specification."""
 
     await_termination: bool | None = Field(default=True)
@@ -82,7 +82,7 @@ class StreamingOutputSpec(BaseModel):
         return self
 
 
-class OutputBaseParamSpec(BaseModel):
+class OutputBaseParamSpec(BaseParamSpec):
     """Base output parameter specification."""
 
     expected_schema: list[SchemaFieldSpec] | None = Field(default=None)

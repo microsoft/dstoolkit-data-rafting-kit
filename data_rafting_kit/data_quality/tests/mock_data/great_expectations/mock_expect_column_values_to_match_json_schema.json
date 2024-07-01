@@ -1,0 +1,96 @@
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "{\"name\": \"John\", \"age\": \"twenty-five\"}"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "{\"name\": \"John\", \"age\": \"twenty-five\"}"
+        },
+        {
+          "column_1": "{\"name\": \"Jane\", \"age\": 30}"
+        },
+        {
+          "column_1": "{\"name\": \"Doe\", \"age\": 25}"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "{\"name\": \"Jane\", \"age\": 30}"
+        },
+        {
+          "column_1": "{\"name\": \"Doe\", \"age\": 25}"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "json_schema": {
+          "properties": {
+            "age": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "age"
+          ],
+          "type": "object"
+        }
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "{\"name\": \"Alice\", \"age\": 22}"
+        },
+        {
+          "column_1": "{\"name\": \"Bob\", \"age\": 40}"
+        },
+        {
+          "column_1": "{\"name\": \"Charlie\", \"age\": 35}"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "{\"name\": \"Alice\", \"age\": 22}"
+        },
+        {
+          "column_1": "{\"name\": \"Bob\", \"age\": 40}"
+        },
+        {
+          "column_1": "{\"name\": \"Charlie\", \"age\": 35}"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "json_schema": {
+          "properties": {
+            "age": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "name",
+            "age"
+          ],
+          "type": "object"
+        }
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}

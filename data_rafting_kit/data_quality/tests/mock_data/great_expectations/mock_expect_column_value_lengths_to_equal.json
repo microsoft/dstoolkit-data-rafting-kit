@@ -1,0 +1,74 @@
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "abcdef"
+        },
+        {
+          "column_1": "xyz"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "abcd"
+        },
+        {
+          "column_1": "abcdef"
+        },
+        {
+          "column_1": "xyz"
+        },
+        {
+          "column_1": "pqrs"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "abcd"
+        },
+        {
+          "column_1": "pqrs"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "value": 4
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "abcd"
+        },
+        {
+          "column_1": "defg"
+        },
+        {
+          "column_1": "ijkl"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "abcd"
+        },
+        {
+          "column_1": "defg"
+        },
+        {
+          "column_1": "ijkl"
+        }
+      ],
+      "spec": {
+        "column": "column_1",
+        "value": 4
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}

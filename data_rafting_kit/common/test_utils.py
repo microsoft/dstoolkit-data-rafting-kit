@@ -5,7 +5,7 @@ import re
 import pytest
 from pyspark.sql import SparkSession
 
-from data_rafting_kit.env_spec import EnvSpec
+from data_rafting_kit.env_spec import EnvSpec, TargetEnum
 
 
 @pytest.fixture(scope="function")
@@ -23,7 +23,7 @@ def spark_session():
 @pytest.fixture(scope="session")
 def env_spec():
     """Fixture to set up a fake logger for all tests."""
-    fake_env_spec = EnvSpec(target="local")
+    fake_env_spec = EnvSpec(target=TargetEnum.LOCAL)
     yield fake_env_spec
 
 

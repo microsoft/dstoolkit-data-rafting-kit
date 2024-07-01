@@ -1,8 +1,5 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from great_expectations.core import ExpectationSuite
-from great_expectations.exceptions import GreatExpectationsError
-
 from data_rafting_kit.common.base_factory import BaseFactory
 from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityBaseSpec,
@@ -14,21 +11,6 @@ from data_rafting_kit.data_quality.data_quality_mapping import (
 
 class DataQualityFactory(BaseFactory):
     """Represents a Data Quality Expectations Factory object for data pipelines."""
-
-    def validate_dataset(self, ge_dataset, expectation_config):
-        """Validates the given dataset using the given expectation configuration."""
-        try:
-            suite = ExpectationSuite(
-                expectation_suite_name="data quality checks",
-                expectations=[expectation_config],
-            )
-            results = ge_dataset.validate(expectation_suite=suite)
-        except GreatExpectationsError as e:
-            raise RuntimeError(
-                f"Error while processing data quality expectation: {e}"
-            ) from e
-        if not results["success"]:
-            raise ValueError(f"Data quality check failed: {results}")
 
     def process_data_quality(self, spec: DataQualityBaseSpec):
         """Processes the data quality expectation specification.
@@ -53,4 +35,9 @@ class DataQualityFactory(BaseFactory):
             data_quality_function.__name__,
         )(spec, input_df)
 
-        self._dfs[spec.name] = df
+        if isinstance(df, tuple):
+            self._dfs[f"{spec.name}_fails"] = df[1]
+
+            self._dfs[spec.name] = df[0]
+        else:
+            self._dfs[spec.name] = df

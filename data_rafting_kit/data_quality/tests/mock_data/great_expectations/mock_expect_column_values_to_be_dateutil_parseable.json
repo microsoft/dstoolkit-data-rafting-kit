@@ -1,0 +1,72 @@
+{
+  "mock_data": [
+    {
+      "failing_rows": [
+        {
+          "column_1": "2023-13-01"
+        },
+        {
+          "column_1": "not_a_date"
+        }
+      ],
+      "fails": true,
+      "input_rows": [
+        {
+          "column_1": "2023-01-01"
+        },
+        {
+          "column_1": "2023-12-31"
+        },
+        {
+          "column_1": "2023-13-01"
+        },
+        {
+          "column_1": "not_a_date"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "2023-01-01"
+        },
+        {
+          "column_1": "2023-12-31"
+        }
+      ],
+      "spec": {
+        "column": "column_1"
+      }
+    },
+    {
+      "failing_rows": [],
+      "fails": false,
+      "input_rows": [
+        {
+          "column_1": "2023-01-01"
+        },
+        {
+          "column_1": "2023-12-31"
+        },
+        {
+          "column_1": "2023-06-15"
+        }
+      ],
+      "passing_rows": [
+        {
+          "column_1": "2023-01-01"
+        },
+        {
+          "column_1": "2023-12-31"
+        },
+        {
+          "column_1": "2023-06-15"
+        }
+      ],
+      "spec": {
+        "column": "column_1"
+      }
+    }
+  ],
+  "unique_column_identifiers": [
+    "column_1"
+  ]
+}

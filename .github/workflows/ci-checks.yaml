@@ -50,6 +50,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set environmental variables
+        run: |
+          echo "SPARK_VERSION=3.5.1" >> $GITHUB_ENV
+          echo "HADOOP_VERSION=3" >> $GITHUB_ENV
+          echo "SPARK_HOME=/opt/spark" >> $GITHUB_ENV
+
+      - name: Install Spark
+        run: |
+          wget --no-verbose -O apache-spark.tgz "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" \
+          && mkdir -p /opt/spark \
+          && tar -xf apache-spark.tgz -C /opt/spark --strip-components=1 \
+          && rm apache-spark.tgz
+
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
