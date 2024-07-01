@@ -29,7 +29,6 @@ class SecretSpec(BaseModel):
         return self
 
     model_config = ConfigDict(
-        strict=True,
         validate_default=True,
         extra_values="forbid",
     )
@@ -50,7 +49,6 @@ class EnvSpec(BaseModel):
         return self
 
     model_config = ConfigDict(
-        strict=True,
         validate_default=True,
         extra_values="forbid",
     )
