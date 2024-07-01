@@ -3,7 +3,7 @@
 from typing import Literal
 
 import pyspark.sql.functions as f
-from pydantic import Field
+from pydantic import Field, model_validator
 from pyspark.sql import DataFrame, Window
 
 from data_rafting_kit.common.base_spec import BaseParamSpec
@@ -38,17 +38,32 @@ class PysparkJoinTransformationSpec(TransformationBaseSpec):
     params: PysparkJoinTransformationParamSpec
 
 
-class PySparkColumnExpressionSpec(BaseParamSpec):
+class PySparkWithColumnExpressionSpec(BaseParamSpec):
     """PySpark Column Expression Specification."""
 
     name: str
     expr: str
 
 
+class PySparkSelectExpressionSpec(BaseParamSpec):
+    """PySpark Column Expression Specification."""
+
+    name: str
+    expr: str | None = Field(default=None)
+
+    @model_validator(mode="after")
+    def validate_pyspark_select_expression_spec(self):
+        """Validate the PySpark Select Expression Specification."""
+        if self.expr is None:
+            self.expr = self.name
+
+        return self
+
+
 class PysparkWithColumnsTransformationParamSpec(BaseParamSpec):
     """PySpark With Columns Transformation Parameters."""
 
-    columns: list[PySparkColumnExpressionSpec]
+    columns: list[PySparkWithColumnExpressionSpec]
 
 
 class PysparkWithColumnsTransformationSpec(TransformationBaseSpec):
@@ -77,7 +92,7 @@ class PysparkWindowTransformationSpec(TransformationBaseSpec):
 class PysparkSelectTransformationParamSpec(BaseParamSpec):
     """PySpark Select Transformation Parameters."""
 
-    columns: list[str]
+    columns: list[PySparkSelectExpressionSpec]
 
 
 class PysparkSelectTransformationSpec(TransformationBaseSpec):
@@ -186,4 +201,8 @@ class PysparkTransformation(TransformationBase):
         """
         self._logger.info("Selecting columns from DataFrame...")
 
-        return input_df.select(*spec.params.columns)
+        columns = [
+            f.expr(column.expr).alias(column.name) for column in spec.params.columns
+        ]
+
+        return input_df.select(*columns)
