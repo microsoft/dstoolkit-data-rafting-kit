@@ -49,6 +49,24 @@
           "rank_column": 2
         }
       ],
+      "output_rows_schema": [
+        {
+          "name": "data_column",
+          "type": "string"
+        },
+        {
+          "name": "order_column",
+          "type": "long"
+        },
+        {
+          "name": "partition_column",
+          "type": "string"
+        },
+        {
+          "name": "rank_column",
+          "type": "integer"
+        }
+      ],
       "spec": {
         "column": "rank_column",
         "order_by": [

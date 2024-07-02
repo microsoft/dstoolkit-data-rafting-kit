@@ -1,0 +1,5 @@
+type: fill_na
+name: fill_na
+params:
+  value: 10
+  columns: ['column_to_drop']

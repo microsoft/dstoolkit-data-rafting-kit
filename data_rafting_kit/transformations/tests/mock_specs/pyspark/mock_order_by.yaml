@@ -1,0 +1,7 @@
+type: order_by
+name: order_by
+params:
+  columns:
+    - name: test_1
+      ascending: true
+    - name: test_2

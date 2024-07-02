@@ -1,0 +1,135 @@
+{
+  "mock_data": [
+    {
+      "input_rows": [
+        {
+          "column_1": "value1",
+          "column_2": 10,
+          "column_3": "2024-01-01"
+        },
+        {
+          "column_1": "value2",
+          "column_2": 20,
+          "column_3": "2024-01-02"
+        },
+        {
+          "column_1": "value3",
+          "column_2": 30,
+          "column_3": "2024-01-03"
+        }
+      ],
+      "output_rows": [
+        {
+          "column_1": "value3",
+          "column_2": 30,
+          "column_3": "2024-01-03"
+        },
+        {
+          "column_1": "value2",
+          "column_2": 20,
+          "column_3": "2024-01-02"
+        },
+        {
+          "column_1": "value1",
+          "column_2": 10,
+          "column_3": "2024-01-01"
+        }
+      ],
+      "spec": {
+        "columns": [
+          {
+            "ascending": false,
+            "name": "column_2"
+          }
+        ]
+      }
+    },
+    {
+      "input_rows": [
+        {
+          "column_1": "valueA",
+          "column_2": 5,
+          "column_3": "2024-01-10"
+        },
+        {
+          "column_1": "valueB",
+          "column_2": 15,
+          "column_3": "2024-01-11"
+        },
+        {
+          "column_1": "valueC",
+          "column_2": 25,
+          "column_3": "2024-01-12"
+        }
+      ],
+      "output_rows": [
+        {
+          "column_1": "valueA",
+          "column_2": 5,
+          "column_3": "2024-01-10"
+        },
+        {
+          "column_1": "valueB",
+          "column_2": 15,
+          "column_3": "2024-01-11"
+        },
+        {
+          "column_1": "valueC",
+          "column_2": 25,
+          "column_3": "2024-01-12"
+        }
+      ],
+      "spec": {
+        "columns": [
+          {
+            "name": "column_2"
+          }
+        ]
+      }
+    },
+    {
+      "input_rows": [
+        {
+          "column_1": "valueX",
+          "column_2": 100,
+          "column_3": "2024-01-20"
+        },
+        {
+          "column_1": "valueY",
+          "column_2": 200,
+          "column_3": "2024-01-21"
+        },
+        {
+          "column_1": "valueZ",
+          "column_2": 300,
+          "column_3": "2024-01-22"
+        }
+      ],
+      "output_rows": [
+        {
+          "column_1": "valueZ",
+          "column_2": 300,
+          "column_3": "2024-01-22"
+        },
+        {
+          "column_1": "valueY",
+          "column_2": 200,
+          "column_3": "2024-01-21"
+        },
+        {
+          "column_1": "valueX",
+          "column_2": 100,
+          "column_3": "2024-01-20"
+        }
+      ],
+      "spec": {
+        "columns": [
+          {
+            "ascending": false,
+            "name": "column_3"
+          }
+        ]
+      }
+    }
+  ]
+}

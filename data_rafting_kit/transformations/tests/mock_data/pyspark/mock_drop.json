@@ -33,7 +33,9 @@
         }
       ],
       "spec": {
-        "column": "column_2"
+        "columns": [
+          "column_2"
+        ]
       }
     },
     {
@@ -69,7 +71,9 @@
         }
       ],
       "spec": {
-        "column": "column_3"
+        "columns": [
+          "column_3"
+        ]
       }
     }
   ]

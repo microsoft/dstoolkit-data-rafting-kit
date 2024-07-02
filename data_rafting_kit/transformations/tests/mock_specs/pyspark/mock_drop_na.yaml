@@ -1,0 +1,5 @@
+type: drop_na
+name: drop_na
+params:
+  how: 'any'
+  columns: ['column_to_drop']

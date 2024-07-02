@@ -19,7 +19,10 @@ class TransformationMapping:
             PresidoTransformation.anonymize,
         ),
         TransformationEnum.DISTINCT: (getattr(DataFrame, "distinct", None),),
-        TransformationEnum.DROP: (getattr(DataFrame, "drop", None),),
+        TransformationEnum.DROP: (
+            PysparkTransformation,
+            PysparkTransformation.drop,
+        ),
         TransformationEnum.DROP_DUPLICATES: (
             getattr(DataFrame, "dropDuplicates", None),
         ),
@@ -39,11 +42,19 @@ class TransformationMapping:
         ),
         TransformationEnum.WINDOW: (
             PysparkTransformation,
-            PysparkTransformation.apply_window_function,
+            PysparkTransformation.window,
         ),
         TransformationEnum.SELECT: (
             PysparkTransformation,
             PysparkTransformation.select,
+        ),
+        TransformationEnum.FILL_NA: (getattr(DataFrame, "fillna", None),),
+        TransformationEnum.LIMIT: (getattr(DataFrame, "limit", None),),
+        TransformationEnum.OFFSET: (getattr(DataFrame, "offset", None),),
+        TransformationEnum.DROP_NA: (getattr(DataFrame, "dropna", None),),
+        TransformationEnum.ORDER_BY: (
+            PysparkTransformation,
+            PysparkTransformation.order_by,
         ),
     }
 
