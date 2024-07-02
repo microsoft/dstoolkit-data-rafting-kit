@@ -4,9 +4,9 @@ import json
 from collections import OrderedDict
 from pathlib import Path
 
+import pyspark.sql.types as t
 import pytest
 from pydantic import ValidationError
-from pyspark.sql.types import IntegerType, LongType, StringType, StructField, StructType
 from pyspark.testing import assertDataFrameEqual
 
 from data_rafting_kit.common.test_utils import (
@@ -24,9 +24,52 @@ from data_rafting_kit.transformations.transformation_spec import (
 )
 
 
+def formulate_schema(schema: list) -> t.StructType:
+    """Formulate the schema for the expected output rows.
+
+    Args:
+    ----
+        schema (list): The schema for the expected output rows.
+
+    Returns:
+    -------
+    t.StructType: The formulated schema for the expected output rows.
+    """
+    struct_types = []
+    for field in schema:
+        nullable = field.get("nullable", False)
+        if isinstance(field["type"], list):
+            normalised_type = field["type"][0].capitalize()
+            pyspark_type_name = f"{normalised_type}Type"
+            struct_types.append(
+                t.StructField(
+                    field["name"],
+                    t.ArrayType(getattr(t, pyspark_type_name)(), True),
+                    nullable,
+                )
+            )
+        else:
+            normalised_type = field["type"].capitalize()
+            pyspark_type_name = f"{normalised_type}Type"
+            struct_types.append(
+                t.StructField(
+                    field["name"],
+                    getattr(t, pyspark_type_name)(),
+                    nullable,
+                )
+            )
+
+    expected_output_rows_schema = t.StructType(struct_types)
+
+    return expected_output_rows_schema
+
+
 @pytest.mark.parametrize("transformation_spec_model", ALL_TRANSFORMATION_SPECS)
 def test_transformation_data(
-    transformation_spec_model, spark_session, logger, env_spec  # noqa
+    transformation_spec_model,
+    spark_session,  # noqa
+    logger,  # noqa
+    env_spec,  # noqa
 ):
     """Test that the transformation spec can be loaded from the mock spec file.
 
@@ -83,17 +126,13 @@ def test_transformation_data(
                 spark_session, logger, dfs, env_spec
             ).process_transformation(transformation_spec.root)
 
-            if mock_data_file_name == "window":
+            if "output_rows_schema" in mock_dataset:
+                expected_output_rows_schema = formulate_schema(
+                    mock_dataset["output_rows_schema"]
+                )
+
                 expected_output_rows = spark_session.createDataFrame(
-                    mock_dataset["output_rows"],
-                    schema=StructType(
-                        [
-                            StructField("partition_column", StringType(), True),
-                            StructField("order_column", LongType(), True),
-                            StructField("data_column", StringType(), True),
-                            StructField("rank_column", IntegerType(), False),
-                        ]
-                    ),
+                    mock_dataset["output_rows"], schema=expected_output_rows_schema
                 )
             else:
                 expected_output_rows = spark_session.createDataFrame(

@@ -26,6 +26,12 @@ class TransformationEnum(StrEnum):
     WITH_COLUMNS_RENAMED = "with_columns_renamed"
     WINDOW = "window"
     SELECT = "select"
+    FILL_NA = "fill_na"
+    FREQ_ITEMS = "freq_items"
+    LIMIT = "limit"
+    OFFSET = "offset"
+    DROP_NA = "drop_na"
+    ORDER_BY = "order_by"
 
 
 class TransformationBaseSpec(BaseSpec):

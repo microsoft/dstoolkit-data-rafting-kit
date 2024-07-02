@@ -1,5 +1,5 @@
 type: window
-name: apply_window_function
+name: window
 params:
   partition_by:
     - 'test_partition_column'

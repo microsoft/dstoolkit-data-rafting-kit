@@ -2,6 +2,6 @@ type: select
 name: select_columns
 params:
   columns:
-    - 'column1'
-    - 'column2'
-    - 'column3'
+    - name: 'column1'
+    - name: 'column2'
+    - name: 'column3'

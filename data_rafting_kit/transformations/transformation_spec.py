@@ -4,7 +4,7 @@ import builtins
 import inspect
 import re
 import typing
-from typing import Annotated, Literal, Union
+from typing import Annotated, ForwardRef, Literal, Union
 
 from pydantic import ConfigDict, Field, RootModel, create_model
 
@@ -31,7 +31,60 @@ def is_builtin(t: type) -> bool:
     bool: True if the type is a builtin type, False otherwise.
 
     """
-    return t.__name__ in dir(builtins)
+    if hasattr(t, "__name__"):
+        return t.__name__ in dir(builtins)
+    return False
+
+
+def replace_forward_ref(t: ForwardRef) -> type | None:
+    """Replace ForwardRef with specified types.
+
+    Args:
+    ----
+        t (ForwardRef): The ForwardRef to replace.
+
+    Returns:
+    -------
+    type: The replaced type or None if not applicable.
+
+    """
+    # Replace with the union of specified literal types
+    if t.__forward_arg__ == "LiteralType":
+        return typing.Union[str, int, bool, float]
+    return None
+
+
+def clean_origin(t, origin: type) -> type | None:
+    """Clean the origin of a type.
+
+    Args:
+    ----
+        t: The type to clean.
+        origin: The origin of the type.
+
+    Returns:
+    -------
+    type: The cleaned type or None if not applicable.
+    """
+    if origin is typing.Union:
+        args = [clean_type(a) for a in t.__args__ if is_builtin(a) or clean_type(a)]
+        return (
+            typing.Optional[args[0]]
+            if len(args) == 1
+            else typing.Union[tuple(args)]
+            if args
+            else None
+        )
+    elif origin is dict:
+        key_type = clean_type(t.__args__[0])
+        value_type = clean_type(t.__args__[1])
+        return dict[key_type, value_type] if key_type and value_type else None
+    elif origin is tuple:
+        args = tuple(clean_type(a) for a in t.__args__)
+        return tuple[args] if all(args) else None
+    else:
+        args = [clean_type(a) for a in t.__args__]
+        return origin[tuple(args)]
 
 
 def clean_type(t: type) -> type | None:
@@ -47,26 +100,10 @@ def clean_type(t: type) -> type | None:
 
     """
     origin = getattr(t, "__origin__", None)
-    if origin is not None:
-        if origin is typing.Union:
-            args = [a for a in t.__args__ if is_builtin(a) or clean_type(a)]
-            return (
-                typing.Optional[args[0]]
-                if len(args) == 1
-                else typing.Union[tuple(args)]
-                if args
-                else None
-            )
-        elif origin is dict:
-            key_type = clean_type(t.__args__[0])
-            value_type = clean_type(t.__args__[1])
-            return dict[key_type, value_type] if key_type and value_type else None
-        elif origin is tuple:
-            args = tuple(clean_type(a) for a in t.__args__)
-            return tuple[args] if all(args) else None
-        else:
-            args = [clean_type(a) for a in t.__args__]
-            return origin[tuple(args)]
+    if isinstance(t, ForwardRef):
+        return replace_forward_ref(t)
+    elif origin is not None:
+        return clean_origin(t, origin)
     elif isinstance(t, str):
         return str
     elif is_builtin(t):
@@ -99,6 +136,9 @@ def is_type_optional(t: type) -> bool:
 PYSPARK_DYNAMIC_TRANSFORMATIONS_PARAMATER_REPLACEMENT_MAP = {
     "drop": {"cols": "column"},
     "with_columns_renamed": {"colsMap": "columns_map"},
+    "drop_na": {"subset": "columns"},
+    "fill_na": {"subset": "columns"},
+    "freq_items": {"cols": "columns"},
 }
 
 

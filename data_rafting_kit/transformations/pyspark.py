@@ -16,11 +16,74 @@ from data_rafting_kit.transformations.transformation_base import (
 # Store the transformations we can infer automatically from the PySpark API. Here we can avoid writing specs
 PYSPARK_DYNAMIC_TRANSFORMATIONS = (
     TransformationEnum.DISTINCT,
-    TransformationEnum.DROP,
     TransformationEnum.DROP_DUPLICATES,
     TransformationEnum.FILTER,
     TransformationEnum.WITH_COLUMNS_RENAMED,
+    TransformationEnum.FILL_NA,
+    TransformationEnum.FREQ_ITEMS,
+    TransformationEnum.LIMIT,
+    TransformationEnum.OFFSET,
+    TransformationEnum.DROP_NA,
 )
+
+
+class PysparkOrderByColumnSpec(BaseParamSpec):
+    """PySpark Column Expression Specification."""
+
+    name: str
+    ascending: bool | None = Field(default=True)
+
+
+class PysparkOrderByTransformationParamSpec(BaseParamSpec):
+    """PySpark OrderBy Transformation Parameters."""
+
+    columns: list[str] | list[PysparkOrderByColumnSpec]
+
+    @model_validator(mode="after")
+    def validate_order_by_transformation_param_spec(self):
+        """Validate the Order By Transformation Parameters."""
+        if isinstance(self.columns, list) and isinstance(self.columns[0], str):
+            self.columns = [
+                PysparkOrderByColumnSpec(name=column) for column in self.columns
+            ]
+
+        return self
+
+
+class PysparkOrderByTransformationSpec(TransformationBaseSpec):
+    """PySpark OrderBy transformation specification."""
+
+    type: Literal[TransformationEnum.ORDER_BY]
+    params: PysparkOrderByTransformationParamSpec
+
+
+class PysparkDropColumnSpec(BaseParamSpec):
+    """PySpark Column Expression Specification."""
+
+    name: str
+
+
+class PysparkDropTransformationParamSpec(BaseParamSpec):
+    """PySpark Drop Transformation Parameters."""
+
+    columns: list[PysparkDropColumnSpec] | list[str]
+
+    @model_validator(mode="after")
+    def validate_drop_transformation_param_spec(self):
+        """Validate the Drop Select Transformation Parameters."""
+        if isinstance(self.columns, list) and isinstance(self.columns[0], str):
+            self.columns = [
+                PysparkDropColumnSpec(name=column) for column in self.columns
+            ]
+
+        return self
+
+
+class PysparkDropTransformationSpec(TransformationBaseSpec):
+    """PySpark Drop transformation specification."""
+
+    type: Literal[TransformationEnum.DROP]
+    params: PysparkDropTransformationParamSpec
 
 
 class PysparkJoinTransformationParamSpec(BaseParamSpec):
@@ -38,14 +101,14 @@ class PysparkJoinTransformationSpec(TransformationBaseSpec):
     params: PysparkJoinTransformationParamSpec
 
 
-class PySparkWithColumnExpressionSpec(BaseParamSpec):
+class PysparkWithColumnExpressionSpec(BaseParamSpec):
     """PySpark Column Expression Specification."""
 
     name: str
     expr: str
 
 
-class PySparkSelectExpressionSpec(BaseParamSpec):
+class PysparkSelectExpressionSpec(BaseParamSpec):
     """PySpark Column Expression Specification."""
 
     name: str
@@ -63,7 +126,7 @@ class PySparkSelectExpressionSpec(BaseParamSpec):
 class PysparkWithColumnsTransformationParamSpec(BaseParamSpec):
     """PySpark With Columns Transformation Parameters."""
 
-    columns: list[PySparkWithColumnExpressionSpec]
+    columns: list[PysparkWithColumnExpressionSpec]
 
 
 class PysparkWithColumnsTransformationSpec(TransformationBaseSpec):
@@ -92,7 +155,17 @@ class PysparkWindowTransformationSpec(TransformationBaseSpec):
 class PysparkSelectTransformationParamSpec(BaseParamSpec):
     """PySpark Select Transformation Parameters."""
 
-    columns: list[PySparkSelectExpressionSpec]
+    columns: list[PysparkSelectExpressionSpec] | str
+
+    @model_validator(mode="after")
+    def validate_select_transformation_param_spec(self):
+        """Validate the PySpark Select Transformation Parameters."""
+        if isinstance(self.columns, list) and isinstance(self.columns[0], str):
+            self.columns = [
+                PysparkSelectExpressionSpec(name=column) for column in self.columns
+            ]
+
+        return self
 
 
 class PysparkSelectTransformationSpec(TransformationBaseSpec):
@@ -107,11 +180,58 @@ PYSPARK_TRANSFORMATION_SPECS = [
     PysparkWithColumnsTransformationSpec,
     PysparkWindowTransformationSpec,
     PysparkSelectTransformationSpec,
+    PysparkDropTransformationSpec,
+    PysparkOrderByTransformationSpec,
 ]
 
 
 class PysparkTransformation(TransformationBase):
     """Represents a PySpark transformation object for data pipelines."""
+
+    def order_by(
+        self, spec: PysparkOrderByTransformationSpec, input_df: DataFrame
+    ) -> DataFrame:
+        """Orders the DataFrame according to the spec.
+
+        Args:
+        ----
+            spec (PysparkOrderByTransformationSpec): The PySpark OrderBy Transformation parameter specification.
+            input_df (DataFrame): The input DataFrame.
+
+        Returns:
+        -------
+            DataFrame: The resulting DataFrame.
+
+        """
+        self._logger.info("Ordering DataFrame...")
+
+        columns = [
+            f.col(column.name).asc() if column.ascending else f.col(column.name).desc()
+            for column in spec.params.columns
+        ]
+
+        return input_df.orderBy(*columns)
+
+    def drop(
+        self, spec: PysparkDropTransformationSpec, input_df: DataFrame
+    ) -> DataFrame:
+        """Drops columns from a DataFrame according to the spec.
+
+        Args:
+        ----
+            spec (PysparkDropTransformationSpec): The PySpark Drop Transformation parameter specification.
+            input_df (DataFrame): The input DataFrame.
+
+        Returns:
+        -------
+            DataFrame: The resulting DataFrame.
+
+        """
+        self._logger.info("Dropping columns from DataFrame...")
+
+        columns = [column.name for column in spec.params.columns]
+
+        return input_df.drop(*columns)
 
     def join(
         self, spec: PysparkJoinTransformationSpec, input_df: DataFrame
@@ -159,7 +279,7 @@ class PysparkTransformation(TransformationBase):
 
         return input_df.withColumns(with_columns_map)
 
-    def apply_window_function(
+    def window(
         self, spec: PysparkWindowTransformationSpec, input_df: DataFrame
     ) -> DataFrame:
         """Applies a custom window function to the input DataFrame.

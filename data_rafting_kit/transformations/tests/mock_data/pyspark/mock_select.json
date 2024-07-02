@@ -31,7 +31,9 @@
       ],
       "spec": {
         "columns": [
-          "column_1"
+          {
+            "name": "column_1"
+          }
         ]
       }
     },
@@ -60,8 +62,12 @@
       ],
       "spec": {
         "columns": [
-          "column_2",
-          "column_3"
+          {
+            "name": "column_2"
+          },
+          {
+            "name": "column_3"
+          }
         ]
       }
     }

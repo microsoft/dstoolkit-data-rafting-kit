@@ -1,0 +1,4 @@
+type: limit
+name: limit
+params:
+  num: 10

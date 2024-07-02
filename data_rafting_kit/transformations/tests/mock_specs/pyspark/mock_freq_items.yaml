@@ -1,0 +1,7 @@
+type: freq_items
+name: freq_items
+params:
+  columns:
+    - col1
+    - col2
+  support: 0.2
