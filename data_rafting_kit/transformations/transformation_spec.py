@@ -138,7 +138,6 @@ PYSPARK_DYNAMIC_TRANSFORMATIONS_PARAMATER_REPLACEMENT_MAP = {
     "with_columns_renamed": {"colsMap": "columns_map"},
     "drop_na": {"subset": "columns"},
     "fill_na": {"subset": "columns"},
-    "freq_items": {"cols": "columns"},
 }
 
 

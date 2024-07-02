@@ -20,7 +20,6 @@ PYSPARK_DYNAMIC_TRANSFORMATIONS = (
     TransformationEnum.FILTER,
     TransformationEnum.WITH_COLUMNS_RENAMED,
     TransformationEnum.FILL_NA,
-    TransformationEnum.FREQ_ITEMS,
     TransformationEnum.LIMIT,
     TransformationEnum.OFFSET,
     TransformationEnum.DROP_NA,

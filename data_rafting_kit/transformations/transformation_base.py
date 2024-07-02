@@ -27,7 +27,6 @@ class TransformationEnum(StrEnum):
     WINDOW = "window"
     SELECT = "select"
     FILL_NA = "fill_na"
-    FREQ_ITEMS = "freq_items"
     LIMIT = "limit"
     OFFSET = "offset"
     DROP_NA = "drop_na"

@@ -49,7 +49,6 @@ class TransformationMapping:
             PysparkTransformation.select,
         ),
         TransformationEnum.FILL_NA: (getattr(DataFrame, "fillna", None),),
-        TransformationEnum.FREQ_ITEMS: (getattr(DataFrame, "freqItems", None),),
         TransformationEnum.LIMIT: (getattr(DataFrame, "limit", None),),
         TransformationEnum.OFFSET: (getattr(DataFrame, "offset", None),),
         TransformationEnum.DROP_NA: (getattr(DataFrame, "dropna", None),),
