@@ -25,7 +25,7 @@ class ConsoleOutputParamSpec(OutputBaseParamSpec):
     @classmethod
     def validate_console_output_param_spec_before(cls, data: dict) -> dict:
         """Validates the Console output param spec."""
-        if data["streaming"] is not None:
+        if "streaming" in data and data["streaming"] is not None:
             if isinstance(data["streaming"], bool):
                 data["streaming"] = {}
 
