@@ -33,7 +33,7 @@ class DataQualityFactory(BaseFactory):
         df = getattr(
             data_quality_class(self._spark, self._logger, self._dfs, self._env),
             data_quality_function.__name__,
-        )(spec.params, input_df)
+        )(spec, input_df)
 
         if isinstance(df, tuple):
             self._dfs[f"{spec.name}_fails"] = df[1]
