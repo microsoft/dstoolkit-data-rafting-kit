@@ -38,16 +38,16 @@ class EventHubOutputParamSpec(OutputBaseParamSpec):
     namespace: str
     hub: str | None = Field(default=None)
     connection_string_key: str
-    format: Literal[
-        SerializeDeserializeEnum.AVRO, SerializeDeserializeEnum.JSON
-    ] | None = Field(default=None)
+    format: (
+        Literal[SerializeDeserializeEnum.AVRO, SerializeDeserializeEnum.JSON] | None
+    ) = Field(default=None)
     format_schema: list[SchemaFieldSpec] | None = Field(default=None)
 
     @model_validator(mode="before")
     @classmethod
     def validate_event_hub_output_param_spec_before(cls, data: dict) -> dict:
         """Validates the Delta Table output param spec."""
-        if data["streaming"] is not None:
+        if "streaming" in data and data["streaming"] is not None:
             if isinstance(data["streaming"], bool):
                 data["streaming"] = {}
 
@@ -80,9 +80,9 @@ class EventHubInputParamSpec(InputBaseParamSpec):
     namespace: str
     hub: str
     connection_string_key: str
-    format: Literal[
-        SerializeDeserializeEnum.AVRO, SerializeDeserializeEnum.JSON
-    ] | None = Field(default=None)
+    format: (
+        Literal[SerializeDeserializeEnum.AVRO, SerializeDeserializeEnum.JSON] | None
+    ) = Field(default=None)
     format_schema: list[SchemaFieldSpec] | None = Field(default=None)
 
     @model_validator(mode="after")

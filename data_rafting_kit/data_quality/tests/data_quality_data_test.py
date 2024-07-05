@@ -71,7 +71,10 @@ def run_data_quality_check(  # noqa: PLR0913
 
 @pytest.mark.parametrize("data_quality_spec_model", ALL_DATA_QUALITY_SPECS)
 def test_data_quality_data(
-    data_quality_spec_model, spark_session, logger, env_spec  # noqa
+    data_quality_spec_model,
+    spark_session,  # noqa
+    logger,  # noqa
+    env_spec,  # noqa
 ):
     """Test that the transformation spec can be loaded from the mock spec file.
 
@@ -105,11 +108,13 @@ def test_data_quality_data(
             # Test the data quality spec
             mock_spec = {
                 "name": "test_dq",
-                "mode": mode,
-                "unique_column_identifiers": mock_data["unique_column_identifiers"],
-                "checks": [
-                    {"type": mock_data_file_name, "params": mock_dataset["spec"]}
-                ],
+                "params": {
+                    "mode": mode,
+                    "unique_column_identifiers": mock_data["unique_column_identifiers"],
+                    "checks": [
+                        {"type": mock_data_file_name, "params": mock_dataset["spec"]}
+                    ],
+                },
             }
 
             try:

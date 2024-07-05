@@ -44,9 +44,9 @@ class DeltaTableMergeSpec(BaseParamSpec):
     when_not_matched: list[ColumnSourceTargetPair] | dict[str, str] | None = Field(
         default=None
     )
-    when_not_matched_by_source: Literal["delete"] | list[ColumnSourceTargetPair] | dict[
-        str, str
-    ] | None = Field(default=None)
+    when_not_matched_by_source: (
+        Literal["delete"] | list[ColumnSourceTargetPair] | dict[str, str] | None
+    ) = Field(default=None)
 
 
 # The following classes are used to define the input and output specifications for the DeltaTable.
@@ -63,7 +63,7 @@ class DeltaTableOutputParamSpec(OutputBaseParamSpec):
     @classmethod
     def validate_delta_table_output_param_spec_before(cls, data: dict) -> dict:
         """Validates the Delta Table output param spec."""
-        if data["streaming"] is not None:
+        if "streaming" in data and data["streaming"] is not None:
             if isinstance(data["streaming"], bool):
                 data["streaming"] = {}
 
@@ -274,6 +274,7 @@ class DeltaTableIO(IOBase):
         ):
             raise ValueError("Table does not exist. Cannot perform merge operation.")
         else:
+            print(spec.params)
             if spec.params.mode == BatchOutputModeEnum.MERGE:
                 spec.params.mode = BatchOutputModeEnum.OVERWRITE
 
@@ -290,9 +291,13 @@ class DeltaTableIO(IOBase):
             if spec.params.streaming is None:
                 if spec.params.table is not None:
                     writer.saveAsTable(spec.params.table)
+
+                    return None
                 else:
-                    writer.save(spec.params.location)
+                    writer = writer.option("path", spec.params.location)
+            elif spec.params.table is not None:
+                writer = writer.toTable(spec.params.table)
             else:
                 writer = writer.option("path", spec.params.location)
 
-        return writer
+            return writer

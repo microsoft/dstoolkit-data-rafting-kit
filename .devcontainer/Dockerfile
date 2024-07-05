@@ -6,22 +6,22 @@ RUN apt-get update && yes | unminimize
 
 RUN apt-get update \
     && apt-get install -y \
-        git \
-        wget \
-        curl \
-        sudo \
-        locales \
-        scala \
-        python3 \
-        python3-pip \
-        python3-venv \
-        python3-poetry \
-        build-essential \
-        libhdf5-dev \
-        libsnappy-dev \
-        libzstd-dev \
-        libbz2-dev \
-        openjdk-17-jdk \
+    git \
+    wget \
+    curl \
+    sudo \
+    locales \
+    scala \
+    python3 \
+    python3-pip \
+    python3-venv \
+    python3-poetry \
+    build-essential \
+    libhdf5-dev \
+    libsnappy-dev \
+    libzstd-dev \
+    libbz2-dev \
+    openjdk-17-jdk \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 

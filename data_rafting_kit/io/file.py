@@ -35,7 +35,7 @@ class FileOutputParamSpec(OutputBaseParamSpec):
     @classmethod
     def validate_delta_table_output_param_spec_before(cls, data: dict) -> dict:
         """Validates the Delta Table output param spec."""
-        if data["streaming"] is not None:
+        if "streaming" in data and data["streaming"] is not None:
             if isinstance(data["streaming"], bool):
                 data["streaming"] = {}
             if "checkpoint" not in data["streaming"]:

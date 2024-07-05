@@ -384,7 +384,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
             tuple[DataFrame, DataFrame | None]: The output DataFrame and the failing rows DataFrame.
 
         """
-        if spec.mode == DataQualityModeEnum.FLAG:
+        if spec.params.mode == DataQualityModeEnum.FLAG:
             if combined_filter_expression is None:
                 input_df = input_df.withColumn(
                     failed_flag_column_name,
@@ -399,7 +399,10 @@ class GreatExpectationsDataQuality(DataQualityBase):
                 )
 
             return input_df, None
-        elif spec.mode in [DataQualityModeEnum.SEPARATE, DataQualityModeEnum.DROP]:
+        elif spec.params.mode in [
+            DataQualityModeEnum.SEPARATE,
+            DataQualityModeEnum.DROP,
+        ]:
             if combined_filter_expression is None:
                 empty_df = self._spark.createDataFrame([], schema=input_df.schema)
 
@@ -409,7 +412,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
 
                 input_df = input_df.subtract(failing_rows_df)
 
-            if spec.mode == DataQualityModeEnum.DROP:
+            if spec.params.mode == DataQualityModeEnum.DROP:
                 return input_df, None
 
             return input_df, failing_rows_df
@@ -429,7 +432,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
         ExpectationSuite: The expectation suite.
         """
         expectation_configs = []
-        for expectation in spec.checks:
+        for expectation in spec.params.checks:
             expectation_config = ExpectationConfiguration(
                 expectation_type=expectation.root.type,
                 kwargs=expectation.root.params.model_dump(by_alias=False),
@@ -441,7 +444,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
         )
 
         # Check that the column identifiers exist in the input DataFrame
-        for column in spec.unique_column_identifiers:
+        for column in spec.params.unique_column_identifiers:
             if column not in input_df.columns:
                 raise ValueError(
                     f"Column Identifier {column} not found in input DataFrame"
@@ -482,7 +485,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
                 "result_format": "COMPLETE",
                 "include_unexpected_rows": True,
                 "return_unexpected_index_query": True,
-                "unexpected_index_column_names": spec.unique_column_identifiers,
+                "unexpected_index_column_names": spec.params.unique_column_identifiers,
             },
             only_return_failures=True,
         )
@@ -493,18 +496,18 @@ class GreatExpectationsDataQuality(DataQualityBase):
             if result.success is False
         ]
 
-        if spec.mode == DataQualityModeEnum.FAIL and results["success"] is False:
+        if spec.params.mode == DataQualityModeEnum.FAIL and results["success"] is False:
             failed_checks_str = ", ".join(failed_checks)
             raise ValueError(f"Data quality check(s) failed: {failed_checks_str}")
 
-        elif spec.mode in [
+        elif spec.params.mode in [
             DataQualityModeEnum.SEPARATE,
             DataQualityModeEnum.FLAG,
             DataQualityModeEnum.DROP,
         ]:
             failed_flag_column_name = f"failed_{spec.name}_dq"
             if results["success"] is True:
-                if spec.mode == DataQualityModeEnum.FLAG:
+                if spec.params.mode == DataQualityModeEnum.FLAG:
                     failing_rows_df = None
                     input_df = input_df.withColumn(
                         failed_flag_column_name, f.lit(False)
@@ -525,7 +528,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
                     )
                 except pyspark_utils.AnalysisException:
                     combined_filter_expression = self.get_filter_expression_by_index(
-                        spec.unique_column_identifiers, results
+                        spec.params.unique_column_identifiers, results
                     )
 
                     input_df, failing_rows_df = self.split_dataframe(
