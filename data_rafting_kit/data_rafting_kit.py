@@ -11,7 +11,7 @@ from pyspark.errors import PySparkAssertionError
 from pyspark.sql import DataFrame
 from pyspark.testing import assertDataFrameEqual
 
-from data_rafting_kit.configuration_spec import ConfigurationSpec
+from data_rafting_kit.configuration_spec import ConfigurationSpec, OutputRootSpec
 from data_rafting_kit.data_quality.data_quality_factory import DataQualityFactory
 from data_rafting_kit.io.io_factory import IOFactory
 from data_rafting_kit.transformations.transformation_factory import (
@@ -120,6 +120,58 @@ class DataRaftingKit:
                 )
             return False
 
+    def bucket_output_specs(
+        self, output_specs: list[OutputRootSpec]
+    ) -> tuple[dict, list]:
+        """Bucket the output specs based on the output path.
+
+        Args:
+        ----
+            output_specs (list[OutputRootSpec]): The output specs.
+
+        Returns:
+        -------
+            tuple[dict, list]: The output buckets and the final output bucket.
+        """
+        output_buckets = {}
+        final_output_bucket = []
+        for output_spec in output_specs:
+            if output_spec.root.input_df is not None:
+                if output_spec.root.input_df in output_buckets:
+                    output_buckets[output_spec.root.input_df].append(output_spec)
+                else:
+                    output_buckets[output_spec.root.input_df] = [output_spec]
+            else:
+                final_output_bucket.append(output_spec)
+
+        return output_buckets, final_output_bucket
+
+    def process_output_buckets(
+        self,
+        write_outputs: bool,
+        output_buckets: dict | list,
+        io_factory: IOFactory,
+        input_df: str | None = None,
+    ):
+        """Process the output buckets.
+
+        Args:
+        ----
+            write_outputs (bool): Whether to write the outputs.
+            output_buckets (dict | list): The output buckets.
+            io_factory (IOFactory): The IO factory object.
+            input_df (str, optional): The input DataFrame. Defaults to None.
+        """
+        if write_outputs:
+            if isinstance(output_buckets, dict):
+                output_buckets = output_buckets.get(input_df, [])
+
+            for output_spec in output_buckets:
+                self._logger.info("Writing to %s", output_spec.root.name)
+
+                io_factory.process_output(output_spec.root)
+                io_factory.process_optimisation(output_spec.root)
+
     def run_pipeline_from_spec(
         self, data_pipeline_spec: ConfigurationSpec, write_outputs: bool = True
     ) -> OrderedDict[str, DataFrame]:
@@ -139,10 +191,20 @@ class DataRaftingKit:
 
         io_factory = IOFactory(self._spark, self._logger, dfs, data_pipeline_spec.env)
 
+        output_buckets, final_output_bucket = self.bucket_output_specs(
+            data_pipeline_spec.pipeline.outputs
+        )
+
         for input_spec in data_pipeline_spec.pipeline.inputs:
             self._logger.info("Reading from %s", input_spec.root.name)
 
             io_factory.process_input(input_spec.root)
+            self.process_output_buckets(
+                write_outputs,
+                output_buckets,
+                io_factory,
+                input_spec.root.name,
+            )
 
         transformation_factory = TransformationFactory(
             self._spark, self._logger, dfs, data_pipeline_spec.env
@@ -153,6 +215,12 @@ class DataRaftingKit:
             )
 
             transformation_factory.process_transformation(transformation_spec.root)
+            self.process_output_buckets(
+                write_outputs,
+                output_buckets,
+                io_factory,
+                transformation_spec.root.name,
+            )
 
         data_quality_factory = DataQualityFactory(
             self._spark, self._logger, dfs, data_pipeline_spec.env
@@ -162,13 +230,14 @@ class DataRaftingKit:
                 "Applying data quality check %s", data_quality_check_spec.name
             )
             data_quality_factory.process_data_quality(data_quality_check_spec)
+            self.process_output_buckets(
+                write_outputs,
+                output_buckets,
+                io_factory,
+                data_quality_check_spec.name,
+            )
 
-        if write_outputs:
-            for output_spec in data_pipeline_spec.pipeline.outputs:
-                self._logger.info("Writing to %s", output_spec.root.name)
-
-                io_factory.process_output(output_spec.root)
-                io_factory.process_optimisation(output_spec.root)
+        self.process_output_buckets(write_outputs, final_output_bucket, io_factory)
 
         self._logger.info("Data Pipeline Execution Complete")
 

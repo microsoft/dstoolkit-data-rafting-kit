@@ -77,7 +77,7 @@ class StreamingOutputSpec(BaseParamSpec):
                 )
 
             if self.await_termination and "processingTime" in self.trigger:
-                raise ValueError("Cannot await terminal when processingTime is set.")
+                raise ValueError("Cannot await termination when processingTime is set.")
 
         return self
 
@@ -87,16 +87,19 @@ class OutputBaseParamSpec(BaseParamSpec):
 
     expected_schema: list[SchemaFieldSpec] | None = Field(default=None)
     options: dict | None = Field(default_factory=dict)
-    mode: Literal[
-        BatchOutputModeEnum.APPEND,
-        BatchOutputModeEnum.OVERWRITE,
-        BatchOutputModeEnum.ERROR,
-        BatchOutputModeEnum.IGNORE,
-        BatchOutputModeEnum.MERGE,
-        StreamingOutputModeEnum.APPEND,
-        StreamingOutputModeEnum.COMPLETE,
-        StreamingOutputModeEnum.UPDATE,
-    ] | None = Field(default=BatchOutputModeEnum.APPEND)
+    mode: (
+        Literal[
+            BatchOutputModeEnum.APPEND,
+            BatchOutputModeEnum.OVERWRITE,
+            BatchOutputModeEnum.ERROR,
+            BatchOutputModeEnum.IGNORE,
+            BatchOutputModeEnum.MERGE,
+            StreamingOutputModeEnum.APPEND,
+            StreamingOutputModeEnum.COMPLETE,
+            StreamingOutputModeEnum.UPDATE,
+        ]
+        | None
+    ) = Field(default=BatchOutputModeEnum.APPEND)
     streaming: StreamingOutputSpec | bool | None = Field(default=None)
 
     @model_validator(mode="after")
