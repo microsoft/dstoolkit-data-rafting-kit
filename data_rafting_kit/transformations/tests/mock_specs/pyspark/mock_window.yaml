@@ -7,3 +7,4 @@ params:
     - 'test_order_column'
   window_function: 'row_number'
   column: 'test_row_number_column'
+  result_column: 'test_result_column'

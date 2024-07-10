@@ -68,13 +68,14 @@
         }
       ],
       "spec": {
-        "column": "rank_column",
+        "column": "data_column",
         "order_by": [
           "order_column"
         ],
         "partition_by": [
           "partition_column"
         ],
+        "result_column": "rank_column",
         "window_function": "rank"
       }
     }
