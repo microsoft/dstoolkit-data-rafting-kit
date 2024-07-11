@@ -141,7 +141,30 @@ class PysparkWindowFunctionParamSpec(BaseParamSpec):
     partition_by: list[str]
     order_by: list[str]
     window_function: str
-    column: str
+    column: str | None = None
+    result_column: str
+    offset: int | None = None
+    default_value: str | None = None
+
+    @model_validator(mode="after")
+    def check_column(self):
+        """Validate the presence of the column field based on the window_function."""
+        column_required_functions = [
+            "avg",
+            "sum",
+            "min",
+            "max",
+            "count",
+            "first",
+            "last",
+            "lead",
+            "lag",
+        ]
+        if self.window_function in column_required_functions and self.column is None:
+            raise ValueError(
+                f"{self.window_function} requires a column to be specified."
+            )
+        return self
 
 
 class PysparkWindowTransformationSpec(TransformationBaseSpec):
@@ -299,9 +322,36 @@ class PysparkTransformation(TransformationBase):
             *spec.params.order_by
         )
         window_function = getattr(f, spec.params.window_function)
-        return input_df.withColumn(
-            spec.params.column, window_function().over(window_spec)
-        )
+
+        column_required_functions = [
+            "avg",
+            "sum",
+            "min",
+            "max",
+            "count",
+            "first",
+            "last",
+        ]
+        offset_required_functions = ["lead", "lag"]
+
+        if spec.params.window_function in column_required_functions:
+            return input_df.withColumn(
+                spec.params.result_column,
+                window_function(spec.params.column).over(window_spec),
+            )
+        elif spec.params.window_function in offset_required_functions:
+            offset = spec.params.offset or 1
+            default_value = spec.params.default_value or None
+            return input_df.withColumn(
+                spec.params.result_column,
+                window_function(spec.params.column, offset, default_value).over(
+                    window_spec
+                ),
+            )
+        else:
+            return input_df.withColumn(
+                spec.params.result_column, window_function().over(window_spec)
+            )
 
     def select(
         self, spec: PysparkSelectTransformationSpec, input_df: DataFrame
