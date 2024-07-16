@@ -52,9 +52,9 @@ class EventHubOutputParamSpec(OutputBaseParamSpec):
                 data["streaming"] = {}
 
             if "checkpoint" not in data["streaming"]:
-                data["streaming"][
-                    "checkpoint"
-                ] = f"/.checkpoints/event_hub/{data['namespace']}/{data['hub']}"
+                data["streaming"]["checkpoint"] = (
+                    f"/.checkpoints/event_hub/{data['namespace']}/{data['hub']}"
+                )
 
         return data
 
@@ -124,9 +124,9 @@ class EventHubIO(IOBase):
             "kafka.session.timeout.ms": "60000",
         }
 
-        options[
-            "kafka.bootstrap.servers"
-        ] = f"{spec.params.namespace}.servicebus.windows.net:9093"
+        options["kafka.bootstrap.servers"] = (
+            f"{spec.params.namespace}.servicebus.windows.net:9093"
+        )
 
         if spec.params.hub is not None:
             options["subscribe"] = spec.params.hub
@@ -135,9 +135,9 @@ class EventHubIO(IOBase):
             self._spark, self._env, spec.params.connection_string_key
         )
 
-        options[
-            "kafka.sasl.jaas.config"
-        ] = f'org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="{connection_string.value}";'
+        options["kafka.sasl.jaas.config"] = (
+            f'org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="{connection_string.value}";'
+        )
 
         return options
 
@@ -160,6 +160,12 @@ class EventHubIO(IOBase):
         reader = self._spark.readStream if spec.params.streaming else self._spark.read
 
         stream = reader.format("kafka").options(**options).load()
+
+        if spec.params.streaming.watermark is not None:
+            stream = stream.withWatermark(
+                spec.params.streaming.watermark.column,
+                spec.params.streaming.watermark.duration,
+            )
 
         if spec.params.format is not None:
             schema = to_pyspark_schema(spec.params.format_schema)

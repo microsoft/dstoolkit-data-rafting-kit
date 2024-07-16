@@ -17,8 +17,6 @@ class DataQualityExpectationEnum(StrEnum):
 class DataQualityBaseSpec(BaseModel):
     """Base output specification."""
 
-    input_df: str | None = Field(default=None)
-
     model_config = ConfigDict(
         validate_default=True,
         extra_values="forbid",

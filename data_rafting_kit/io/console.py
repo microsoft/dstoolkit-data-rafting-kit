@@ -57,7 +57,7 @@ class ConsoleIO(IOBase):
         """
         self._logger.info("Writing to Console...")
 
-        if spec.params.streaming is not None:
+        if input_df.isStreaming:
             writer = input_df.writeStream
 
             if spec.params.streaming.trigger is not None:

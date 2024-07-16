@@ -73,9 +73,9 @@ class DeltaTableOutputParamSpec(OutputBaseParamSpec):
                     if "table" in data and data["table"] is not None
                     else data["location"].split("/")[-1]
                 )
-                data["streaming"][
-                    "checkpoint"
-                ] = f"/.checkpoints/delta_table/{table_name}"
+                data["streaming"]["checkpoint"] = (
+                    f"/.checkpoints/delta_table/{table_name}"
+                )
 
         return data
 
@@ -143,6 +143,12 @@ class DeltaTableIO(IOBase):
         reader = self._spark.readStream if spec.params.streaming else self._spark.read
 
         reader = reader.options(**spec.params.options)
+
+        if spec.params.streaming.watermark is not None:
+            reader = reader.withWatermark(
+                spec.params.streaming.watermark.column,
+                spec.params.streaming.watermark.duration,
+            )
 
         if spec.params.table is not None:
             return reader.table(spec.params.table)

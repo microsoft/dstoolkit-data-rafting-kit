@@ -38,12 +38,37 @@ class StreamingOutputModeEnum(StrEnum):
     UPDATE = "update"
 
 
+class WatermarkSpec(BaseParamSpec):
+    """Watermark specification."""
+
+    column: str
+    delay: str
+
+
+class StreamingInputSpec(BaseParamSpec):
+    """Streaming input specification."""
+
+    watermark: WatermarkSpec | None = Field(default=None)
+
+
 class InputBaseParamSpec(BaseParamSpec):
     """Base input parameter specification."""
 
     expected_schema: list[SchemaFieldSpec] | None = Field(default=None)
     options: dict | None = Field(default_factory=dict)
-    streaming: bool | None = Field(default=False)
+    streaming: StreamingInputSpec | bool | None = Field(default=False)
+
+    @model_validator(mode="after")
+    def validate_input_param_spec(self):
+        """Validates the input parameter specification."""
+        if (
+            self.streaming is not None
+            and isinstance(self.streaming, bool)
+            and self.streaming
+        ):
+            self.streaming = StreamingInputSpec()
+
+        return self
 
 
 class InputBaseSpec(BaseSpec):

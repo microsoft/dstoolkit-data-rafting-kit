@@ -23,10 +23,7 @@ class TransformationFactory(BaseFactory):
             spec (TransformationBaseSpec): The transformation specification to process.
 
         """
-        if spec.input_df is not None:
-            input_df = self._dfs[spec.input_df]
-        else:
-            input_df = list(self._dfs.values())[-1]
+        input_df = self._dfs.get_df(spec.input_df)
 
         if spec.type in PYSPARK_DYNAMIC_TRANSFORMATIONS:
             transformation_function = TransformationMapping.get_transformation_map(

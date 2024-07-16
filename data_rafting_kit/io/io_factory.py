@@ -63,10 +63,7 @@ class IOFactory(BaseFactory):
         spec (OutputBaseSpec): The out specification object.
         """
         # Automatically use the last DataFrame if no input DataFrame is specified
-        if spec.input_df is not None:
-            input_df = self._dfs[spec.input_df]
-        else:
-            input_df = list(self._dfs.values())[-1]
+        input_df = self._dfs.get_df(spec.input_df)
 
         output_class, output_function = IOMapping.get_output_map(spec.type)
 
