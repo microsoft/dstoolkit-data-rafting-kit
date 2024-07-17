@@ -1,4 +1,5 @@
 from collections import OrderedDict
+
 from pyspark.sql import DataFrame
 
 
@@ -9,6 +10,11 @@ class PipelineDataframeHolder(OrderedDict):
     def last_df(self):
         """Returns the last DataFrame in the ordered dictionary."""
         return list(self.values())[-1]
+
+    @property
+    def last_key(self):
+        """Returns the last DataFrame key in the ordered dictionary."""
+        return list(self.keys())[-1]
 
     def get_df(self, input_df: str | None) -> DataFrame:
         """Returns the DataFrame object based on the input DataFrame name.

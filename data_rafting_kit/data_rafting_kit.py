@@ -10,13 +10,13 @@ from pyspark.errors import PySparkAssertionError
 from pyspark.sql import DataFrame
 from pyspark.testing import assertDataFrameEqual
 
-from data_rafting_kit.configuration_spec import ConfigurationSpec, OutputRootSpec
+from data_rafting_kit.common.pipeline_dataframe_holder import PipelineDataframeHolder
+from data_rafting_kit.configuration_spec import ConfigurationSpec
 from data_rafting_kit.data_quality.data_quality_factory import DataQualityFactory
 from data_rafting_kit.io.io_factory import IOFactory
 from data_rafting_kit.transformations.transformation_factory import (
     TransformationFactory,
 )
-from data_rafting_kit.common.pipeline_dataframe_holder import PipelineDataframeHolder
 
 
 class DataRaftingKit:
@@ -45,9 +45,6 @@ class DataRaftingKit:
         self._data_pipeline_configuration_spec = None
 
         self._logger.info("Data Pipeline Config Loaded")
-
-        self._output_buckets = None
-        self._final_output_bucket = None
 
     @classmethod
     def from_yaml_str(
@@ -108,7 +105,7 @@ class DataRaftingKit:
     def validate(self) -> bool:
         """Validate the data pipeline spec.
 
-        Returnsll
+        Returns
         -------
             bool: True if the data pipeline spec is valid, False otherwise.
         """
@@ -129,51 +126,23 @@ class DataRaftingKit:
                 )
             return False
 
-    def bucket_output_specs(self, output_specs: list[OutputRootSpec]):
-        """Bucket the output specs based on the output path.
-
-        Args:
-        ----
-            output_specs (list[OutputRootSpec]): The output specs.
-        """
-        self._output_buckets = {}
-        self._final_output_bucket = []
-        for output_spec in output_specs:
-            if output_spec.root.input_df is not None:
-                if output_spec.root.input_df in self._output_buckets:
-                    self._output_buckets[output_spec.root.input_df].append(output_spec)
-                else:
-                    self._output_buckets[output_spec.root.input_df] = [output_spec]
-            else:
-                self._final_output_bucket.append(output_spec)
-
-    def process_output_stage(
+    def apply_output_stage(
         self,
         dfs: PipelineDataframeHolder,
         data_pipeline_configuration_spec: ConfigurationSpec,
-        final: bool | None = True,
-        input_df: str | None = None,
     ):
         """Process the output buckets.
 
         Args:
         ----
-            write_outputs (bool): Whether to write the outputs.
-            output_buckets (dict | list): The output buckets.
-            io_factory (IOFactory): The IO factory object.
+            dfs (PipelineDataframeHolder): The DataFrames from the input stage.
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
         """
-        if final:
-            output_buckets = self._final_output_bucket
-        else:
-            output_buckets = self._output_buckets.get(input_df, [])
-
         io_factory = IOFactory(
             self._spark, self._logger, dfs, data_pipeline_configuration_spec.env
         )
-
-        for output_spec in output_buckets:
+        for output_spec in data_pipeline_configuration_spec.pipeline.outputs:
             self._logger.info("Writing to %s", output_spec.root.name)
-
             io_factory.process_output(output_spec.root)
             io_factory.process_optimisation(output_spec.root)
 
@@ -188,7 +157,8 @@ class DataRaftingKit:
 
         Returns:
         -------
-            PipelineDataframeHolder[str, DataFrame]: The DataFrames from the input stage."""
+            PipelineDataframeHolder[str, DataFrame]: The DataFrames from the input stage.
+        """
         dfs = PipelineDataframeHolder()
 
         io_factory = IOFactory(
@@ -207,6 +177,13 @@ class DataRaftingKit:
         dfs: PipelineDataframeHolder,
         data_pipeline_configuration_spec: ConfigurationSpec,
     ):
+        """Apply the transformation stage of the data pipeline.
+
+        Args:
+        ----
+            dfs (PipelineDataframeHolder): The DataFrames from the input stage.
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
+        """
         transformation_factory = TransformationFactory(
             self._spark, self._logger, dfs, data_pipeline_configuration_spec.env
         )
@@ -223,15 +200,19 @@ class DataRaftingKit:
         self,
         dfs: PipelineDataframeHolder,
         data_pipeline_configuration_spec: ConfigurationSpec,
-        output_dfs=None,
-        write_outputs: bool | None = True,
     ):
+        """Apply the data quality stage of the data pipeline.
+
+        Args:
+        ----
+            dfs (PipelineDataframeHolder): The DataFrames from the input stage.
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
+        """
         data_quality_factory = DataQualityFactory(
             self._spark,
             self._logger,
             dfs,
             data_pipeline_configuration_spec.env,
-            output_dfs=output_dfs,
         )
         for (
             data_quality_check_spec
@@ -241,18 +222,33 @@ class DataRaftingKit:
             )
             data_quality_factory.process_data_quality(data_quality_check_spec)
 
-            self.process_output_stage(
-                dfs,
-                data_pipeline_configuration_spec,
-                input_df=data_quality_check_spec.name,
-            ) if write_outputs else None
+    def apply_dq_output_micro_batch(
+        self,
+        dfs: PipelineDataframeHolder,
+        data_pipeline_configuration_spec: ConfigurationSpec,
+        write_outputs: bool | None = True,
+    ):
+        """Process the data quality output in micro batches for streaming dataframes.
 
-    def process_dq_output_micro_batch(self):
+        Args:
+        ----
+            dfs (PipelineDataframeHolder): The DataFrames from the input stage.
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
+            write_outputs (bool, optional): Whether to write the outputs. Defaults to True.
+        """
+
         def foreach_batch_function(df, epoch_id):
             self._logger.info("Processing epoch %s ...", epoch_id)
-            self.apply_data_quality_stage()
+            batch_outputs = PipelineDataframeHolder()
+            batch_outputs[dfs.last_key] = df
+            self.apply_data_quality_stage(
+                batch_outputs, data_pipeline_configuration_spec
+            )
+            self.apply_output_stage(
+                dfs, data_pipeline_configuration_spec
+            ) if write_outputs else None
 
-        writer = input_df.writeStream.foreachBatch(foreach_batch_function).start()
+        dfs.last_df.writeStream.foreachBatch(foreach_batch_function).start()
 
         # if spec.params.streaming.await_termination:
         #     writer = writer.awaitTermination()
@@ -275,29 +271,29 @@ class DataRaftingKit:
         """
         self._logger.info("Executing Data Pipeline")
 
-        self.bucket_output_specs(data_pipeline_configuration_spec.pipeline.outputs)
-
         dfs = self.apply_input_stage(data_pipeline_configuration_spec)
 
         self.apply_transformation_stage(dfs, data_pipeline_configuration_spec)
 
         if (
-            dfs[-1].isStreaming
+            dfs.last_df.isStreaming
             and len(data_pipeline_configuration_spec.pipeline.data_quality) > 0
-            and len(data_pipeline_configuration_spec.pipeline.outputs) > 0
+            and len(data_pipeline_configuration_spec.pipeline.outputs) > 1
         ):
             # Process this in the micro batches if data quality
-            self.process_dq_output_micro_batch()
+            self.apply_dq_output_micro_batch(
+                dfs, data_pipeline_configuration_spec, write_outputs
+            )
 
-        elif dfs[-1].isStreaming:
-            self.process_output_stage(
-                dfs, data_pipeline_configuration_spec, final=True
+        elif dfs.last_df.isStreaming:
+            self.apply_output_stage(
+                dfs, data_pipeline_configuration_spec
             ) if write_outputs else None
 
         else:
             self.apply_data_quality_stage(dfs, data_pipeline_configuration_spec)
-            self.process_output_stage(
-                dfs, data_pipeline_configuration_spec, final=True
+            self.apply_output_stage(
+                dfs, data_pipeline_configuration_spec
             ) if write_outputs else None
 
         self._logger.info("Data Pipeline Execution Complete")
@@ -331,11 +327,11 @@ class DataRaftingKit:
             ):
                 for test_input_spec in test_spec.mock_inputs:
                     if input_spec.root.name == test_input_spec.root.name:
-                        test_pipeline_spec.pipeline.inputs[input_index] = (
-                            input_spec.model_copy(
-                                update=test_input_spec.model_dump(exclude_unset=True),
-                                deep=True,
-                            )
+                        test_pipeline_spec.pipeline.inputs[
+                            input_index
+                        ] = input_spec.model_copy(
+                            update=test_input_spec.model_dump(exclude_unset=True),
+                            deep=True,
                         )
 
                         break

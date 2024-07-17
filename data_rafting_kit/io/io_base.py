@@ -56,7 +56,7 @@ class InputBaseParamSpec(BaseParamSpec):
 
     expected_schema: list[SchemaFieldSpec] | None = Field(default=None)
     options: dict | None = Field(default_factory=dict)
-    streaming: StreamingInputSpec | bool | None = Field(default=False)
+    streaming: StreamingInputSpec | bool | None = Field(default=None)
 
     @model_validator(mode="after")
     def validate_input_param_spec(self):
@@ -67,6 +67,12 @@ class InputBaseParamSpec(BaseParamSpec):
             and self.streaming
         ):
             self.streaming = StreamingInputSpec()
+        elif (
+            self.streaming is not None
+            and isinstance(self.streaming, bool)
+            and self.streaming is False
+        ):
+            self.streaming = None
 
         return self
 
