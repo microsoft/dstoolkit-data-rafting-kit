@@ -46,6 +46,7 @@ if spark.catalog.tableExists("examples.new_york_taxi_yellow") == False:
 # COMMAND ----------
 
 yaml_config = """
+name: ny_taxi_single_passenger_trips
 env:
   target: databricks
 pipeline:
