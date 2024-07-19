@@ -1,6 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 from pyspark.errors import PySparkAssertionError
+from pyspark.sql import DataFrameWriter
 from pyspark.testing import assertSchemaEqual
 
 from data_rafting_kit.common.base_factory import BaseFactory
@@ -74,20 +75,12 @@ class IOFactory(BaseFactory):
 
         writer = getattr(io_object, output_function.__name__)(spec, input_df)
 
-        if writer is not None and spec.params.streaming is not None:
-            writer = writer.option(
-                "checkpointLocation", spec.params.streaming.checkpoint
-            )
-
-            if spec.params.streaming.trigger is not None:
-                writer = writer.trigger(**spec.params.streaming.trigger)
-
-            writer = writer.start()
-
-            if spec.params.streaming.await_termination:
-                writer.awaitTermination()
-        elif writer is not None and spec.params.streaming is None:
+        if writer is not None and isinstance(writer, DataFrameWriter):
             writer.save()
+
+            self.process_optimisation(spec)
+
+        return writer
 
     def process_optimisation(self, spec: OutputBaseSpec):
         """Processes the optimisation specification.

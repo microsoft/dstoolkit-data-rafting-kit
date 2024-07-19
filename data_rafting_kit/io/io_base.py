@@ -83,36 +83,6 @@ class InputBaseSpec(BaseSpec):
     pass
 
 
-class StreamingOutputSpec(BaseParamSpec):
-    """Streaming output specification."""
-
-    await_termination: bool | None = Field(default=True)
-    trigger: dict | None = Field(default=None)
-    checkpoint: str
-
-    @model_validator(mode="after")
-    def validate_streaming_output_spec(self):
-        """Validates the streaming output spec."""
-        if self.trigger is not None:
-            if len(self.trigger) > 1:
-                raise ValueError("Only one trigger can be set.")
-
-            if self.trigger.keys()[0] not in [
-                "once",
-                "continuous",
-                "processingTime",
-                "availableNow",
-            ]:
-                raise ValueError(
-                    "Invalid trigger. Must be either once, continuous, processingTime or availableNow. See spark documentation."
-                )
-
-            if self.await_termination and "processingTime" in self.trigger:
-                raise ValueError("Cannot await termination when processingTime is set.")
-
-        return self
-
-
 class OutputBaseParamSpec(BaseParamSpec):
     """Base output parameter specification."""
 
@@ -131,31 +101,6 @@ class OutputBaseParamSpec(BaseParamSpec):
         ]
         | None
     ) = Field(default=BatchOutputModeEnum.APPEND)
-    streaming: StreamingOutputSpec | bool | None = Field(default=None)
-
-    @model_validator(mode="after")
-    def validate_output_param_spec(self):
-        """Validates the output parameter specification."""
-        if (
-            self.streaming is not None
-            and isinstance(self.streaming, bool)
-            and self.streaming
-        ):
-            self.streaming = StreamingOutputSpec()
-
-        if (
-            self.streaming
-            and self.mode not in StreamingOutputModeEnum.__members__.values()
-        ):
-            raise ValueError(f"Invalid mode '{self.mode}' for streaming output.")
-
-        if (
-            not self.streaming
-            and self.mode not in BatchOutputModeEnum.__members__.values()
-        ):
-            raise ValueError(f"Invalid mode '{self.mode}' for batch output.")
-
-        return self
 
 
 class OutputBaseSpec(BaseSpec):

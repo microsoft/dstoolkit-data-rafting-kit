@@ -8,6 +8,7 @@ from jinja2 import Template
 from pydantic import ValidationError
 from pyspark.errors import PySparkAssertionError
 from pyspark.sql import DataFrame
+from pyspark.sql.streaming import DataStreamWriter
 from pyspark.testing import assertDataFrameEqual
 
 from data_rafting_kit.common.pipeline_dataframe_holder import PipelineDataframeHolder
@@ -143,8 +144,10 @@ class DataRaftingKit:
         )
         for output_spec in data_pipeline_configuration_spec.pipeline.outputs:
             self._logger.info("Writing to %s", output_spec.root.name)
-            io_factory.process_output(output_spec.root)
-            io_factory.process_optimisation(output_spec.root)
+            writer = io_factory.process_output(output_spec.root)
+
+            if len(data_pipeline_configuration_spec.pipeline.outputs) == 1:
+                return writer
 
     def apply_input_stage(
         self, data_pipeline_configuration_spec
@@ -245,13 +248,45 @@ class DataRaftingKit:
                 batch_outputs, data_pipeline_configuration_spec
             )
             self.apply_output_stage(
-                dfs, data_pipeline_configuration_spec
+                batch_outputs, data_pipeline_configuration_spec
             ) if write_outputs else None
 
-        dfs.last_df.writeStream.foreachBatch(foreach_batch_function).start()
+        writer = dfs.last_df.writeStream.foreachBatch(foreach_batch_function)
 
-        # if spec.params.streaming.await_termination:
-        #     writer = writer.awaitTermination()
+        return writer
+
+    def trigger_streaming(
+        self,
+        writer: DataStreamWriter,
+        data_pipeline_configuration_spec: ConfigurationSpec,
+    ):
+        """Trigger the streaming writer.
+
+        Args:
+        ----
+            writer (DataStreamWriter): The streaming writer.
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
+        """
+        if data_pipeline_configuration_spec.pipeline.streaming.checkpoint is not None:
+            writer = writer.option(
+                "checkpointLocation",
+                data_pipeline_configuration_spec.pipeline.streaming.checkpoint,
+            )
+        else:
+            writer = writer.option(
+                "checkpointLocation",
+                f".checkpoints/{data_pipeline_configuration_spec.name}",
+            )
+
+        if data_pipeline_configuration_spec.pipeline.streaming.trigger is not None:
+            writer = writer.trigger(
+                **data_pipeline_configuration_spec.pipeline.streaming.trigger
+            )
+
+        if data_pipeline_configuration_spec.pipeline.streaming.await_termination:
+            writer.start().awaitTermination()
+        else:
+            writer.start()
 
     def run_pipeline_from_spec(
         self,
@@ -278,17 +313,21 @@ class DataRaftingKit:
         if (
             dfs.last_df.isStreaming
             and len(data_pipeline_configuration_spec.pipeline.data_quality) > 0
-            and len(data_pipeline_configuration_spec.pipeline.outputs) > 1
+            or len(data_pipeline_configuration_spec.pipeline.outputs) > 1
         ):
             # Process this in the micro batches if data quality
-            self.apply_dq_output_micro_batch(
+            writer = self.apply_dq_output_micro_batch(
                 dfs, data_pipeline_configuration_spec, write_outputs
             )
+            self.trigger_streaming(writer, data_pipeline_configuration_spec)
 
         elif dfs.last_df.isStreaming:
-            self.apply_output_stage(
-                dfs, data_pipeline_configuration_spec
-            ) if write_outputs else None
+            writer = (
+                self.apply_output_stage(dfs, data_pipeline_configuration_spec)
+                if write_outputs
+                else None
+            )
+            self.trigger_streaming(writer, data_pipeline_configuration_spec)
 
         else:
             self.apply_data_quality_stage(dfs, data_pipeline_configuration_spec)
