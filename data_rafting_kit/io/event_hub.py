@@ -43,21 +43,6 @@ class EventHubOutputParamSpec(OutputBaseParamSpec):
     ) = Field(default=None)
     format_schema: list[SchemaFieldSpec] | None = Field(default=None)
 
-    @model_validator(mode="before")
-    @classmethod
-    def validate_event_hub_output_param_spec_before(cls, data: dict) -> dict:
-        """Validates the Delta Table output param spec."""
-        if "streaming" in data and data["streaming"] is not None:
-            if isinstance(data["streaming"], bool):
-                data["streaming"] = {}
-
-            if "checkpoint" not in data["streaming"]:
-                data["streaming"]["checkpoint"] = (
-                    f"/.checkpoints/event_hub/{data['namespace']}/{data['hub']}"
-                )
-
-        return data
-
     @model_validator(mode="after")
     def validate_event_hub_output_spec_after(self):
         """Validates the EventHub output spec."""
@@ -124,9 +109,9 @@ class EventHubIO(IOBase):
             "kafka.session.timeout.ms": "60000",
         }
 
-        options["kafka.bootstrap.servers"] = (
-            f"{spec.params.namespace}.servicebus.windows.net:9093"
-        )
+        options[
+            "kafka.bootstrap.servers"
+        ] = f"{spec.params.namespace}.servicebus.windows.net:9093"
 
         if spec.params.hub is not None:
             options["subscribe"] = spec.params.hub
@@ -135,9 +120,9 @@ class EventHubIO(IOBase):
             self._spark, self._env, spec.params.connection_string_key
         )
 
-        options["kafka.sasl.jaas.config"] = (
-            f'org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="{connection_string.value}";'
-        )
+        options[
+            "kafka.sasl.jaas.config"
+        ] = f'org.apache.kafka.common.security.plain.PlainLoginModule required username="$ConnectionString" password="{connection_string.value}";'
 
         return options
 

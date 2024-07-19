@@ -4,7 +4,7 @@ from collections import OrderedDict
 from enum import StrEnum
 from logging import Logger
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 from pyspark.sql import SparkSession
 
 

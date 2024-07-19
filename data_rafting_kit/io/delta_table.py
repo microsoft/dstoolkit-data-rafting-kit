@@ -59,26 +59,6 @@ class DeltaTableOutputParamSpec(OutputBaseParamSpec):
     optimize: DeltaTableOptimizeSpec | None = Field(default=None, alias="optimise")
     merge_spec: DeltaTableMergeSpec | None = Field(default=None)
 
-    @model_validator(mode="before")
-    @classmethod
-    def validate_delta_table_output_param_spec_before(cls, data: dict) -> dict:
-        """Validates the Delta Table output param spec."""
-        if "streaming" in data and data["streaming"] is not None:
-            if isinstance(data["streaming"], bool):
-                data["streaming"] = {}
-
-            if "checkpoint" not in data["streaming"]:
-                table_name = (
-                    data["table"]
-                    if "table" in data and data["table"] is not None
-                    else data["location"].split("/")[-1]
-                )
-                data["streaming"][
-                    "checkpoint"
-                ] = f"/.checkpoints/delta_table/{table_name}"
-
-        return data
-
     @model_validator(mode="after")
     def validate_delta_table_output_param_spec_after(self):
         """Validates the output specification."""
