@@ -2,12 +2,11 @@
 # Licensed under the MIT License.
 import os
 
-from pydantic import BaseModel
-
+from data_rafting_kit.common.base_spec import BaseParamSpec
 from data_rafting_kit.env_spec import EnvSpec, TargetEnum
 
 
-class Secret(BaseModel):
+class Secret(BaseParamSpec):
     """Secret Holder class. Holds the secret to prevent accidental exposure. Need to account for environmental variables."""
 
     name: str

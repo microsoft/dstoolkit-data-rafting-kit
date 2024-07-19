@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 
 from data_rafting_kit.common.base_spec import BaseParamSpec
 from data_rafting_kit.data_quality.data_quality_spec import DataQualityRootSpec
@@ -45,7 +45,7 @@ def default_output_spec():
     return [OutputRootSpec(type="console", name="console")]
 
 
-class PipelineSpec(BaseModel):
+class PipelineSpec(BaseParamSpec):
     """Pipeline specification. Used to specify the inputs, outputs, and transformations for the pipeline."""
 
     streaming: StreamingSpec | None = Field(default_factory=StreamingSpec)
@@ -55,15 +55,10 @@ class PipelineSpec(BaseModel):
     data_quality: list[DataQualityRootSpec] | None = Field(default_factory=list)
 
 
-class ConfigurationSpec(BaseModel):
+class ConfigurationSpec(BaseParamSpec):
     """Data pipeline specification. This is the top-level specification for a data pipeline."""
 
     name: str
     env: EnvSpec
     pipeline: PipelineSpec
     tests: TestingRootSpec | None = Field(default=None)
-
-    model_config = ConfigDict(
-        validate_default=True,
-        extra_values="forbid",
-    )
