@@ -3,10 +3,9 @@
 from enum import StrEnum
 from logging import Logger
 
-from pydantic import ConfigDict
 from pyspark.sql import SparkSession
 
-from data_rafting_kit.common.base_spec import BaseSpec
+from data_rafting_kit.common.base_spec import BaseParamSpec
 from data_rafting_kit.common.pipeline_dataframe_holder import PipelineDataframeHolder
 
 
@@ -16,13 +15,10 @@ class DataQualityExpectationEnum(StrEnum):
     GREAT_EXPECTATIONS = "great_expectations"
 
 
-class DataQualityBaseSpec(BaseSpec):
+class DataQualityBaseSpec(BaseParamSpec):
     """Base output specification."""
 
-    model_config = ConfigDict(
-        validate_default=True,
-        extra_values="forbid",
-    )
+    pass
 
 
 class DataQualityBase:

@@ -192,7 +192,7 @@ class EventHubIO(IOBase):
 
         stream = input_df.withColumn("value", f.col("value").cast(t.BinaryType()))
 
-        if spec.params.streaming is not None:
+        if input_df.isStreaming:
             writer = stream.writeStream.outputMode(spec.params.mode.value)
         else:
             writer = stream.write.mode(spec.params.mode)
