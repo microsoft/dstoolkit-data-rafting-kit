@@ -99,7 +99,7 @@ class FileIO(IOBase):
 
         writer = (
             input_df.writeStream.outputMode(spec.params.mode.value)
-            if spec.params.streaming
+            if input_df.isStreaming
             else input_df.write.mode(spec.params.mode)
         )
         writer = writer.format(spec.params.format)

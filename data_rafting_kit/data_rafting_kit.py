@@ -2,15 +2,16 @@
 # Licensed under the MIT License.
 import logging
 import os
-from collections import OrderedDict
 
 import yaml
 from jinja2 import Template
 from pydantic import ValidationError
 from pyspark.errors import PySparkAssertionError
 from pyspark.sql import DataFrame
+from pyspark.sql.streaming import DataStreamWriter
 from pyspark.testing import assertDataFrameEqual
 
+from data_rafting_kit.common.pipeline_dataframe_holder import PipelineDataframeHolder
 from data_rafting_kit.configuration_spec import ConfigurationSpec
 from data_rafting_kit.data_quality.data_quality_factory import DataQualityFactory
 from data_rafting_kit.io.io_factory import IOFactory
@@ -22,13 +23,15 @@ from data_rafting_kit.transformations.transformation_factory import (
 class DataRaftingKit:
     """The DataRaftingKit class is responsible for executing a data pipeline."""
 
-    def __init__(self, spark, raw_data_pipeline_spec: dict, verbose: bool = False):
+    def __init__(
+        self, spark, raw_data_pipeline_configuration_spec: dict, verbose: bool = False
+    ):
         """Initialize the DataPipeline object.
 
         Args:
         ----
             spark (SparkSession): The SparkSession object.
-            raw_data_pipeline_spec (dict): The raw data pipeline specification.
+            raw_data_pipeline_configuration_spec (dict): The raw data pipeline specification.
             verbose (bool, optional): Whether to log verbose messages. Defaults to False.
         """
         self._spark = spark
@@ -36,9 +39,11 @@ class DataRaftingKit:
 
         self._logger = logging.getLogger(__name__)
 
-        self._raw_data_pipeline_spec = raw_data_pipeline_spec
+        self._raw_data_pipeline_configuration_spec = (
+            raw_data_pipeline_configuration_spec
+        )
 
-        self._data_pipeline_spec = None
+        self._data_pipeline_configuration_spec = None
 
         self._logger.info("Data Pipeline Config Loaded")
 
@@ -63,9 +68,11 @@ class DataRaftingKit:
         -------
         DataRaftingKit: The DataRaftingKit object.
         """
-        raw_data_pipeline_spec = yaml.safe_load(Template(yaml_str).render(params))
+        raw_data_pipeline_configuration_spec = yaml.safe_load(
+            Template(yaml_str).render(params)
+        )
 
-        data_rafting_kit = cls(spark, raw_data_pipeline_spec, verbose)
+        data_rafting_kit = cls(spark, raw_data_pipeline_configuration_spec, verbose)
 
         return data_rafting_kit
 
@@ -99,13 +106,13 @@ class DataRaftingKit:
     def validate(self) -> bool:
         """Validate the data pipeline spec.
 
-        Returnsll
+        Returns
         -------
             bool: True if the data pipeline spec is valid, False otherwise.
         """
         try:
-            self._data_pipeline_spec = ConfigurationSpec.model_validate(
-                self._raw_data_pipeline_spec
+            self._data_pipeline_configuration_spec = ConfigurationSpec.model_validate(
+                self._raw_data_pipeline_configuration_spec
             )
 
             return True
@@ -120,55 +127,213 @@ class DataRaftingKit:
                 )
             return False
 
-    def run_pipeline_from_spec(
-        self, data_pipeline_spec: ConfigurationSpec, write_outputs: bool = True
-    ) -> OrderedDict[str, DataFrame]:
-        """Run a pipeline from a data pipeline spec.
+    def apply_output_stage(
+        self,
+        dfs: PipelineDataframeHolder,
+        data_pipeline_configuration_spec: ConfigurationSpec,
+    ):
+        """Process the output buckets.
 
         Args:
         ----
-            data_pipeline_spec (ConfigurationSpec): The data pipeline specification.
-            write_outputs (bool, optional): Whether to write the outputs. Defaults to True.
+            dfs (PipelineDataframeHolder): The DataFrames from the input stage.
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
+        """
+        io_factory = IOFactory(
+            self._spark, self._logger, dfs, data_pipeline_configuration_spec.env
+        )
+        for output_spec in data_pipeline_configuration_spec.pipeline.outputs:
+            self._logger.info("Writing to %s", output_spec.root.name)
+            writer = io_factory.process_output(output_spec.root)
+
+            if len(data_pipeline_configuration_spec.pipeline.outputs) == 1:
+                return writer
+
+    def apply_input_stage(
+        self, data_pipeline_configuration_spec
+    ) -> PipelineDataframeHolder[str, DataFrame]:
+        """Apply the input stage of the data pipeline.
+
+        Args:
+        ----
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
 
         Returns:
         -------
-            OrderedDict[str, DataFrame]: The final DataFrames in the pipeline.
+            PipelineDataframeHolder[str, DataFrame]: The DataFrames from the input stage.
         """
-        dfs = OrderedDict()
-        self._logger.info("Executing Data Pipeline")
+        dfs = PipelineDataframeHolder()
 
-        io_factory = IOFactory(self._spark, self._logger, dfs, data_pipeline_spec.env)
+        io_factory = IOFactory(
+            self._spark, self._logger, dfs, data_pipeline_configuration_spec.env
+        )
 
-        for input_spec in data_pipeline_spec.pipeline.inputs:
+        for input_spec in data_pipeline_configuration_spec.pipeline.inputs:
             self._logger.info("Reading from %s", input_spec.root.name)
 
             io_factory.process_input(input_spec.root)
 
+        return dfs
+
+    def apply_transformation_stage(
+        self,
+        dfs: PipelineDataframeHolder,
+        data_pipeline_configuration_spec: ConfigurationSpec,
+    ):
+        """Apply the transformation stage of the data pipeline.
+
+        Args:
+        ----
+            dfs (PipelineDataframeHolder): The DataFrames from the input stage.
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
+        """
         transformation_factory = TransformationFactory(
-            self._spark, self._logger, dfs, data_pipeline_spec.env
+            self._spark, self._logger, dfs, data_pipeline_configuration_spec.env
         )
-        for transformation_spec in data_pipeline_spec.pipeline.transformations:
+        for (
+            transformation_spec
+        ) in data_pipeline_configuration_spec.pipeline.transformations:
             self._logger.info(
                 "Applying transformation %s", transformation_spec.root.type
             )
 
             transformation_factory.process_transformation(transformation_spec.root)
 
+    def apply_data_quality_stage(
+        self,
+        dfs: PipelineDataframeHolder,
+        data_pipeline_configuration_spec: ConfigurationSpec,
+    ):
+        """Apply the data quality stage of the data pipeline.
+
+        Args:
+        ----
+            dfs (PipelineDataframeHolder): The DataFrames from the input stage.
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
+        """
         data_quality_factory = DataQualityFactory(
-            self._spark, self._logger, dfs, data_pipeline_spec.env
+            self._spark,
+            self._logger,
+            dfs,
+            data_pipeline_configuration_spec.env,
         )
-        for data_quality_check_spec in data_pipeline_spec.pipeline.data_quality:
+        for (
+            data_quality_check_spec
+        ) in data_pipeline_configuration_spec.pipeline.data_quality:
             self._logger.info(
                 "Applying data quality check %s", data_quality_check_spec.name
             )
             data_quality_factory.process_data_quality(data_quality_check_spec)
 
-        if write_outputs:
-            for output_spec in data_pipeline_spec.pipeline.outputs:
-                self._logger.info("Writing to %s", output_spec.root.name)
+    def apply_dq_output_micro_batch(
+        self,
+        dfs: PipelineDataframeHolder,
+        data_pipeline_configuration_spec: ConfigurationSpec,
+        write_outputs: bool | None = True,
+    ):
+        """Process the data quality output in micro batches for streaming dataframes.
 
-                io_factory.process_output(output_spec.root)
-                io_factory.process_optimisation(output_spec.root)
+        Args:
+        ----
+            dfs (PipelineDataframeHolder): The DataFrames from the input stage.
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
+            write_outputs (bool, optional): Whether to write the outputs. Defaults to True.
+        """
+
+        def foreach_batch_function(df, epoch_id):
+            self._logger.info("Processing epoch %s ...", epoch_id)
+            batch_outputs = PipelineDataframeHolder()
+            batch_outputs[dfs.last_key] = df
+            self.apply_data_quality_stage(
+                batch_outputs, data_pipeline_configuration_spec
+            )
+            self.apply_output_stage(
+                batch_outputs, data_pipeline_configuration_spec
+            ) if write_outputs else None
+
+        writer = dfs.last_df.writeStream.foreachBatch(foreach_batch_function)
+
+        return writer
+
+    def trigger_streaming(
+        self,
+        writer: DataStreamWriter,
+        data_pipeline_configuration_spec: ConfigurationSpec,
+    ):
+        """Trigger the streaming writer.
+
+        Args:
+        ----
+            writer (DataStreamWriter): The streaming writer.
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
+        """
+        if data_pipeline_configuration_spec.pipeline.streaming.checkpoint is not None:
+            writer = writer.option(
+                "checkpointLocation",
+                data_pipeline_configuration_spec.pipeline.streaming.checkpoint,
+            )
+        else:
+            writer = writer.option(
+                "checkpointLocation",
+                f".checkpoints/{data_pipeline_configuration_spec.name}",
+            )
+
+        if data_pipeline_configuration_spec.pipeline.streaming.trigger is not None:
+            writer = writer.trigger(
+                **data_pipeline_configuration_spec.pipeline.streaming.trigger
+            )
+
+        if data_pipeline_configuration_spec.pipeline.streaming.await_termination:
+            writer.start().awaitTermination()
+        else:
+            writer.start()
+
+    def run_pipeline_from_spec(
+        self,
+        data_pipeline_configuration_spec: ConfigurationSpec,
+        write_outputs: bool = True,
+    ) -> PipelineDataframeHolder[str, DataFrame]:
+        """Run a pipeline from a data pipeline spec.
+
+        Args:
+        ----
+            data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
+            write_outputs (bool, optional): Whether to write the outputs. Defaults to True.
+
+        Returns:
+        -------
+            PipelineDataframeHolder[str, DataFrame]: The final DataFrames in the pipeline.
+        """
+        self._logger.info("Executing Data Pipeline")
+
+        dfs = self.apply_input_stage(data_pipeline_configuration_spec)
+
+        self.apply_transformation_stage(dfs, data_pipeline_configuration_spec)
+
+        if (
+            dfs.last_df.isStreaming
+            and len(data_pipeline_configuration_spec.pipeline.data_quality) > 0
+            or len(data_pipeline_configuration_spec.pipeline.outputs) > 1
+        ):
+            # Process this in the micro batches if data quality
+            writer = self.apply_dq_output_micro_batch(
+                dfs, data_pipeline_configuration_spec, write_outputs
+            )
+            self.trigger_streaming(writer, data_pipeline_configuration_spec)
+
+        elif dfs.last_df.isStreaming:
+            writer = (
+                self.apply_output_stage(dfs, data_pipeline_configuration_spec)
+                if write_outputs
+                else None
+            )
+            self.trigger_streaming(writer, data_pipeline_configuration_spec)
+
+        else:
+            self.apply_data_quality_stage(dfs, data_pipeline_configuration_spec)
+            self.apply_output_stage(
+                dfs, data_pipeline_configuration_spec
+            ) if write_outputs else None
 
         self._logger.info("Data Pipeline Execution Complete")
 
@@ -183,14 +348,16 @@ class DataRaftingKit:
             return None
 
         if (
-            self._data_pipeline_spec.tests is None
-            or len(self._data_pipeline_spec.tests.local) == 0
+            self._data_pipeline_configuration_spec.tests is None
+            or len(self._data_pipeline_configuration_spec.tests.local) == 0
         ):
             self._logger.info("No local tests found in the data pipeline spec")
             return None
 
-        for test_spec in self._data_pipeline_spec.tests.local:
-            test_pipeline_spec = self._data_pipeline_spec.model_copy(deep=True)
+        for test_spec in self._data_pipeline_configuration_spec.tests.local:
+            test_pipeline_spec = self._data_pipeline_configuration_spec.model_copy(
+                deep=True
+            )
             self._logger.info("Testing Data Pipeline Locally")
 
             # Merge the test inputs into the data pipeline spec
@@ -210,7 +377,7 @@ class DataRaftingKit:
 
             dfs = self.run_pipeline_from_spec(test_pipeline_spec, write_outputs=False)
 
-            expected_dfs = OrderedDict()
+            expected_dfs = PipelineDataframeHolder()
 
             io_factory = IOFactory(
                 self._spark, self._logger, expected_dfs, test_pipeline_spec.env
@@ -256,5 +423,5 @@ class DataRaftingKit:
             )
             return None
 
-        dfs = self.run_pipeline_from_spec(self._data_pipeline_spec)
+        dfs = self.run_pipeline_from_spec(self._data_pipeline_configuration_spec)
         return list(dfs.values())[-1]

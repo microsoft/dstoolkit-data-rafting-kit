@@ -4,29 +4,34 @@ from typing import Literal
 
 import pyspark.sql.functions as f
 import pyspark.sql.types as t
-from pydantic import BaseModel, Field
+from pydantic import Field
+
+from data_rafting_kit.common.base_spec import BaseParamSpec
 
 
-class SchemaFieldSpec(BaseModel):
+class SchemaFieldSpec(BaseParamSpec):
     """Schema field."""
 
     name: str
-    type: Literal[
-        "string",
-        "binary",
-        "boolean",
-        "date",
-        "timestamp",
-        "decimal",
-        "double",
-        "float",
-        "byte",
-        "integer",
-        "long",
-        "short",
-        "array",
-        "map",
-    ] | None = Field(default="string")
+    type: (
+        Literal[
+            "string",
+            "binary",
+            "boolean",
+            "date",
+            "timestamp",
+            "decimal",
+            "double",
+            "float",
+            "byte",
+            "integer",
+            "long",
+            "short",
+            "array",
+            "map",
+        ]
+        | None
+    ) = Field(default="string")
     nullable: bool | None = Field(default=True)
 
 

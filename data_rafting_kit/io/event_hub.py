@@ -43,21 +43,6 @@ class EventHubOutputParamSpec(OutputBaseParamSpec):
     ) = Field(default=None)
     format_schema: list[SchemaFieldSpec] | None = Field(default=None)
 
-    @model_validator(mode="before")
-    @classmethod
-    def validate_event_hub_output_param_spec_before(cls, data: dict) -> dict:
-        """Validates the Delta Table output param spec."""
-        if "streaming" in data and data["streaming"] is not None:
-            if isinstance(data["streaming"], bool):
-                data["streaming"] = {}
-
-            if "checkpoint" not in data["streaming"]:
-                data["streaming"][
-                    "checkpoint"
-                ] = f"/.checkpoints/event_hub/{data['namespace']}/{data['hub']}"
-
-        return data
-
     @model_validator(mode="after")
     def validate_event_hub_output_spec_after(self):
         """Validates the EventHub output spec."""
@@ -161,6 +146,12 @@ class EventHubIO(IOBase):
 
         stream = reader.format("kafka").options(**options).load()
 
+        if spec.params.streaming.watermark is not None:
+            stream = stream.withWatermark(
+                spec.params.streaming.watermark.column,
+                spec.params.streaming.watermark.duration,
+            )
+
         if spec.params.format is not None:
             schema = to_pyspark_schema(spec.params.format_schema)
             stream = stream.withColumn("value", f.col("value").cast(t.StringType()))
@@ -201,7 +192,7 @@ class EventHubIO(IOBase):
 
         stream = input_df.withColumn("value", f.col("value").cast(t.BinaryType()))
 
-        if spec.params.streaming is not None:
+        if input_df.isStreaming:
             writer = stream.writeStream.outputMode(spec.params.mode.value)
         else:
             writer = stream.write.mode(spec.params.mode)

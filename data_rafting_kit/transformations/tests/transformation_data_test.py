@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 import json
-from collections import OrderedDict
 from pathlib import Path
 
 import pyspark.sql.types as t
@@ -9,6 +8,7 @@ import pytest
 from pydantic import ValidationError
 from pyspark.testing import assertDataFrameEqual
 
+from data_rafting_kit.common.pipeline_dataframe_holder import PipelineDataframeHolder
 from data_rafting_kit.common.test_utils import (
     env_spec,  # noqa
     extract_and_convert_model_name_to_file_name,
@@ -75,7 +75,7 @@ def test_transformation_data(
 
     Args:
     ----
-        transformation_spec_model (Pydantic BaseModel): The transformation model to test.
+        transformation_spec_model (BaseParamSpec): The transformation model to test.
         spark_session (SparkSession): The Spark session fixture.
         logger (FakeLogger): The fake logger fixture.
         env_spec (EnvSpec): The fake environment spec fixture.
@@ -112,7 +112,7 @@ def test_transformation_data(
             transformation_spec = TransformationRootSpec.model_validate(mock_spec)
 
             input_rows_df = spark_session.createDataFrame(mock_dataset["input_rows"])
-            dfs = OrderedDict()
+            dfs = PipelineDataframeHolder()
 
             if "input_rows_2" in mock_dataset:
                 input_rows_df_2 = spark_session.createDataFrame(

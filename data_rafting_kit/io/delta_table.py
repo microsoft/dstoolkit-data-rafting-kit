@@ -59,26 +59,6 @@ class DeltaTableOutputParamSpec(OutputBaseParamSpec):
     optimize: DeltaTableOptimizeSpec | None = Field(default=None, alias="optimise")
     merge_spec: DeltaTableMergeSpec | None = Field(default=None)
 
-    @model_validator(mode="before")
-    @classmethod
-    def validate_delta_table_output_param_spec_before(cls, data: dict) -> dict:
-        """Validates the Delta Table output param spec."""
-        if "streaming" in data and data["streaming"] is not None:
-            if isinstance(data["streaming"], bool):
-                data["streaming"] = {}
-
-            if "checkpoint" not in data["streaming"]:
-                table_name = (
-                    data["table"]
-                    if "table" in data and data["table"] is not None
-                    else data["location"].split("/")[-1]
-                )
-                data["streaming"][
-                    "checkpoint"
-                ] = f"/.checkpoints/delta_table/{table_name}"
-
-        return data
-
     @model_validator(mode="after")
     def validate_delta_table_output_param_spec_after(self):
         """Validates the output specification."""
@@ -143,6 +123,15 @@ class DeltaTableIO(IOBase):
         reader = self._spark.readStream if spec.params.streaming else self._spark.read
 
         reader = reader.options(**spec.params.options)
+
+        if (
+            spec.params.streaming is not None
+            and spec.params.streaming.watermark is not None
+        ):
+            reader = reader.withWatermark(
+                spec.params.streaming.watermark.column,
+                spec.params.streaming.watermark.duration,
+            )
 
         if spec.params.table is not None:
             return reader.table(spec.params.table)
@@ -274,11 +263,10 @@ class DeltaTableIO(IOBase):
         ):
             raise ValueError("Table does not exist. Cannot perform merge operation.")
         else:
-            print(spec.params)
             if spec.params.mode == BatchOutputModeEnum.MERGE:
                 spec.params.mode = BatchOutputModeEnum.OVERWRITE
 
-            if spec.params.streaming is not None:
+            if input_df.isStreaming:
                 writer = input_df.writeStream.outputMode(spec.params.mode.value)
             else:
                 writer = input_df.write.mode(spec.params.mode)
@@ -288,7 +276,7 @@ class DeltaTableIO(IOBase):
             if spec.params.partition_by is not None:
                 writer = writer.partitionBy(**spec.params.partition_by)
 
-            if spec.params.streaming is None:
+            if input_df.isStreaming is False:
                 if spec.params.table is not None:
                     writer.saveAsTable(spec.params.table)
 
