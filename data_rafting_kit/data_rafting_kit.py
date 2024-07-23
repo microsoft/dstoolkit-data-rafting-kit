@@ -73,7 +73,7 @@ class DataRaftingKit:
     def from_yaml_file(
         cls,
         spark,
-        yaml_file_path: str,
+        file_path: str,
         params: dict | None = None,
         verbose: bool = False,
     ) -> object:
@@ -82,7 +82,7 @@ class DataRaftingKit:
         Args:
         ----
             spark (SparkSession): The SparkSession object.
-            yaml_file_path (str): The path to the config file.
+            file_path (str): The path to the config file.
             params (dict, optional): The parameters to render the config file. Defaults to None.
             verbose (bool, optional): Whether to log verbose messages. Defaults to False.
 
@@ -90,10 +90,10 @@ class DataRaftingKit:
         -------
         DataRaftingKit: The DataRaftingKit object.
         """
-        if not os.path.isfile(yaml_file_path):
-            raise FileNotFoundError(f"Config file not found at {yaml_file_path}")
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f"Config file not found at {file_path}")
 
-        with open(yaml_file_path, encoding="utf-8") as config_file:
+        with open(file_path, encoding="utf-8") as config_file:
             return cls.from_yaml_str(spark, config_file.read(), params, verbose)
 
     def validate(self) -> bool:

@@ -2,9 +2,9 @@
 # Licensed under the MIT License.
 from typing import Annotated, Union
 
-from pydantic import Field, RootModel, create_model
+from pydantic import Field, create_model
 
-from data_rafting_kit.common.base_spec import BaseParamSpec, BaseSpec
+from data_rafting_kit.common.base_spec import BaseParamSpec, BaseRootModel, BaseSpec
 from data_rafting_kit.data_quality.great_expectations import (
     GREAT_EXPECTATIONS_DATA_QUALITY_SPECS,
     DataQualityModeEnum,
@@ -18,7 +18,7 @@ DataQualityCheckRootSpec = create_model(
         Union[tuple(ALL_DATA_QUALITY_SPECS)],
         Field(..., discriminator="type"),
     ],
-    __base__=RootModel,
+    __base__=BaseRootModel,
 )
 
 param_fields = {
