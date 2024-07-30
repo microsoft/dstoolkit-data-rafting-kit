@@ -1,0 +1,9 @@
+{
+  "name": "drop",
+  "params": {
+    "columns": [
+      "column_to_drop"
+    ]
+  },
+  "type": "drop"
+}

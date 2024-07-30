@@ -1,0 +1,7 @@
+{
+  "name": "limit",
+  "params": {
+    "num": 10
+  },
+  "type": "limit"
+}

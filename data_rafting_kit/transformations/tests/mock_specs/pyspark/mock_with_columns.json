@@ -1,0 +1,16 @@
+{
+  "name": "with_columns",
+  "params": {
+    "columns": [
+      {
+        "expr": "test_column + 1",
+        "name": "test_column"
+      },
+      {
+        "expr": "test_column_2 + 2",
+        "name": "test_column_2"
+      }
+    ]
+  },
+  "type": "with_columns"
+}

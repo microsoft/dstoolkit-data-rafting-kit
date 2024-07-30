@@ -1,0 +1,8 @@
+{
+  "name": "expect_table_row_count_to_be_between",
+  "params": {
+    "max_value": 20,
+    "min_value": 10
+  },
+  "type": "expect_table_row_count_to_be_between"
+}

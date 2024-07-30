@@ -1,0 +1,9 @@
+{
+  "name": "expect_column_unique_value_count_to_be_between",
+  "params": {
+    "column": "test_column",
+    "max_value": 10,
+    "min_value": 1
+  },
+  "type": "expect_column_unique_value_count_to_be_between"
+}

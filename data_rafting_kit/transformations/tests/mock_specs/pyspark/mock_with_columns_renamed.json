@@ -1,0 +1,10 @@
+{
+  "name": "with_columns_renamed",
+  "params": {
+    "columns_map": {
+      "test_1": "new_test_1",
+      "test_2": "new_test_2"
+    }
+  },
+  "type": "with_columns_renamed"
+}

@@ -1,0 +1,29 @@
+{
+  "name": "anonymize",
+  "params": {
+    "columns": [
+      {
+        "chars_to_mask": 5,
+        "name": "test_mask_column",
+        "type": "mask"
+      },
+      {
+        "entire_value": true,
+        "name": "test_replace_column",
+        "new_value": "REPLACED",
+        "type": "replace"
+      },
+      {
+        "hash_type": "sha256",
+        "name": "test_hash_column",
+        "type": "hash"
+      },
+      {
+        "entire_value": true,
+        "name": "test_redact_column",
+        "type": "redact"
+      }
+    ]
+  },
+  "type": "anonymize"
+}

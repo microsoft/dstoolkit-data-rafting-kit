@@ -1,0 +1,10 @@
+{
+  "name": "expect_column_proportion_of_unique_values_to_be_between",
+  "params": {
+    "column": "test_column",
+    "max_value": 1.0,
+    "min_value": 0.0,
+    "mostly": 0.5
+  },
+  "type": "expect_column_proportion_of_unique_values_to_be_between"
+}

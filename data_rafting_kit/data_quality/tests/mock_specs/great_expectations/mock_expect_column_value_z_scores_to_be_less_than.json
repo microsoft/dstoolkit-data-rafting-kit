@@ -1,0 +1,9 @@
+{
+  "name": "expect_column_value_z_scores_to_be_less_than",
+  "params": {
+    "column": "test_column",
+    "double_sided": true,
+    "threshold": 1.5
+  },
+  "type": "expect_column_value_z_scores_to_be_less_than"
+}
