@@ -254,7 +254,6 @@ class DeltaTableIO(IOBase):
         ):
             raise ValueError("Table does not exist. Cannot perform merge operation.")
         else:
-            print(spec.params)
             if spec.params.mode == BatchOutputModeEnum.MERGE:
                 spec.params.mode = BatchOutputModeEnum.OVERWRITE
 

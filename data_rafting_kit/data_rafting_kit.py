@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+import json
 import logging
 import os
 from collections import OrderedDict
@@ -47,7 +48,7 @@ class DataRaftingKit:
         cls,
         spark,
         yaml_str: str,
-        params: dict | None = None,
+        arguments: dict | None = None,
         verbose: bool = False,
     ) -> object:
         """Load the test config from the config file.
@@ -56,14 +57,41 @@ class DataRaftingKit:
         ----
             spark (SparkSession): The SparkSession object.
             yaml_str (str): The string of YAML to load.
-            params (dict, optional): The parameters to render the config file. Defaults to None.
+            arguments (dict, optional): The arguments to render the config file. Defaults to None.
             verbose (bool, optional): Whether to log verbose messages. Defaults to False.
 
         Returns:
         -------
         DataRaftingKit: The DataRaftingKit object.
         """
-        raw_data_pipeline_spec = yaml.safe_load(Template(yaml_str).render(params))
+        raw_data_pipeline_spec = yaml.safe_load(Template(yaml_str).render(arguments))
+
+        data_rafting_kit = cls(spark, raw_data_pipeline_spec, verbose)
+
+        return data_rafting_kit
+
+    @classmethod
+    def from_json_str(
+        cls,
+        spark,
+        json_str: str,
+        arguments: dict | None = None,
+        verbose: bool = False,
+    ) -> object:
+        """Load the test config from the config file.
+
+        Args:
+        ----
+            spark (SparkSession): The SparkSession object.
+            json_str (str): The string of YAML to load.
+            arguments (dict, optional): The arguments to render the config file. Defaults to None.
+            verbose (bool, optional): Whether to log verbose messages. Defaults to False.
+
+        Returns:
+        -------
+        DataRaftingKit: The DataRaftingKit object.
+        """
+        raw_data_pipeline_spec = json.load(Template(json_str).render(arguments))
 
         data_rafting_kit = cls(spark, raw_data_pipeline_spec, verbose)
 
@@ -74,7 +102,7 @@ class DataRaftingKit:
         cls,
         spark,
         file_path: str,
-        params: dict | None = None,
+        arguments: dict | None = None,
         verbose: bool = False,
     ) -> object:
         """Load the test config from the config file.
@@ -83,7 +111,7 @@ class DataRaftingKit:
         ----
             spark (SparkSession): The SparkSession object.
             file_path (str): The path to the config file.
-            params (dict, optional): The parameters to render the config file. Defaults to None.
+            arguments (dict, optional): The parameters to render the config file. Defaults to None.
             verbose (bool, optional): Whether to log verbose messages. Defaults to False.
 
         Returns:
@@ -94,7 +122,34 @@ class DataRaftingKit:
             raise FileNotFoundError(f"Config file not found at {file_path}")
 
         with open(file_path, encoding="utf-8") as config_file:
-            return cls.from_yaml_str(spark, config_file.read(), params, verbose)
+            return cls.from_yaml_str(spark, config_file.read(), arguments, verbose)
+
+    @classmethod
+    def from_json_file(
+        cls,
+        spark,
+        file_path: str,
+        arguments: dict | None = None,
+        verbose: bool = False,
+    ) -> object:
+        """Load the test config from the config file.
+
+        Args:
+        ----
+            spark (SparkSession): The SparkSession object.
+            file_path (str): The path to the config file.
+            arguments (dict, optional): The parameters to render the config file. Defaults to None.
+            verbose (bool, optional): Whether to log verbose messages. Defaults to False.
+
+        Returns:
+        -------
+        DataRaftingKit: The DataRaftingKit object.
+        """
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f"Config file not found at {file_path}")
+
+        with open(file_path, encoding="utf-8") as config_file:
+            return cls.from_json_str(spark, config_file.read(), arguments, verbose)
 
     def validate(self) -> bool:
         """Validate the data pipeline spec.

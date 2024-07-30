@@ -60,10 +60,7 @@ def run_data_quality_check(  # noqa: PLR0913
     )
 
     if mode == DataQualityModeEnum.SEPARATE:
-        print("Expected DataFrame:")
         passing_rows.show()
-        print("Actual DataFrame:")
-        dfs["test_dq"].show()
 
         assertDataFrameEqual(dfs["test_dq"], passing_rows)
         assertDataFrameEqual(dfs["test_dq_fails"], failing_rows)
