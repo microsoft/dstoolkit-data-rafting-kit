@@ -41,15 +41,20 @@ pipeline:
 
   data_quality:
     - name: check_data
-      checks:
-        - type: expect_column_values_to_be_unique
-          params:
-            column: show_id
-        - type: expect_column_values_to_be_between
-          params:
-            column: release_year
-            min_value: "1900"
-            max_value: "2005"
+      type: check
+      params:
+        mode: flag
+        unique_column_identifiers:
+          - show_id
+        checks:
+          - type: expect_column_values_to_be_unique
+            params:
+              column: show_id
+          - type: expect_column_values_to_be_between
+            params:
+              column: release_year
+              min_value: "1900"
+              max_value: "2005"
 ```
 
 ## Why 'Data Rafting Kit'?

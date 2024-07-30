@@ -39,26 +39,6 @@ class ConfigParamSpec(BaseModel):
     )
 
 
-class BaseSpec(BaseModel):
-    """Base class for all spec classes."""
-
-    name: str
-    type: str
-    params: ConfigParamSpec | None = Field(default=None)
-
-    model_config = ConfigDict(
-        validate_default=True, extra_values="forbid", validate_assignment=True
-    )
-
-
-class BaseRootModel(RootModel):
-    """Base spec for class that references an external config file."""
-
-    model_config = ConfigDict(
-        validate_default=True, extra_values="forbid", validate_assignment=True
-    )
-
-
 class BaseParamSpec(BaseModel):
     """Base class for all parameter spec classes."""
 
@@ -69,7 +49,7 @@ class BaseParamSpec(BaseModel):
         validate_assignment=True,
     )
 
-    config: ConfigParamSpec | None = Field(default=None)
+    config: ConfigParamSpec | None = Field(default=None, exclude=True)
 
     @model_validator(mode="before")
     @classmethod
@@ -88,3 +68,23 @@ class BaseParamSpec(BaseModel):
                     f"Invalid config file at {file_path}. The config file for a parameter load into a dictionary."
                 )
         return data
+
+
+class BaseSpec(BaseModel):
+    """Base class for all spec classes."""
+
+    name: str
+    type: str
+    params: BaseParamSpec | None = Field(default_factory=BaseParamSpec)
+
+    model_config = ConfigDict(
+        validate_default=True, extra_values="forbid", validate_assignment=True
+    )
+
+
+class BaseRootModel(RootModel):
+    """Base spec for class that references an external config file."""
+
+    model_config = ConfigDict(
+        validate_default=True, extra_values="forbid", validate_assignment=True
+    )
