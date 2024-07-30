@@ -44,7 +44,7 @@ class BaseSpec(BaseModel):
 
     name: str
     type: str
-    params: ConfigParamSpec | None = Field(default_factory=None)
+    params: ConfigParamSpec | None = Field(default=None)
 
     model_config = ConfigDict(
         validate_default=True, extra_values="forbid", validate_assignment=True
