@@ -79,7 +79,7 @@ def test_transformation_json_spec_loads(transformation_spec_model):
                 f"./data_rafting_kit/transformations/tests/mock_specs/{mock_directory}/mock_{mock_spec_file_name}.json"
             )
         ) as file:
-            mock_spec = json.loads(file)
+            mock_spec = json.load(file)
 
     except FileNotFoundError:
         pytest.fail(
