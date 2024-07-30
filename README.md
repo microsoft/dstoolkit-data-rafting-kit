@@ -7,7 +7,7 @@ This helper library aims to make it easier to build Fabric based pipelines that 
 A simple pipeline with data quality checks can be defined in a few lines of YAML:
 
 ```yaml
-name: "My First Data Rafting Pipeline"
+name: "My First Data Rafting Kit Pipeline"
 env:
   target: fabric
 
