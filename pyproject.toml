@@ -102,3 +102,9 @@ ignore = [
     "S101", # Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
     "B011", # Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
 ]
+
+[tool.coverage.run]
+omit = [
+    "tests/*",
+    "*/tests/*"
+]
