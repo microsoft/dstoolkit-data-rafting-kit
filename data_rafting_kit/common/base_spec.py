@@ -1,6 +1,9 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
+import json
+import os
+
 import yaml
 from jinja2 import Template
 from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
@@ -11,8 +14,19 @@ def load_sub_config_file(data: dict) -> dict:
     try:
         file_path = data["path"]
         arguments = data.get("arguments", {})
+
         with open(file_path, encoding="utf-8") as config_file:
-            config = yaml.safe_load(Template(config_file.read()).render(arguments))
+            rendered_config = Template(config_file.read()).render(arguments)
+
+            _, file_extension = os.path.splitext(file_path)
+            if file_extension in ("yaml", "yml"):
+                config = yaml.safe_load(rendered_config)
+            elif file_extension in ("json",):
+                config = json.loads(rendered_config)
+            else:
+                raise ValueError(
+                    f"Invalid config file at {file_path}. The config file for a parameter must be a YAML (.yaml or .yml) or JSON (.json) file."
+                )
 
             if isinstance(config, dict):
                 return config

@@ -126,6 +126,13 @@ class DataRaftingKit:
         if not os.path.isfile(file_path):
             raise FileNotFoundError(f"Config file not found at {file_path}")
 
+        _, file_extension = os.path.splitext(file_path)
+
+        if file_extension not in ("yaml", "yml"):
+            raise ValueError(
+                "Only YAML (.yaml or .yml) files are supported in from_yaml_file method."
+            )
+
         with open(file_path, encoding="utf-8") as config_file:
             return cls.from_yaml_str(spark, config_file.read(), arguments, verbose)
 
@@ -152,6 +159,12 @@ class DataRaftingKit:
         """
         if not os.path.isfile(file_path):
             raise FileNotFoundError(f"Config file not found at {file_path}")
+
+        _, file_extension = os.path.splitext(file_path)
+        if file_extension not in ("json"):
+            raise ValueError(
+                "Only JSON (.json) files are supported in from_json_file method."
+            )
 
         with open(file_path, encoding="utf-8") as config_file:
             return cls.from_json_str(spark, config_file.read(), arguments, verbose)
