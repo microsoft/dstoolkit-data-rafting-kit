@@ -1,11 +1,12 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from collections import OrderedDict
 from enum import StrEnum
 from logging import Logger
 
-from pydantic import BaseModel, ConfigDict, Field
 from pyspark.sql import SparkSession
+
+from data_rafting_kit.common.base_spec import BaseParamSpec
+from data_rafting_kit.common.pipeline_dataframe_holder import PipelineDataframeHolder
 
 
 class DataQualityExpectationEnum(StrEnum):
@@ -14,15 +15,10 @@ class DataQualityExpectationEnum(StrEnum):
     GREAT_EXPECTATIONS = "great_expectations"
 
 
-class DataQualityBaseSpec(BaseModel):
+class DataQualityBaseSpec(BaseParamSpec):
     """Base output specification."""
 
-    input_df: str | None = Field(default=None)
-
-    model_config = ConfigDict(
-        validate_default=True,
-        extra_values="forbid",
-    )
+    pass
 
 
 class DataQualityBase:
@@ -32,18 +28,20 @@ class DataQualityBase:
     ----------
         _spark (SparkSession): The SparkSession object.
         _logger (Logger): The logger object.
-        _dfs (OrderedDict): The ordered dictionary of DataFrames.
+        _dfs (PipelineDataframeHolder): The ordered dictionary of DataFrames.
         _env (EnvSpec): The environment specification.
     """
 
-    def __init__(self, spark: SparkSession, logger: Logger, dfs: OrderedDict, env):
+    def __init__(
+        self, spark: SparkSession, logger: Logger, dfs: PipelineDataframeHolder, env
+    ):
         """Initializes an instance of the data quality class class.
 
         Args:
         ----
             spark (SparkSession): The SparkSession object.
             logger (Logger): The logger object.
-            dfs (OrderedDict): The ordered dictionary of DataFrames.
+            dfs (PipelineDataframeHolder): The ordered dictionary of DataFrames.
             env (EnvSpec): The environment specification.
 
         """

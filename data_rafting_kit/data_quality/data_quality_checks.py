@@ -1,7 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from pydantic import BaseModel
-
+from data_rafting_kit.common.base_spec import BaseParamSpec
 from data_rafting_kit.data_quality_checks.data_quality_base import (
     DataQualityExpectationEnum,
 )
@@ -15,26 +14,26 @@ DATA_QUALITY_CHECKS = (
 )
 
 
-class ColumnExistCheckParams(BaseModel):
+class ColumnExistCheckParams(BaseParamSpec):
     """Parameters for the 'column exists' data quality check."""
 
     column: str
 
 
-class ColumnValuesInSetCheckParams(BaseModel):
+class ColumnValuesInSetCheckParams(BaseParamSpec):
     """Parameters for the 'column values in set' data quality check."""
 
     column: str
     value_set: list[str]
 
 
-class ColumnValuesUniqueParams(BaseModel):
+class ColumnValuesUniqueParams(BaseParamSpec):
     """Parameters for the 'column values unique' data quality check."""
 
     column: str
 
 
-class DataQualityBaseSpec(BaseModel):
+class DataQualityBaseSpec(BaseParamSpec):
     """Base data quality expectation specification."""
 
     type: DataQualityExpectationEnum

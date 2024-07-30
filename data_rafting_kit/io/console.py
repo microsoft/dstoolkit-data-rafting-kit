@@ -44,11 +44,8 @@ class ConsoleIO(IOBase):
         """
         self._logger.info("Writing to Console...")
 
-        if spec.params.streaming is not None:
+        if input_df.isStreaming:
             writer = input_df.writeStream
-
-            if spec.params.streaming.trigger is not None:
-                writer = writer.trigger(**spec.params.streaming.trigger)
 
             def foreach_batch_function(df, epoch_id):
                 self._logger.info("Processing epoch %s ...", epoch_id)
@@ -58,10 +55,10 @@ class ConsoleIO(IOBase):
                     vertical=spec.params.vertical,
                 )
 
-            writer = writer.foreachBatch(foreach_batch_function).start()
+            writer = writer.foreachBatch(foreach_batch_function)
 
-            if spec.params.streaming.await_termination:
-                writer = writer.awaitTermination()
+            return writer
+
         else:
             input_df.show(
                 n=spec.params.n,
@@ -70,5 +67,3 @@ class ConsoleIO(IOBase):
             )
 
             return None
-
-        return writer

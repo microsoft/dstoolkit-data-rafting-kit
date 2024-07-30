@@ -22,7 +22,7 @@ def test_transformation_yaml_spec_loads(transformation_spec_model):
 
     Args:
     ----
-    transformation_spec_model (Pydantic BaseModel): The transformation model to test.
+    transformation_spec_model (BaseParamSpec): The transformation model to test.
     """
     pattern = r"^(Pyspark|Presido)(.*)TransformationSpec$"
     mock_directory, mock_spec_file_name = extract_and_convert_model_name_to_file_name(

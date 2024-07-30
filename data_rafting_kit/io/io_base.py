@@ -38,12 +38,43 @@ class StreamingOutputModeEnum(StrEnum):
     UPDATE = "update"
 
 
+class WatermarkSpec(BaseParamSpec):
+    """Watermark specification."""
+
+    column: str
+    delay: str
+
+
+class StreamingInputSpec(BaseParamSpec):
+    """Streaming input specification."""
+
+    watermark: WatermarkSpec | None = Field(default=None)
+
+
 class InputBaseParamSpec(BaseParamSpec):
     """Base input parameter specification."""
 
     expected_schema: list[SchemaFieldSpec] | None = Field(default=None)
     options: dict | None = Field(default_factory=dict)
-    streaming: bool | None = Field(default=False)
+    streaming: StreamingInputSpec | bool | None = Field(default=None)
+
+    @model_validator(mode="after")
+    def validate_input_param_spec(self):
+        """Validates the input parameter specification."""
+        if (
+            self.streaming is not None
+            and isinstance(self.streaming, bool)
+            and self.streaming
+        ):
+            self.streaming = StreamingInputSpec()
+        elif (
+            self.streaming is not None
+            and isinstance(self.streaming, bool)
+            and self.streaming is False
+        ):
+            self.streaming = None
+
+        return self
 
 
 class InputBaseSpec(BaseSpec):
@@ -52,76 +83,24 @@ class InputBaseSpec(BaseSpec):
     pass
 
 
-class StreamingOutputSpec(BaseParamSpec):
-    """Streaming output specification."""
-
-    await_termination: bool | None = Field(default=True)
-    trigger: dict | None = Field(default=None)
-    checkpoint: str
-
-    @model_validator(mode="after")
-    def validate_streaming_output_spec(self):
-        """Validates the streaming output spec."""
-        if self.trigger is not None:
-            if len(self.trigger) > 1:
-                raise ValueError("Only one trigger can be set.")
-
-            if self.trigger.keys()[0] not in [
-                "once",
-                "continuous",
-                "processingTime",
-                "availableNow",
-            ]:
-                raise ValueError(
-                    "Invalid trigger. Must be either once, continuous, processingTime or availableNow. See spark documentation."
-                )
-
-            if self.await_termination and "processingTime" in self.trigger:
-                raise ValueError("Cannot await terminal when processingTime is set.")
-
-        return self
-
-
 class OutputBaseParamSpec(BaseParamSpec):
     """Base output parameter specification."""
 
     expected_schema: list[SchemaFieldSpec] | None = Field(default=None)
     options: dict | None = Field(default_factory=dict)
-    mode: Literal[
-        BatchOutputModeEnum.APPEND,
-        BatchOutputModeEnum.OVERWRITE,
-        BatchOutputModeEnum.ERROR,
-        BatchOutputModeEnum.IGNORE,
-        BatchOutputModeEnum.MERGE,
-        StreamingOutputModeEnum.APPEND,
-        StreamingOutputModeEnum.COMPLETE,
-        StreamingOutputModeEnum.UPDATE,
-    ] | None = Field(default=BatchOutputModeEnum.APPEND)
-    streaming: StreamingOutputSpec | bool | None = Field(default=None)
-
-    @model_validator(mode="after")
-    def validate_output_param_spec(self):
-        """Validates the output parameter specification."""
-        if (
-            self.streaming is not None
-            and isinstance(self.streaming, bool)
-            and self.streaming
-        ):
-            self.streaming = StreamingOutputSpec()
-
-        if (
-            self.streaming
-            and self.mode not in StreamingOutputModeEnum.__members__.values()
-        ):
-            raise ValueError(f"Invalid mode '{self.mode}' for streaming output.")
-
-        if (
-            not self.streaming
-            and self.mode not in BatchOutputModeEnum.__members__.values()
-        ):
-            raise ValueError(f"Invalid mode '{self.mode}' for batch output.")
-
-        return self
+    mode: (
+        Literal[
+            BatchOutputModeEnum.APPEND,
+            BatchOutputModeEnum.OVERWRITE,
+            BatchOutputModeEnum.ERROR,
+            BatchOutputModeEnum.IGNORE,
+            BatchOutputModeEnum.MERGE,
+            StreamingOutputModeEnum.APPEND,
+            StreamingOutputModeEnum.COMPLETE,
+            StreamingOutputModeEnum.UPDATE,
+        ]
+        | None
+    ) = Field(default=BatchOutputModeEnum.APPEND)
 
 
 class OutputBaseSpec(BaseSpec):

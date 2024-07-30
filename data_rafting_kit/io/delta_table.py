@@ -124,6 +124,15 @@ class DeltaTableIO(IOBase):
 
         reader = reader.options(**spec.params.options)
 
+        if (
+            spec.params.streaming is not None
+            and spec.params.streaming.watermark is not None
+        ):
+            reader = reader.withWatermark(
+                spec.params.streaming.watermark.column,
+                spec.params.streaming.watermark.duration,
+            )
+
         if spec.params.table is not None:
             return reader.table(spec.params.table)
         else:
@@ -257,7 +266,7 @@ class DeltaTableIO(IOBase):
             if spec.params.mode == BatchOutputModeEnum.MERGE:
                 spec.params.mode = BatchOutputModeEnum.OVERWRITE
 
-            if spec.params.streaming is not None:
+            if input_df.isStreaming:
                 writer = input_df.writeStream.outputMode(spec.params.mode.value)
             else:
                 writer = input_df.write.mode(spec.params.mode)
@@ -267,7 +276,7 @@ class DeltaTableIO(IOBase):
             if spec.params.partition_by is not None:
                 writer = writer.partitionBy(**spec.params.partition_by)
 
-            if spec.params.streaming is None:
+            if input_df.isStreaming is False:
                 if spec.params.table is not None:
                     writer.saveAsTable(spec.params.table)
 

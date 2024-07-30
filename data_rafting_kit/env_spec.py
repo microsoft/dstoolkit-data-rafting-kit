@@ -3,7 +3,9 @@
 from enum import StrEnum
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
+
+from data_rafting_kit.common.base_spec import BaseParamSpec
 
 
 class TargetEnum(StrEnum):
@@ -14,7 +16,7 @@ class TargetEnum(StrEnum):
     LOCAL = "local"
 
 
-class SecretSpec(BaseModel):
+class SecretSpec(BaseParamSpec):
     """Secret specification. Used to specify the secret storage and key vault URI."""
 
     secret_storage: Literal[TargetEnum.FABRIC, TargetEnum.DATABRICKS, TargetEnum.LOCAL]
@@ -34,7 +36,7 @@ class SecretSpec(BaseModel):
     )
 
 
-class EnvSpec(BaseModel):
+class EnvSpec(BaseParamSpec):
     """Environment specification. Used to specify changes to the environment and config."""
 
     target: TargetEnum

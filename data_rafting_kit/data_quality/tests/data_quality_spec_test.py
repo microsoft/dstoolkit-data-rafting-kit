@@ -19,7 +19,7 @@ def test_data_quality_yaml_spec_loads(data_quality_spec_model):
 
     Args:
     ----
-        data_quality_spec_model (Pydantic BaseModel): The data quality model to test.
+        data_quality_spec_model (BaseParamSpec): The data quality model to test.
     """
     pattern = r"^(GreatExpectations)(.*)DataQualitySpec$"
     mock_directory, mock_spec_file_name = extract_and_convert_model_name_to_file_name(

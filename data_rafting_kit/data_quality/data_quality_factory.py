@@ -1,5 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+
+
 from data_rafting_kit.common.base_factory import BaseFactory
 from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityBaseSpec,
@@ -20,20 +22,25 @@ class DataQualityFactory(BaseFactory):
             spec (DataQualityBaseSpec): The data quality expectation specification to process.
         """
         # Automatically use the last DataFrame if no input DataFrame is specified
-        if spec.input_df is not None:
-            input_df = self._dfs[spec.input_df]
-        else:
-            input_df = list(self._dfs.values())[-1]
+        input_df = self._dfs.last_df
 
         (
             data_quality_class,
             data_quality_function,
         ) = DataQualityMapping.get_data_quality_map("great_expectations")
 
-        df = getattr(
-            data_quality_class(self._spark, self._logger, self._dfs, self._env),
-            data_quality_function.__name__,
-        )(spec, input_df)
+        if input_df.isStreaming:
+            df = input_df.foreachBatch(
+                lambda batch_df, _: getattr(
+                    data_quality_class(self._spark, self._logger, self._dfs, self._env),
+                    data_quality_function.__name__,
+                )(spec, batch_df),
+            )
+        else:
+            df = getattr(
+                data_quality_class(self._spark, self._logger, self._dfs, self._env),
+                data_quality_function.__name__,
+            )(spec, input_df)
 
         if isinstance(df, tuple):
             self._dfs[f"{spec.name}_fails"] = df[1]

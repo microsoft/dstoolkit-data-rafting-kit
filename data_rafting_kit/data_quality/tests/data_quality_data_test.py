@@ -1,13 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 import json
-from collections import OrderedDict
 from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 from pyspark.testing import assertDataFrameEqual
 
+from data_rafting_kit.common.pipeline_dataframe_holder import PipelineDataframeHolder
 from data_rafting_kit.common.test_utils import (
     env_spec,  # noqa
     extract_and_convert_model_name_to_file_name,
@@ -52,7 +52,7 @@ def run_data_quality_check(  # noqa: PLR0913
         mock_dataset["failing_rows"], input_rows_df.schema
     )
 
-    dfs = OrderedDict()
+    dfs = PipelineDataframeHolder()
     dfs["input_df"] = input_rows_df
 
     DataQualityFactory(spark_session, logger, dfs, env_spec).process_data_quality(
@@ -77,7 +77,7 @@ def test_data_quality_data(
 
     Args:
     ----
-        data_quality_spec_model (Pydantic BaseModel): The data quality model to test.
+        data_quality_spec_model (BaseParamSpec): The data quality model to test.
         spark_session (SparkSession): The Spark session fixture.
         logger (FakeLogger): The fake logger fixture.
         env_spec (EnvSpec): The environment spec.
