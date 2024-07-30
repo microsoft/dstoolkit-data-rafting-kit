@@ -105,6 +105,7 @@ def test_data_quality_data(
             # Test the data quality spec
             mock_spec = {
                 "name": "test_dq",
+                "type": "check",
                 "params": {
                     "mode": mode,
                     "unique_column_identifiers": mock_data["unique_column_identifiers"],
