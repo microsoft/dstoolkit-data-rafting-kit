@@ -43,21 +43,6 @@ class EventHubOutputParamSpec(OutputBaseParamSpec):
     ) = Field(default=None)
     format_schema: list[SchemaFieldSpec] | None = Field(default=None)
 
-    @model_validator(mode="before")
-    @classmethod
-    def validate_event_hub_output_param_spec_before(cls, data: dict) -> dict:
-        """Validates the Delta Table output param spec."""
-        if "streaming" in data and data["streaming"] is not None:
-            if isinstance(data["streaming"], bool):
-                data["streaming"] = {}
-
-            if "checkpoint" not in data["streaming"]:
-                data["streaming"][
-                    "checkpoint"
-                ] = f"/.checkpoints/event_hub/{data['namespace']}/{data['hub']}"
-
-        return data
-
     @model_validator(mode="after")
     def validate_event_hub_output_spec_after(self):
         """Validates the EventHub output spec."""
