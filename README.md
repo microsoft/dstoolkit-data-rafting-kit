@@ -7,6 +7,7 @@ This helper library aims to make it easier to build Fabric based pipelines that 
 A simple pipeline with data quality checks can be defined in a few lines of YAML:
 
 ```yaml
+name: "My First Data Rafting Pipeline"
 env:
   target: fabric
 
@@ -22,6 +23,7 @@ pipeline:
       name: filter_movies
       params:
         condition: 'type = "TV Show"'
+
     - type: anonymize
       name: blank_directors
       params:
@@ -29,6 +31,13 @@ pipeline:
           - name: 'director'
             type: 'mask'
             chars_to_mask: 5
+
+    - type: config
+      name: sub_transformations
+      params:
+        path: './sub_transformations.yaml'
+        arguments:
+          select_value: 1
 
   outputs:
     - type: delta_table
@@ -69,10 +78,11 @@ A declarative approach to pipelines and data pipelines is not a new concept but 
 
 ## Key Features
 
-- Easy YAML syntax, to quickly build repeatable pipelines
-- Inbuilt parametrisation of pipelines
+- Easy YAML (or JSON) syntax, to quickly build repeatable pipelines
+- Inbuilt parametrisation of pipelines and ability to load sub config files
 - Integrated testing of pipelines for expected behaviour
-- Data quality checks, powered by [Great Expectations](https://github.com/great-expectations/great_expectations)
+- Streaming support from EventHub (Kafka Endpoint) or Delta Tables
+- Data quality checks, powered by [Great Expectations](https://github.com/great-expectations/great_expectations) (including for streaming data pipelines)
 - Anonymisation, powered by [Microsoft Presidio](https://github.com/microsoft/presidio)
 
 ## Build & Installation
