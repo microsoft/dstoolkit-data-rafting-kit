@@ -128,7 +128,7 @@ class DataRaftingKit:
 
         _, file_extension = os.path.splitext(file_path)
 
-        if file_extension not in ("yaml", "yml"):
+        if file_extension not in (".yaml", ".yml"):
             raise ValueError(
                 "Only YAML (.yaml or .yml) files are supported in from_yaml_file method."
             )
@@ -161,7 +161,7 @@ class DataRaftingKit:
             raise FileNotFoundError(f"Config file not found at {file_path}")
 
         _, file_extension = os.path.splitext(file_path)
-        if file_extension not in ("json"):
+        if file_extension not in (".json"):
             raise ValueError(
                 "Only JSON (.json) files are supported in from_json_file method."
             )

@@ -19,7 +19,7 @@ def load_sub_config_file(data: dict) -> dict:
             rendered_config = Template(config_file.read()).render(arguments)
 
             _, file_extension = os.path.splitext(file_path)
-            if file_extension in ("yaml", "yml"):
+            if file_extension in (".yaml", ".yml"):
                 config = yaml.safe_load(rendered_config)
             elif file_extension in ("json",):
                 config = json.loads(rendered_config)
