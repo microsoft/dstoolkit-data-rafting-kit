@@ -1,0 +1,87 @@
+name: "Batch Example With Sub Config File"
+env:
+  target: local
+pipeline:
+  inputs:
+    - type: delta_table
+      name: input_delta_table
+      params:
+        location: './data/netflix_titles'
+        expected_schema:
+          - name: show_id
+            type: string
+          - name: type
+            type: string
+          - name: title
+            type: string
+          - name: director
+            type: string
+          - name: cast
+            type: string
+          - name: country
+            type: string
+          - name: date_added
+            type: string
+          - name: release_year
+            type: string
+          - name: rating
+            type: string
+          - name: duration
+            type: string
+          - name: listed_in
+            type: string
+          - name: description
+            type: string
+  transformations:
+    - type: config
+      name: sub_config
+      params:
+        path: './sub_transformations.yaml'
+
+  outputs:
+    - type: delta_table
+      name: output
+      params:
+        location: './data/netflix_titles_output'
+        mode: overwrite
+
+  data_quality:
+    - name: check_data
+      type: check
+      params:
+        mode: separate
+        unique_column_identifiers:
+          - show_id
+        checks:
+          - type: expect_column_values_to_be_unique
+            params:
+              column: show_id
+          - type: expect_column_values_to_be_in_set
+            params:
+              column: type
+              values: ['Movies']
+          - type: expect_column_values_to_be_between
+            params:
+              column: release_year
+              min_value: "1900"
+              max_value: "2005"
+tests:
+  local:
+    - name: test_with_csv
+      mock_inputs:
+        - type: file
+          name: input_delta_table
+          params:
+            format: csv
+            options:
+              header: true
+            location: './data/netflix_titles.csv'
+
+      expected_outputs:
+        - name: output
+          type: file
+          params:
+            options:
+              header: true
+            location: './data/netflix_movie_titles_output.csv'
+            format: 'csv'
