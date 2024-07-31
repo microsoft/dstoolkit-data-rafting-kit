@@ -1,0 +1,40 @@
+name: "Streaming Example"
+env:
+  target: local
+pipeline:
+  inputs:
+    - type: event_hub
+      name: input_event_hub
+      params:
+        connection_string_key: 'EVENTHUB'
+        namespace: '<< YOUR EVENT HUB NAMESPACE >>'
+        hub: '<< YOUR EVENT HUB NAME >>'
+        format: 'json'
+        streaming: True
+        format_schema:
+          - name: key1
+            type: string
+          - name: key2
+            type: string
+  transformations:
+    - type: select
+      name: drop_key
+      params:
+        columns:
+          - name: key1
+          - name: key2
+  outputs:
+    - type: console
+      name: output_event_hub
+  data_quality:
+    - name: check_data
+      type: check
+      params:
+        mode: flag
+        unique_column_identifiers:
+          - key1
+        checks:
+          - type: expect_column_values_to_be_in_set
+            params:
+              column: key2
+              values: ['test']

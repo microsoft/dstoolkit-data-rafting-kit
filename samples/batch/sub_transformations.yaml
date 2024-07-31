@@ -1,0 +1,13 @@
+transformations:
+  - type: filter
+    name: filter_movies
+    params:
+      condition: 'type = "TV Show"'
+
+  - type: select
+    name: new_dataframe
+    params:
+      columns:
+        - name: show_id
+        - name: type
+        - name: title
