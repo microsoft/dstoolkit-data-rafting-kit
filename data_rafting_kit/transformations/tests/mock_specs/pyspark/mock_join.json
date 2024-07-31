@@ -1,0 +1,12 @@
+{
+  "name": "join",
+  "params": {
+    "how": "inner",
+    "join_on": [
+      "id",
+      "name"
+    ],
+    "other_df": "random_df"
+  },
+  "type": "join"
+}

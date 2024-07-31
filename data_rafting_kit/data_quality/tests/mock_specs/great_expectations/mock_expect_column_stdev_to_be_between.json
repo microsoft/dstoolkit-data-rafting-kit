@@ -1,0 +1,11 @@
+{
+  "name": "expect_column_stdev_to_be_between",
+  "params": {
+    "column": "test_column",
+    "max_value": 3,
+    "min_value": 1,
+    "strict_max": true,
+    "strict_min": true
+  },
+  "type": "expect_column_stdev_to_be_between"
+}

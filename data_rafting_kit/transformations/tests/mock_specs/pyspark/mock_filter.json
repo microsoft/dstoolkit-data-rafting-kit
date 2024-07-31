@@ -1,0 +1,7 @@
+{
+  "name": "filter",
+  "params": {
+    "condition": "id > 5"
+  },
+  "type": "filter"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "drop_na",
+  "params": {
+    "columns": [
+      "column_to_drop"
+    ],
+    "how": "any"
+  },
+  "type": "drop_na"
+}

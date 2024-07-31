@@ -1,0 +1,9 @@
+{
+  "name": "expect_column_pair_values_to_be_equal",
+  "params": {
+    "column_a": "test_column_A",
+    "column_b": "test_column_B",
+    "ignore_row_if": "both_values_are_missing"
+  },
+  "type": "expect_column_pair_values_to_be_equal"
+}
