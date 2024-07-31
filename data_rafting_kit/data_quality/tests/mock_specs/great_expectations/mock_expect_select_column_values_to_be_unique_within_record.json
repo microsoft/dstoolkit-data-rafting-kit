@@ -1,0 +1,11 @@
+{
+  "name": "expect_select_column_values_to_be_unique_within_record",
+  "params": {
+    "columns": [
+      "test_column",
+      "test_column_2"
+    ],
+    "ignore_row_if": "all_values_are_missing"
+  },
+  "type": "expect_select_column_values_to_be_unique_within_record"
+}

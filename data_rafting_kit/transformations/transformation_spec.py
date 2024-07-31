@@ -6,8 +6,9 @@ import re
 import typing
 from typing import Annotated, ForwardRef, Literal, Union
 
-from pydantic import ConfigDict, Field, RootModel, create_model
+from pydantic import ConfigDict, Field, create_model
 
+from data_rafting_kit.common.base_spec import BaseRootModel
 from data_rafting_kit.transformations.presido import PRESIDO_TRANSFORMATION_SPECS
 from data_rafting_kit.transformations.pyspark import (
     PYSPARK_DYNAMIC_TRANSFORMATIONS,
@@ -219,5 +220,5 @@ TransformationRootSpec = create_model(
         Union[tuple(ALL_TRANSFORMATION_SPECS)],
         Field(..., discriminator="type"),
     ],
-    __base__=RootModel,
+    __base__=BaseRootModel,
 )

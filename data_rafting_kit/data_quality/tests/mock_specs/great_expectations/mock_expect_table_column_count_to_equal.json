@@ -1,0 +1,7 @@
+{
+  "name": "expect_table_column_count_to_equal",
+  "params": {
+    "value": 2
+  },
+  "type": "expect_table_column_count_to_equal"
+}

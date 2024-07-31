@@ -1,0 +1,7 @@
+{
+  "name": "expect_column_values_to_be_unique",
+  "params": {
+    "column": "test_column"
+  },
+  "type": "expect_column_values_to_be_unique"
+}

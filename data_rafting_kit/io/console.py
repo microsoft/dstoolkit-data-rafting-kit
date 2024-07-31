@@ -3,7 +3,7 @@
 from typing import Literal
 
 import pyspark.sql.functions as f
-from pydantic import Field, model_validator
+from pydantic import Field
 from pyspark.sql import DataFrame
 
 from data_rafting_kit.io.io_base import (
@@ -20,19 +20,6 @@ class ConsoleOutputParamSpec(OutputBaseParamSpec):
     n: int | None = Field(default=5)
     truncate: bool | int | None = Field(default=False)
     vertical: bool | None = Field(default=False)
-
-    @model_validator(mode="before")
-    @classmethod
-    def validate_console_output_param_spec_before(cls, data: dict) -> dict:
-        """Validates the Console output param spec."""
-        if "streaming" in data and data["streaming"] is not None:
-            if isinstance(data["streaming"], bool):
-                data["streaming"] = {}
-
-            if "checkpoint" not in data["streaming"]:
-                data["streaming"]["checkpoint"] = ""
-
-        return data
 
 
 class ConsoleOutputSpec(OutputBaseSpec):

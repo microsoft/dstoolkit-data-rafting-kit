@@ -1,0 +1,11 @@
+{
+  "name": "expect_column_most_common_value_to_be_in_set",
+  "params": {
+    "column": "test_column",
+    "values": [
+      "test_value_1",
+      "test_value_2"
+    ]
+  },
+  "type": "expect_column_most_common_value_to_be_in_set"
+}

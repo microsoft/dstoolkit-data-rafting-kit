@@ -1,0 +1,8 @@
+{
+  "name": "expect_column_values_to_not_match_regex",
+  "params": {
+    "column": "test_column",
+    "regex": ".*"
+  },
+  "type": "expect_column_values_to_not_match_regex"
+}

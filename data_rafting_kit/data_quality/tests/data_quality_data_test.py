@@ -60,10 +60,7 @@ def run_data_quality_check(  # noqa: PLR0913
     )
 
     if mode == DataQualityModeEnum.SEPARATE:
-        print("Expected DataFrame:")
         passing_rows.show()
-        print("Actual DataFrame:")
-        dfs["test_dq"].show()
 
         assertDataFrameEqual(dfs["test_dq"], passing_rows)
         assertDataFrameEqual(dfs["test_dq_fails"], failing_rows)
@@ -108,6 +105,7 @@ def test_data_quality_data(
             # Test the data quality spec
             mock_spec = {
                 "name": "test_dq",
+                "type": "check",
                 "params": {
                     "mode": mode,
                     "unique_column_identifiers": mock_data["unique_column_identifiers"],

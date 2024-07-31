@@ -1,0 +1,17 @@
+{
+  "name": "select_columns",
+  "params": {
+    "columns": [
+      {
+        "name": "column1"
+      },
+      {
+        "name": "column2"
+      },
+      {
+        "name": "column3"
+      }
+    ]
+  },
+  "type": "select"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "expect_column_to_exist",
+  "params": {
+    "column": "test_column"
+  },
+  "type": "expect_column_to_exist"
+}

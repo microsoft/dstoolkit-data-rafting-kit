@@ -1,0 +1,15 @@
+{
+  "name": "window",
+  "params": {
+    "column": "test_row_number_column",
+    "order_by": [
+      "test_order_column"
+    ],
+    "partition_by": [
+      "test_partition_column"
+    ],
+    "result_column": "test_result_column",
+    "window_function": "row_number"
+  },
+  "type": "window"
+}
