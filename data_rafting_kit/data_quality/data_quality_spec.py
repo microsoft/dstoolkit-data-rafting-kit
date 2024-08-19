@@ -6,11 +6,11 @@ from pydantic import Field, create_model
 
 from data_rafting_kit.common.base_spec import BaseRootModel
 from data_rafting_kit.data_quality.checks import (
-    DataQualityChecksSpec,
+    ChecksDataQualitySpec,
 )
-from data_rafting_kit.data_quality.metrics import DataQualityMetricsSpec
+from data_rafting_kit.data_quality.metrics import MetricsDataQualitySpec
 
-ALL_DATA_QUALITY_SPECS = [DataQualityChecksSpec, DataQualityMetricsSpec]
+ALL_DATA_QUALITY_SPECS = [ChecksDataQualitySpec, MetricsDataQualitySpec]
 
 DataQualityRootSpec = create_model(
     "DataQualityRootSpec",

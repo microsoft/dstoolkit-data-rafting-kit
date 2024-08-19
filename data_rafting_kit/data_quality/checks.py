@@ -158,8 +158,8 @@ for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
         dynamic_great_expectations_data_quality_model
     )
 
-DataQualityChecksRootSpec = create_model(
-    "DataQualityChecksRootSpec",
+ChecksDataQualityRootSpec = create_model(
+    "ChecksDataQualityRootSpec",
     root=Annotated[
         Union[tuple(dynamic_great_expectations_data_quality_models)],
         Field(..., discriminator="type"),
@@ -168,7 +168,7 @@ DataQualityChecksRootSpec = create_model(
 )
 
 param_fields = {
-    "checks": Annotated[list[DataQualityChecksRootSpec], Field(...)],
+    "checks": Annotated[list[ChecksDataQualityRootSpec], Field(...)],
     "mode": Annotated[
         DataQualityModeEnum | None, Field(default=DataQualityModeEnum.FAIL)
     ],
@@ -176,17 +176,17 @@ param_fields = {
         list[str] | None, Field(default_factory=list)
     ],
 }
-DataQualityChecksParamSpec = create_model(
-    "DataQualityCheckParamSpec", **param_fields, __base__=BaseParamSpec
+ChecksDataQualityParamSpec = create_model(
+    "ChecksDataQualityParamSpec", **param_fields, __base__=BaseParamSpec
 )
 
 fields = {
     "input_df": Annotated[str | None, Field(default=None)],
-    "params": Annotated[DataQualityChecksParamSpec, Field(...)],
+    "params": Annotated[ChecksDataQualityParamSpec, Field(...)],
     "type": Annotated[Literal[DataQualityEnum.CHECKS], Field(...)],
 }
-DataQualityChecksSpec = create_model(
-    "DataQualityCheckSpec", **fields, __base__=BaseSpec
+ChecksDataQualitySpec = create_model(
+    "ChecksDataQualitySpec", **fields, __base__=BaseSpec
 )
 
 
