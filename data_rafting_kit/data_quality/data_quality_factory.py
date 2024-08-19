@@ -27,7 +27,7 @@ class DataQualityFactory(BaseFactory):
         (
             data_quality_class,
             data_quality_function,
-        ) = DataQualityMapping.get_data_quality_map("great_expectations")
+        ) = DataQualityMapping.get_data_quality_map(spec.type)
 
         if input_df.isStreaming:
             df = input_df.foreachBatch(

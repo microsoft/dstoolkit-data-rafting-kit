@@ -9,10 +9,10 @@ from data_rafting_kit.common.base_spec import BaseParamSpec
 from data_rafting_kit.common.pipeline_dataframe_holder import PipelineDataframeHolder
 
 
-class DataQualityExpectationEnum(StrEnum):
+class DataQualityEnum(StrEnum):
     """Enumeration of different types of data quality expectations."""
 
-    GREAT_EXPECTATIONS = "great_expectations"
+    CHECKS = "checks"
 
 
 class DataQualityBaseSpec(BaseParamSpec):

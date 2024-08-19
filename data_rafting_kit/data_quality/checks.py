@@ -156,7 +156,7 @@ for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
 GREAT_EXPECTATIONS_DATA_QUALITY_SPECS = dynamic_great_expectations_data_quality_models
 
 
-class GreatExpectationsDataQuality(DataQualityBase):
+class ChecksDataQuality(DataQualityBase):
     """Represents a Great Expectations data quality expectation object."""
 
     def fix_unquoted_strings(self, sql_expr: str) -> str:

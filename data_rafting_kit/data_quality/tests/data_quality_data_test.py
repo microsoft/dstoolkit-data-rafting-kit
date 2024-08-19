@@ -14,12 +14,12 @@ from data_rafting_kit.common.test_utils import (
     logger,  # noqa
     spark_session,  # noqa
 )
+from data_rafting_kit.data_quality.checks import DataQualityModeEnum
 from data_rafting_kit.data_quality.data_quality_factory import DataQualityFactory
 from data_rafting_kit.data_quality.data_quality_spec import (
     ALL_DATA_QUALITY_SPECS,
     DataQualityRootSpec,
 )
-from data_rafting_kit.data_quality.great_expectations import DataQualityModeEnum
 
 
 def run_data_quality_check(  # noqa: PLR0913

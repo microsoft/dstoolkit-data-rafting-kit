@@ -1,10 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from data_rafting_kit.data_quality.data_quality_base import (
-    DataQualityExpectationEnum,
+from data_rafting_kit.data_quality.checks import (
+    ChecksDataQuality,
 )
-from data_rafting_kit.data_quality.great_expectations import (
-    GreatExpectationsDataQuality,
+from data_rafting_kit.data_quality.data_quality_base import (
+    DataQualityEnum,
 )
 
 
@@ -12,7 +12,7 @@ class DataQualityMapping:
     """Represents a mapping from data quality expectation types to their corresponding functions."""
 
     @staticmethod
-    def get_data_quality_map(key: DataQualityExpectationEnum):
+    def get_data_quality_map(key: DataQualityEnum):
         """Returns the function for the given data quality expectation type.
 
         Args:
@@ -24,10 +24,10 @@ class DataQualityMapping:
             ValueError: If df is None.
             NotImplementedError: If the given data quality expectation type is not implemented.
         """
-        if key == DataQualityExpectationEnum.GREAT_EXPECTATIONS:
+        if key == DataQualityEnum.CHECKS:
             return (
-                GreatExpectationsDataQuality,
-                GreatExpectationsDataQuality.expectation,
+                ChecksDataQuality,
+                ChecksDataQuality.expectation,
             )
         else:
             raise NotImplementedError(
@@ -37,8 +37,8 @@ class DataQualityMapping:
         # map = {}
         # if key in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
         #     return (
-        #         GreatExpectationsDataQuality,
-        #         GreatExpectationsDataQuality.expectation,
+        #         ChecksDataQuality,
+        #         ChecksDataQuality.expectation,
         #     )
         # elif key not in map or map[key] is None:
         #     raise NotImplementedError(
