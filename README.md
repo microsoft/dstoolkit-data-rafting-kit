@@ -50,7 +50,7 @@ pipeline:
 
   data_quality:
     - name: check_data
-      type: check
+      type: checks
       params:
         mode: flag
         unique_column_identifiers:

@@ -24,6 +24,7 @@ class DataQualityMapping:
             ValueError: If df is None.
             NotImplementedError: If the given data quality expectation type is not implemented.
         """
+        print(key)
         if key == DataQualityEnum.CHECKS:
             return (
                 ChecksDataQuality,
@@ -33,16 +34,3 @@ class DataQualityMapping:
             raise NotImplementedError(
                 f"Data Quality Expectation Type {key} not implemented"
             )
-
-        # map = {}
-        # if key in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
-        #     return (
-        #         ChecksDataQuality,
-        #         ChecksDataQuality.expectation,
-        #     )
-        # elif key not in map or map[key] is None:
-        #     raise NotImplementedError(
-        #         f"Data Quality Expectation Type {key} not implemented"
-        #     )
-        # else:
-        #     return map[key]

@@ -3,7 +3,7 @@
 import re
 from datetime import datetime
 from enum import StrEnum
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Union
 
 import great_expectations as gx
 import pyspark.sql.functions as f
@@ -17,10 +17,15 @@ from great_expectations.expectations.registry import (
 from pydantic import Field, create_model
 from pyspark.sql import DataFrame
 
-from data_rafting_kit.common.base_spec import BaseParamSpec
+from data_rafting_kit.common.base_spec import (
+    BaseParamSpec,
+    BaseRootModel,
+    BaseSpec,
+)
 from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityBase,
     DataQualityBaseSpec,
+    DataQualityEnum,
 )
 
 
@@ -153,7 +158,36 @@ for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
         dynamic_great_expectations_data_quality_model
     )
 
-GREAT_EXPECTATIONS_DATA_QUALITY_SPECS = dynamic_great_expectations_data_quality_models
+DataQualityChecksRootSpec = create_model(
+    "DataQualityChecksRootSpec",
+    root=Annotated[
+        Union[tuple(dynamic_great_expectations_data_quality_models)],
+        Field(..., discriminator="type"),
+    ],
+    __base__=BaseRootModel,
+)
+
+param_fields = {
+    "checks": Annotated[list[DataQualityChecksRootSpec], Field(...)],
+    "mode": Annotated[
+        DataQualityModeEnum | None, Field(default=DataQualityModeEnum.FAIL)
+    ],
+    "unique_column_identifiers": Annotated[
+        list[str] | None, Field(default_factory=list)
+    ],
+}
+DataQualityChecksParamSpec = create_model(
+    "DataQualityCheckParamSpec", **param_fields, __base__=BaseParamSpec
+)
+
+fields = {
+    "input_df": Annotated[str | None, Field(default=None)],
+    "params": Annotated[DataQualityChecksParamSpec, Field(...)],
+    "type": Annotated[Literal[DataQualityEnum.CHECKS], Field(...)],
+}
+DataQualityChecksSpec = create_model(
+    "DataQualityCheckSpec", **fields, __base__=BaseSpec
+)
 
 
 class ChecksDataQuality(DataQualityBase):

@@ -287,9 +287,9 @@ class DataRaftingKit:
             data_quality_check_spec
         ) in data_pipeline_configuration_spec.pipeline.data_quality:
             self._logger.info(
-                "Applying data quality check %s", data_quality_check_spec.name
+                "Applying data quality check %s", data_quality_check_spec.root.name
             )
-            data_quality_factory.process_data_quality(data_quality_check_spec)
+            data_quality_factory.process_data_quality(data_quality_check_spec.root)
 
     def apply_dq_output_micro_batch(
         self,

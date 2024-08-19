@@ -13,6 +13,7 @@ class DataQualityEnum(StrEnum):
     """Enumeration of different types of data quality expectations."""
 
     CHECKS = "checks"
+    METRICS = "metrics"
 
 
 class DataQualityBaseSpec(BaseParamSpec):
