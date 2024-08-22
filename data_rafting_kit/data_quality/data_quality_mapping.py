@@ -6,6 +6,9 @@ from data_rafting_kit.data_quality.checks import (
 from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityEnum,
 )
+from data_rafting_kit.data_quality.metrics import (
+    MetricsDataQuality,
+)
 
 
 class DataQualityMapping:
@@ -28,7 +31,12 @@ class DataQualityMapping:
         if key == DataQualityEnum.CHECKS:
             return (
                 ChecksDataQuality,
-                ChecksDataQuality.expectation,
+                ChecksDataQuality.checks,
+            )
+        elif key == DataQualityEnum.METRICS:
+            return (
+                MetricsDataQuality,
+                MetricsDataQuality.metrics,
             )
         else:
             raise NotImplementedError(
