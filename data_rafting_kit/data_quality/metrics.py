@@ -3,12 +3,14 @@
 from datetime import datetime
 from typing import Annotated, Literal
 
+import pyspark.sql.types as t
 from great_expectations.core import ExpectationSuite
 from great_expectations.expectations.expectation import ExpectationConfiguration
 from pydantic import Field, create_model
 from pyspark.sql import DataFrame
 
 from data_rafting_kit.common.base_spec import BaseParamSpec
+from data_rafting_kit.data_quality.checks import ChecksDataQualityRootSpec
 from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityBase,
     DataQualityBaseSpec,
@@ -16,7 +18,7 @@ from data_rafting_kit.data_quality.data_quality_base import (
 )
 
 param_fields = {
-    # "checks": Annotated[list[ChecksDataQualityRootSpec], Field(...)],
+    "checks": Annotated[list[ChecksDataQualityRootSpec], Field(...)],
     "column_wise": Annotated[bool | None, Field(default=False)],
 }
 MetricsDataQualityParamSpec = create_model(
@@ -35,6 +37,34 @@ MetricsDataQualitySpec = create_model(
 
 class MetricsDataQuality(DataQualityBase):
     """Represents a Great Expectations data quality expectation object."""
+
+    def filter_expectations_specs_for_columns(
+        self,
+        spec: type[MetricsDataQualityParamSpec],
+        columns: list[str],
+        expectation_types: list[str],
+    ):
+        """Filters the expectation specs for the columns and expectation types.
+
+        Args:
+        ----
+            spec (MetricsDataQualityParamSpec): The data quality expectation specification.
+            columns (list[str]): The list of columns.
+            expectation_types (list[str]): The list of expectation types.
+
+        Returns:
+        -------
+            list[ChecksDataQualityRootSpec]: The filtered expectation specs.
+        """
+        expectation_configs = []
+        for expectation in spec.params.checks:
+            if (
+                expectation.root.type in expectation_types
+                and expectation.root.column in columns
+            ):
+                expectation_configs.append(expectation)
+
+        return expectation_configs
 
     def run_expectation(self, expectation_suite: ExpectationSuite) -> float:
         """Runs the expectation suite and returns the unexpected percent.
@@ -191,26 +221,43 @@ class MetricsDataQuality(DataQualityBase):
 
         return result
 
-    # def timeliness(self, spec: MetricsDataQualityParamSpec, input_df: DataFrame
-    # ) -> tuple[DataFrame, DataFrame] | DataFrame:
+    def timeliness(
+        self, spec: MetricsDataQualityParamSpec, input_df: DataFrame
+    ) -> tuple[DataFrame, DataFrame] | DataFrame:
+        """Runs the timeliness check.
 
-    #     # Filter metrics for the datatypes
+        Args:
+        ----
+            spec (MetricsDataQualityParamSpec): The data quality expectation specification.
+            input_df (DataFrame): The input DataFrame.
 
-    #     for column in input_df.schema.fields:
-    #         if column.dataType in [T.TimestampType(), T.DateType()]:
+        Returns:
+        -------
+            tuple[DataFrame, DataFrame] | DataFrame: The input DataFrame and the metric DataFrame.
+        """
+        # Filter metrics for the datatypes
 
-    #     # Filter metrics for the datatypes
+        timeliness_columns = []
+        for column in input_df.schema.fields:
+            if column.dataType in [t.TimestampType(), t.DateType()]:
+                timeliness_columns.append(column.name)
 
-    #     if spec.params.column_wise:
-    #     result = {}
-    #     for column in input_df.columns:
-    #         name = f"{column}_completeness"
-    #         suite = ExpectationSuite(
-    #             expectation_suite_name=name,
-    #             expectations=[self.build_completeness_expectation(column)],
-    #         )
-    #         result[column] = self.run_expectation_column_wise(suite)
-    # else:
+        # Filter metrics for the datatypes
+        timeliness_expectations_spec = self.filter_expectations_specs_for_columns(
+            spec,
+            timeliness_columns,
+            ["expect_column_values_to_be_between"],
+        )
+        timeliness_expectations = self.build_expectation_configuration(
+            timeliness_expectations_spec, input_df
+        )
+
+        if spec.params.column_wise:
+            result = self.run_expectation_column_wise(timeliness_expectations)
+        else:
+            result = self.run_expectation(timeliness_expectations)
+
+        return result
 
     def create_metric_df(self, metric_results: dict, run_time: datetime) -> DataFrame:
         """Creates a DataFrame from the metric results.
