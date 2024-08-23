@@ -327,6 +327,7 @@ class MetricsDataQuality(DataQualityBase):
 
         metric_results["Completeness"] = self.completeness(spec, input_df)
         metric_results["Uniqueness"] = self.uniqueness(spec, input_df)
+        metric_results["Timeliness"] = self.timeliness(spec, input_df)
 
         if spec.params.column_wise:
             metric_df = self.create_metric_df_column_wise(metric_results, run_time)
