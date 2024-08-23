@@ -27,7 +27,6 @@ class DataQualityMapping:
             ValueError: If df is None.
             NotImplementedError: If the given data quality expectation type is not implemented.
         """
-        print(key)
         if key == DataQualityEnum.CHECKS:
             return (
                 ChecksDataQuality,

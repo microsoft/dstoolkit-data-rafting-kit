@@ -105,6 +105,7 @@ class ConfigurationSpec(BaseParamSpec):
     """Data pipeline specification. This is the top-level specification for a data pipeline."""
 
     name: str | None = Field(default="Data Rafting Kit Pipeline")
+    run_id: str | None = Field(default=None)
     env: EnvSpec
     pipeline: PipelineSpec
     tests: TestingRootSpec | None = Field(default=None)

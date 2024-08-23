@@ -206,7 +206,11 @@ class DataRaftingKit:
             data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
         """
         io_factory = IOFactory(
-            self._spark, self._logger, dfs, data_pipeline_configuration_spec.env
+            self._spark,
+            self._logger,
+            dfs,
+            data_pipeline_configuration_spec.env,
+            data_pipeline_configuration_spec.run_id,
         )
         for output_spec in data_pipeline_configuration_spec.pipeline.outputs:
             self._logger.info("Writing to %s", output_spec.root.name)
@@ -231,7 +235,11 @@ class DataRaftingKit:
         dfs = PipelineDataframeHolder()
 
         io_factory = IOFactory(
-            self._spark, self._logger, dfs, data_pipeline_configuration_spec.env
+            self._spark,
+            self._logger,
+            dfs,
+            data_pipeline_configuration_spec.env,
+            data_pipeline_configuration_spec.run_id,
         )
 
         for input_spec in data_pipeline_configuration_spec.pipeline.inputs:
@@ -254,7 +262,11 @@ class DataRaftingKit:
             data_pipeline_configuration_spec (ConfigurationSpec): The data pipeline specification.
         """
         transformation_factory = TransformationFactory(
-            self._spark, self._logger, dfs, data_pipeline_configuration_spec.env
+            self._spark,
+            self._logger,
+            dfs,
+            data_pipeline_configuration_spec.env,
+            data_pipeline_configuration_spec.run_id,
         )
         for (
             transformation_spec
@@ -282,6 +294,7 @@ class DataRaftingKit:
             self._logger,
             dfs,
             data_pipeline_configuration_spec.env,
+            data_pipeline_configuration_spec.run_id,
         )
         for (
             data_quality_check_spec
@@ -446,7 +459,11 @@ class DataRaftingKit:
             expected_dfs = PipelineDataframeHolder()
 
             io_factory = IOFactory(
-                self._spark, self._logger, expected_dfs, test_pipeline_spec.env
+                self._spark,
+                self._logger,
+                expected_dfs,
+                test_pipeline_spec.env,
+                test_pipeline_spec.run_id,
             )
 
             # Analyse the outputs to determine if the test passed

@@ -38,7 +38,7 @@ MetricsDataQualitySpec = create_model(
 class MetricsDataQuality(DataQualityBase):
     """Represents a Great Expectations data quality expectation object."""
 
-    def filter_expectations_specs_for_columns(
+    def filter_and_build_expectations_configurations_for_select_columns(
         self,
         spec: type[MetricsDataQualityParamSpec],
         columns: list[str],
@@ -60,9 +60,13 @@ class MetricsDataQuality(DataQualityBase):
         for expectation in spec.params.checks:
             if (
                 expectation.root.type in expectation_types
-                and expectation.root.column in columns
+                and expectation.root.params.column in columns
             ):
-                expectation_configs.append(expectation)
+                expectation_config = ExpectationConfiguration(
+                    expectation_type=expectation.root.type,
+                    kwargs=expectation.root.params.model_dump(by_alias=False),
+                )
+                expectation_configs.append(expectation_config)
 
         return expectation_configs
 
@@ -108,8 +112,6 @@ class MetricsDataQuality(DataQualityBase):
         for result in results.results:
             column = result["expectation_config"]["kwargs"]["column"]
             column_wise_result[column] = 100 - result["result"]["unexpected_percent"]
-
-            print(result)
 
         return column_wise_result
 
@@ -243,27 +245,69 @@ class MetricsDataQuality(DataQualityBase):
                 timeliness_columns.append(column.name)
 
         # Filter metrics for the datatypes
-        timeliness_expectations_spec = self.filter_expectations_specs_for_columns(
-            spec,
-            timeliness_columns,
-            ["expect_column_values_to_be_between"],
+        timeliness_expectations = (
+            self.filter_and_build_expectations_configurations_for_select_columns(
+                spec,
+                timeliness_columns,
+                ["expect_column_values_to_be_between"],
+            )
         )
-        timeliness_expectations = self.build_expectation_configuration(
-            timeliness_expectations_spec, input_df
+        expectation_suite = ExpectationSuite(
+            expectation_suite_name="timeliness", expectations=timeliness_expectations
         )
 
         if spec.params.column_wise:
-            result = self.run_expectation_column_wise(timeliness_expectations)
+            result = {column: None for column in timeliness_columns}
+            tiemliness_result = self.run_expectation_column_wise(expectation_suite)
+            result.update(tiemliness_result)
         else:
-            result = self.run_expectation(timeliness_expectations)
+            result = self.run_expectation(expectation_suite)
 
         return result
 
-    def create_metric_df(self, metric_results: dict, run_time: datetime) -> DataFrame:
+    def metric_df_schema(self, spec: type[MetricsDataQualityParamSpec]) -> t.StructType:
+        """Builds the metric DataFrame schema.
+
+        Returns
+        -------
+            t.StructType: The metric DataFrame schema.
+        """
+        schema_structs = []
+
+        if self._run_id is not None:
+            schema_structs.append(
+                t.StructField("RunId", t.StringType(), True),
+            )
+
+        if spec.params.column_wise:
+            schema_structs.append(
+                t.StructField("Column", t.StringType(), True),
+            )
+
+        schema_structs.extend(
+            [
+                t.StructField("ProcessedTimestamp", t.TimestampType(), True),
+                t.StructField("Completeness", t.FloatType(), True),
+                t.StructField("Uniqueness", t.FloatType(), True),
+                t.StructField("Timeliness", t.FloatType(), True),
+            ]
+        )
+
+        schema = t.StructType(schema_structs)
+
+        return schema
+
+    def create_metric_df(
+        self,
+        spec: type[MetricsDataQualityParamSpec],
+        metric_results: dict,
+        run_time: datetime,
+    ) -> DataFrame:
         """Creates a DataFrame from the metric results.
 
         Args:
         ----
+            spec (MetricsDataQualityParamSpec): The data quality expectation specification.
             metric_results (dict): The metric results.
             run_time (datetime): The run time.
 
@@ -272,18 +316,28 @@ class MetricsDataQuality(DataQualityBase):
             DataFrame: The metric DataFrame.
         """
         columns_value_pairs = {"ProcessedTimestamp": run_time}
+
+        if self._run_id is not None:
+            columns_value_pairs["RunId"] = self._run_id
         columns_value_pairs.update(metric_results)
-        metric_df = self._spark.createDataFrame([columns_value_pairs])
+
+        metric_df = self._spark.createDataFrame(
+            [columns_value_pairs], schema=self.metric_df_schema(spec)
+        )
 
         return metric_df
 
     def create_metric_df_column_wise(
-        self, metric_results: dict, run_time: datetime
+        self,
+        spec: type[MetricsDataQualityParamSpec],
+        metric_results: dict,
+        run_time: datetime,
     ) -> DataFrame:
         """Creates a DataFrame from the metric results.
 
         Args:
         ----
+            spec (MetricsDataQualityParamSpec): The data quality expectation specification.
             metric_results (dict): The metric results.
             run_time (datetime): The run time.
 
@@ -300,9 +354,14 @@ class MetricsDataQuality(DataQualityBase):
                         "ProcessedTimestamp": run_time,
                     }
 
+                    if self._run_id is not None:
+                        rows_to_write[column]["RunId"] = self._run_id
+
                 rows_to_write[column] = metric_results[metric][column]
 
-        metric_df = self._spark.createDataFrame([rows_to_write.values()])
+        metric_df = self._spark.createDataFrame(
+            [rows_to_write.values()], schema=self.metric_df_schema(spec)
+        )
 
         return metric_df
 
@@ -330,9 +389,11 @@ class MetricsDataQuality(DataQualityBase):
         metric_results["Timeliness"] = self.timeliness(spec, input_df)
 
         if spec.params.column_wise:
-            metric_df = self.create_metric_df_column_wise(metric_results, run_time)
+            metric_df = self.create_metric_df_column_wise(
+                spec, metric_results, run_time
+            )
         else:
-            metric_df = self.create_metric_df(metric_results, run_time)
+            metric_df = self.create_metric_df(spec, metric_results, run_time)
 
         # Temp print
         metric_df.show()
