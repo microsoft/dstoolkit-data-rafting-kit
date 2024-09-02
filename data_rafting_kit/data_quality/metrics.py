@@ -351,7 +351,7 @@ class MetricsDataQuality(DataQualityBase):
                     print(filtered_expectations)
 
                     suite = ExpectationSuite(
-                        expectation_suite_name="validity",
+                        expectation_suite_name=f"validity-{column}",
                         expectations=filtered_expectations,
                     )
 
