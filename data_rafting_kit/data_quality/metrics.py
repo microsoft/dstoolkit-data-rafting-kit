@@ -204,7 +204,7 @@ class MetricsDataQuality(DataQualityBase):
             else:
                 raise ValueError("Column(s) not found in expectation configuration.")
 
-            unexpected_percent[column] = result["result"]["unexpected_percent"]
+            unexpected_percent[column] = 100 - result["result"]["unexpected_percent"]
 
         return unexpected_percent
 
