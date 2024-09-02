@@ -86,7 +86,7 @@ class DataQualityBase:
     def build_expectation_configuration(
         self,
         spec: DataQualityBaseSpec,
-        input_df: DataFrame,
+        input_df: DataFrame | None = None,
         validate_unique_column_identifiers: bool = True,
     ) -> ExpectationSuite:
         """Builds the expectation configuration.

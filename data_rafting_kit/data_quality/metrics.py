@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+import logging
 from datetime import datetime
 from typing import Annotated, Literal
 
@@ -41,8 +42,8 @@ class MetricsDataQuality(DataQualityBase):
     def filter_and_build_expectations_configurations_for_select_columns(
         self,
         spec: type[MetricsDataQualityParamSpec],
-        columns: list[str],
         expectation_types: list[str],
+        columns: list[str] | None = None,
     ):
         """Filters the expectation specs for the columns and expectation types.
 
@@ -58,9 +59,9 @@ class MetricsDataQuality(DataQualityBase):
         """
         expectation_configs = []
         for expectation in spec.params.checks:
-            if (
-                expectation.root.type in expectation_types
-                and expectation.root.params.column in columns
+            if expectation.root.type in expectation_types and (
+                columns is None
+                or (columns is not None and expectation.root.params.column in columns)
             ):
                 expectation_config = ExpectationConfiguration(
                     expectation_type=expectation.root.type,
@@ -256,40 +257,13 @@ class MetricsDataQuality(DataQualityBase):
             dict | float: The validity metrics.
         """
         print("Running validity checks...")
-        name = "validity"
-        expectations = []
 
-        for check in spec.params.checks:
-            kwargs = check.root.params.model_dump(by_alias=False)
-
-            # Check and handle different column scenarios
-            if "column" in kwargs:
-                print(
-                    f"Creating expectation {check.root.type} for column {kwargs['column']}"
-                )
-            elif "column_A" in kwargs and "column_B" in kwargs:
-                print(
-                    f"Creating expectation {check.root.type} for columns {kwargs['column_A']} and {kwargs['column_B']}"
-                )
-            elif "column_list" in kwargs:
-                print(
-                    f"Creating expectation {check.root.type} for columns {kwargs['column_list']}"
-                )
-            else:
-                print(
-                    f"Creating expectation {check.root.type} with parameters {kwargs}"
-                )
-
-            expectation_config = ExpectationConfiguration(
-                expectation_type=check.root.type,
-                kwargs=kwargs,
-            )
-            expectations.append(expectation_config)
-
-        suite = ExpectationSuite(expectation_suite_name=name, expectations=expectations)
+        suite = self.build_expectation_configuration(
+            spec, validate_unique_column_identifiers=False
+        )
 
         if spec.params.column_wise:
-            result = self.run_expectation_column_wise_with_single_expectation(suite)
+            result = self.run_expectation_column_wise(suite)
         else:
             result = self.run_expectation(suite)
 
@@ -321,8 +295,8 @@ class MetricsDataQuality(DataQualityBase):
         timeliness_expectations = (
             self.filter_and_build_expectations_configurations_for_select_columns(
                 spec,
-                timeliness_columns,
                 ["expect_column_values_to_be_between"],
+                columns=timeliness_columns,
             )
         )
         expectation_suite = ExpectationSuite(
@@ -338,26 +312,6 @@ class MetricsDataQuality(DataQualityBase):
 
         return result
 
-    def build_integrity_expectation(
-        self, column: str, valid_values: list
-    ) -> ExpectationConfiguration:
-        """Builds the integrity expectation (domain and referential).
-
-        Args:
-        ----
-            column (str): The column name.
-            valid_values (list): A list of valid values (could be domain values or foreign key references).
-
-        Returns:
-        -------
-            ExpectationConfiguration: The expectation configuration.
-
-        """
-        return ExpectationConfiguration(
-            expectation_type="expect_column_values_to_be_in_set",
-            kwargs={"column": column, "value_set": valid_values},
-        )
-
     def integrity(self, spec: MetricsDataQualityParamSpec) -> dict | float:
         """Runs integrit check; domain and referential integrity.
 
@@ -372,14 +326,12 @@ class MetricsDataQuality(DataQualityBase):
 
         """
         name = "integrity"
-        expectations = []
 
-        # Loop through the checks in the spec and only check for column values in set
-        for check in spec.params.checks:
-            if check.root.type == "expect_column_values_to_be_in_set":
-                column = check.root.params.column
-                value_set = check.root.params.value_set
-                expectations.append(self.build_integrity_expectation(column, value_set))
+        expectations = (
+            self.filter_and_build_expectations_configurations_for_select_columns(
+                spec, ["expect_column_values_to_be_in_set"]
+            )
+        )
 
         suite = ExpectationSuite(expectation_suite_name=name, expectations=expectations)
 
@@ -595,11 +547,13 @@ class MetricsDataQuality(DataQualityBase):
         metric_df.show()
         overall_score_row.show()
 
-        print("Completeness Results:", metric_results["Completeness"])
-        print("Uniqueness Results:", metric_results["Uniqueness"])
-        print("Validity Results:", metric_results["Validity"])
-        print("Timeliness Results:", metric_results["Timeliness"])
-        print("Integrity Results:", metric_results["Integrity"])
-        print("Overall Score:", overall_score)
+        logging.info("Data quality metrics completed.")
+
+        logging.info("Completeness Results: %s", metric_results["Completeness"])
+        logging.info("Uniqueness Results: %s", metric_results["Uniqueness"])
+        logging.info("Validity Results: %s", metric_results["Validity"])
+        logging.info("Timeliness Results: %s", metric_results["Timeliness"])
+        logging.info("Integrity Results: %s", metric_results["Integrity"])
+        logging.info("Overall Score: %s", overall_score)
 
         return input_df, metric_df, overall_score_row
