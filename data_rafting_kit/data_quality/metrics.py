@@ -24,6 +24,7 @@ threshold_fields = {
     "validity": Annotated[float | None, Field(default=75.0, le=100, ge=0)],
     "timeliness": Annotated[float | None, Field(default=60.0, le=100, ge=0)],
     "integrity": Annotated[float | None, Field(default=85.0, le=100, ge=0)],
+    "penalty_factor": Annotated[float | None, Field(default=0.5, le=1, ge=0)],
 }
 MetricsDataQualityThresholdsSpec = create_model(
     "MetricsDataQualityThresholdsSpec", **threshold_fields, __base__=BaseParamSpec
@@ -105,14 +106,15 @@ class MetricsDataQuality(DataQualityBase):
             },
         )
 
-        if (
-            results["success"] is False
-            and "exception_info" in results
-            and len(results["exception_info"]) > 0
-        ):
-            logging.error("Data quality checks failed due to exception.")
-            logging.error(results)
-            raise ValueError("Data quality checks failed due to exception.")
+        if results["success"] is False:
+            for result in results.results:
+                if (
+                    "exception_info" in result
+                    and result["exception_info"]["raised_exception"] is True
+                ):
+                    logging.error("Data quality checks failed due to exception.")
+                    logging.error(results)
+                    raise ValueError("Data quality checks failed due to exception.")
 
         return results["statistics"]["success_percent"]
 
@@ -134,19 +136,28 @@ class MetricsDataQuality(DataQualityBase):
             },
         )
 
-        if (
-            results["success"] is False
-            and "exception_info" in results
-            and len(results["exception_info"]) > 0
-        ):
-            logging.error("Data quality checks failed due to exception.")
-            logging.error(results)
-            raise ValueError("Data quality checks failed due to exception.")
+        if results["success"] is False:
+            for result in results.results:
+                if (
+                    "exception_info" in result
+                    and result["exception_info"]["raised_exception"] is True
+                ):
+                    logging.error("Data quality checks failed due to exception.")
+                    logging.error(results)
+                    raise ValueError("Data quality checks failed due to exception.")
 
         column_wise_result = {}
         for result in results.results:
             print(result)
-            column = result["expectation_config"]["kwargs"]["column"]
+            expectation_config = result["expectation_config"]["kwargs"]
+
+            # Determine the column(s) involved in the expectation
+            if "column" in expectation_config:
+                column = expectation_config["column"]
+            elif "column_A" in expectation_config and "column_B" in expectation_config:
+                column = expectation_config["column_A"]
+            else:
+                raise ValueError("Column(s) not found in expectation configuration.")
             column_wise_result[column] = 100 - result["result"]["unexpected_percent"]
 
         return column_wise_result
@@ -171,14 +182,15 @@ class MetricsDataQuality(DataQualityBase):
             },
         )
 
-        if (
-            results["success"] is False
-            and "exception_info" in results
-            and len(results["exception_info"]) > 0
-        ):
-            logging.error("Data quality checks failed due to exception.")
-            logging.error(results)
-            raise ValueError("Data quality checks failed due to exception.")
+        if results["success"] is False:
+            for result in results.results:
+                if (
+                    "exception_info" in result
+                    and result["exception_info"]["raised_exception"] is True
+                ):
+                    logging.error("Data quality checks failed due to exception.")
+                    logging.error(results)
+                    raise ValueError("Data quality checks failed due to exception.")
 
         unexpected_percent = {}
         for result in results.results:
@@ -188,9 +200,9 @@ class MetricsDataQuality(DataQualityBase):
             if "column" in expectation_config:
                 column = expectation_config["column"]
             elif "column_A" in expectation_config and "column_B" in expectation_config:
-                column = f"{expectation_config['column_A']}, {expectation_config['column_B']}"
+                column = expectation_config["column_A"]
             else:
-                column = "unknown_column"
+                raise ValueError("Column(s) not found in expectation configuration.")
 
             unexpected_percent[column] = result["result"]["unexpected_percent"]
 
@@ -301,6 +313,7 @@ class MetricsDataQuality(DataQualityBase):
             dict | float: The validity metrics.
         """
         logging.info("Running validity checks.")
+
         suite = self.build_expectation_configuration(
             spec, validate_unique_column_identifiers=False
         )
@@ -336,15 +349,20 @@ class MetricsDataQuality(DataQualityBase):
                 timeliness_columns.append(column.name)
 
         # Filter metrics for the datatypes
-        timeliness_expectations = (
+        expectations = (
             self.filter_and_build_expectations_configurations_for_select_columns(
                 spec,
                 ["expect_column_values_to_be_between"],
                 columns=timeliness_columns,
             )
         )
+        if len(expectations) == 0 and spec.params.column_wise:
+            return {}
+        elif len(expectations) == 0:
+            return None
+
         expectation_suite = ExpectationSuite(
-            expectation_suite_name="timeliness", expectations=timeliness_expectations
+            expectation_suite_name="timeliness", expectations=expectations
         )
 
         if spec.params.column_wise:
@@ -378,10 +396,10 @@ class MetricsDataQuality(DataQualityBase):
             )
         )
 
-        # if len(expectations) == 0 and spec.params.column_wise:
-        #     return {}
-        # elif len(expectations) == 0:
-        #     return None
+        if len(expectations) == 0 and spec.params.column_wise:
+            return {}
+        elif len(expectations) == 0:
+            return None
 
         suite = ExpectationSuite(expectation_suite_name=name, expectations=expectations)
 
@@ -516,8 +534,7 @@ class MetricsDataQuality(DataQualityBase):
             float: The normalized score.
         """
         if score < thresholds[metric.lower()]:
-            penalty_factor = 0.5  # Penalize critical failures more harshly
-            adjusted_score = score * penalty_factor
+            adjusted_score = score * thresholds["penalty_factor"]
         else:
             adjusted_score = score
 

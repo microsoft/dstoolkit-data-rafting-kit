@@ -79,10 +79,15 @@ A declarative approach to pipelines and data pipelines is not a new concept but 
 ## Key Features
 
 - Easy YAML (or JSON) syntax, to quickly build repeatable pipelines
-- Inbuilt parametrisation of pipelines and ability to load sub config files
+- Inbuilt parametrisation of pipelines and ability to load sub config files with the support of Jinja templating.
 - Integrated testing of pipelines for expected behaviour
-- Streaming support from EventHub (Kafka Endpoint) or Delta Tables
-- Data quality checks, powered by [Great Expectations](https://github.com/great-expectations/great_expectations) (including for streaming data pipelines)
+- Streaming support from EventHub (Kafka Endpoint) or Delta Tables. Includes support to stream to multiple tables.
+- Data quality checks, powered by [Great Expectations](https://github.com/great-expectations/great_expectations) (including for streaming data pipelines). Includes the functionality to separate results and calculate data quality metrics:
+  - Completeness
+  - Validitity
+  - Timeliness
+  - Uniqueness
+  - Integrity
 - Anonymisation, powered by [Microsoft Presidio](https://github.com/microsoft/presidio)
 
 ## Build & Installation
