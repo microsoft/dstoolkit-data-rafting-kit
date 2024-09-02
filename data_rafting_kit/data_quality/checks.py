@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+import logging
 import re
 from datetime import datetime
 from enum import StrEnum
@@ -468,6 +469,15 @@ class ChecksDataQuality(DataQualityBase):
             },
             only_return_failures=True,
         )
+
+        if (
+            results["success"] is False
+            and "exception_info" in results
+            and len(results["exception_info"]) > 0
+        ):
+            logging.error("Data quality checks failed due to exception.")
+            logging.error(results)
+            raise ValueError("Data quality checks failed due to exception.")
 
         failed_checks = [
             result["expectation_config"]["expectation_type"]

@@ -18,9 +18,25 @@ from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityEnum,
 )
 
+threshold_fields = {
+    "completeness": Annotated[float | None, Field(default=70.0, le=100, ge=0)],
+    "uniqueness": Annotated[float | None, Field(default=80.0, le=100, ge=0)],
+    "validity": Annotated[float | None, Field(default=75.0, le=100, ge=0)],
+    "timeliness": Annotated[float | None, Field(default=60.0, le=100, ge=0)],
+    "integrity": Annotated[float | None, Field(default=85.0, le=100, ge=0)],
+}
+MetricsDataQualityThresholdsSpec = create_model(
+    "MetricsDataQualityThresholdsSpec", **threshold_fields, __base__=BaseParamSpec
+)
+
+
 param_fields = {
     "checks": Annotated[list[ChecksDataQualityRootSpec], Field(...)],
     "column_wise": Annotated[bool | None, Field(default=False)],
+    "thresholds": Annotated[
+        MetricsDataQualityThresholdsSpec | None,
+        Field(default_factory=MetricsDataQualityThresholdsSpec),
+    ],
 }
 MetricsDataQualityParamSpec = create_model(
     "MetricsDataQualityParamSpec", **param_fields, __base__=BaseParamSpec
@@ -89,6 +105,15 @@ class MetricsDataQuality(DataQualityBase):
             },
         )
 
+        if (
+            results["success"] is False
+            and "exception_info" in results
+            and len(results["exception_info"]) > 0
+        ):
+            logging.error("Data quality checks failed due to exception.")
+            logging.error(results)
+            raise ValueError("Data quality checks failed due to exception.")
+
         return results["statistics"]["success_percent"]
 
     def run_expectation_column_wise(self, expectation_suite: ExpectationSuite) -> dict:
@@ -109,8 +134,18 @@ class MetricsDataQuality(DataQualityBase):
             },
         )
 
+        if (
+            results["success"] is False
+            and "exception_info" in results
+            and len(results["exception_info"]) > 0
+        ):
+            logging.error("Data quality checks failed due to exception.")
+            logging.error(results)
+            raise ValueError("Data quality checks failed due to exception.")
+
         column_wise_result = {}
         for result in results.results:
+            print(result)
             column = result["expectation_config"]["kwargs"]["column"]
             column_wise_result[column] = 100 - result["result"]["unexpected_percent"]
 
@@ -135,6 +170,15 @@ class MetricsDataQuality(DataQualityBase):
                 "result_format": "BASIC",
             },
         )
+
+        if (
+            results["success"] is False
+            and "exception_info" in results
+            and len(results["exception_info"]) > 0
+        ):
+            logging.error("Data quality checks failed due to exception.")
+            logging.error(results)
+            raise ValueError("Data quality checks failed due to exception.")
 
         unexpected_percent = {}
         for result in results.results:
@@ -183,6 +227,7 @@ class MetricsDataQuality(DataQualityBase):
             dict | float: The uniqueness metrics.
 
         """
+        logging.info("Running uniqueness checks.")
         name = "uniqueness"
         expectations = []
         for column in input_df.columns:
@@ -227,6 +272,7 @@ class MetricsDataQuality(DataQualityBase):
         -------
             dict | float: The completeness metrics.
         """
+        logging.info("Running completeness checks.")
         name = "completeness"
         expectations = []
 
@@ -254,6 +300,7 @@ class MetricsDataQuality(DataQualityBase):
         -------
             dict | float: The validity metrics.
         """
+        logging.info("Running validity checks.")
         suite = self.build_expectation_configuration(
             spec, validate_unique_column_identifiers=False
         )
@@ -280,6 +327,7 @@ class MetricsDataQuality(DataQualityBase):
             tuple[DataFrame, DataFrame] | DataFrame: The input DataFrame and the metric DataFrame.
 
         """
+        logging.info("Running timeliness checks.")
         # Filter metrics for the datatypes
 
         timeliness_columns = []
@@ -321,6 +369,7 @@ class MetricsDataQuality(DataQualityBase):
             dict | float: The integrity metrics.
 
         """
+        logging.info("Running integrity checks.")
         name = "integrity"
 
         expectations = (
@@ -328,6 +377,11 @@ class MetricsDataQuality(DataQualityBase):
                 spec, ["expect_column_values_to_be_in_set"]
             )
         )
+
+        # if len(expectations) == 0 and spec.params.column_wise:
+        #     return {}
+        # elif len(expectations) == 0:
+        #     return None
 
         suite = ExpectationSuite(expectation_suite_name=name, expectations=expectations)
 
@@ -366,6 +420,7 @@ class MetricsDataQuality(DataQualityBase):
                 t.StructField("Validity", t.FloatType(), True),
                 t.StructField("Timeliness", t.FloatType(), True),
                 t.StructField("Integrity", t.FloatType(), True),
+                t.StructField("Overall", t.FloatType(), True),
             ]
         )
 
@@ -447,48 +502,81 @@ class MetricsDataQuality(DataQualityBase):
 
         return metric_df
 
-    def calculate_overall_score(self, metric_results: dict) -> float:
+    def normalise_score(self, thresholds: dict, score: float, metric: str) -> float:
+        """Normalizes the score based on the metric.
+
+        Args:
+        ----
+            thresholds (dict): The thresholds.
+            score (float): The score.
+            metric (str): The metric.
+
+        Returns:
+        -------
+            float: The normalized score.
+        """
+        if score < thresholds[metric.lower()]:
+            penalty_factor = 0.5  # Penalize critical failures more harshly
+            adjusted_score = score * penalty_factor
+        else:
+            adjusted_score = score
+
+        return adjusted_score
+
+    def calculate_overall_score(
+        self, spec: type[MetricsDataQualityParamSpec], metric_results: dict
+    ) -> float:
         """Calculates the overall data quality score using logical rules and thresholds.
 
         Args:
         ----
+            spec (MetricsDataQualityParamSpec): The data quality expectation specification.
             metric_results (dict): Dictionary containing individual metric results.
 
         Returns:
         -------
             float: The overall data quality score.
         """
-        scores = []
-
-        # Define thresholds for critical metrics
-        critical_thresholds = {
-            "Completeness": 70.0,  # Below 70% completeness is critical
-            "Uniqueness": 80.0,  # Below 80% uniqueness is critical
-            "Validity": 75.0,  # Below 75% validity is critical
-            "Timeliness": 60.0,  # Below 60% timeliness is critical
-            "Integrity": 85.0,  # Below 85% integrity is critical
-        }
+        # Pull thresholds for critical metrics
+        thresholds = spec.params.thresholds.model_dump(by_alias=False)
 
         # Calculate adjusted scores based on thresholds
-        for metric, result in metric_results.items():
-            if isinstance(result, dict):  # If column-wise results, average them
-                metric_score = sum(result.values()) / len(result) if result else 0.0
-            elif isinstance(result, float):  # Direct metric result
-                metric_score = result
-            else:
-                metric_score = 0.0
+        if spec.params.column_wise:
+            column_wise_scores = {}
+            for metric, columns in metric_results.items():
+                for column, metric_score in columns.items():
+                    if column not in column_wise_scores:
+                        column_wise_scores[column] = []
 
-            # Normalize score and apply penalty for critical failures
-            if metric_score < critical_thresholds[metric]:
-                penalty_factor = 0.5  # Penalize critical failures more harshly
-                adjusted_score = metric_score * penalty_factor
-            else:
-                adjusted_score = metric_score
+                    if isinstance(metric_score, float):  # Direct metric result
+                        # Normalize score and apply penalty for critical failures
+                        adjusted_score = self.normalise_score(
+                            thresholds, metric_score, metric
+                        )
 
-            scores.append(adjusted_score)
+                        column_wise_scores[column].append(adjusted_score)
 
-        # Calculate the overall score as the average of adjusted scores
-        overall_score = sum(scores) / len(scores) if scores else 0.0
+            # Calculate the overall score as the average of adjusted scores
+            overall_score = {
+                column: sum(scores) / len(scores) if len(scores) > 0 else None
+                for column, scores in column_wise_scores.items()
+            }
+        else:
+            scores = []
+
+            for metric, result in metric_results.items():
+                if isinstance(result, float):  # Direct metric result
+                    metric_score = result
+
+                    # Normalize score and apply penalty for critical failures
+                    adjusted_score = self.normalise_score(
+                        thresholds, metric_score, metric
+                    )
+
+                    scores.append(adjusted_score)
+
+            # Calculate the overall score as the average of adjusted scores
+            overall_score = sum(scores) / len(scores) if len(scores) > 0 else None
 
         return overall_score
 
@@ -520,7 +608,7 @@ class MetricsDataQuality(DataQualityBase):
         metric_results["Integrity"] = self.integrity(spec)
 
         # Calculate overall score
-        overall_score = self.calculate_overall_score(metric_results)
+        metric_results["Overall"] = self.calculate_overall_score(spec, metric_results)
 
         if spec.params.column_wise:
             metric_df = self.create_metric_df_column_wise(
@@ -529,19 +617,7 @@ class MetricsDataQuality(DataQualityBase):
         else:
             metric_df = self.create_metric_df(spec, metric_results, run_time)
 
-        # Add overall score as a separate row or create a separate DataFrame
-        overall_score_row = self._spark.createDataFrame(
-            [{"OverallScore": overall_score, "ProcessedTimestamp": run_time}],
-            schema=t.StructType(
-                [
-                    t.StructField("OverallScore", t.FloatType(), True),
-                    t.StructField("ProcessedTimestamp", t.TimestampType(), True),
-                ]
-            ),
-        )
-
         metric_df.show()
-        overall_score_row.show()
 
         logging.info("Data quality metrics completed.")
 
@@ -550,6 +626,6 @@ class MetricsDataQuality(DataQualityBase):
         logging.info("Validity Results: %s", metric_results["Validity"])
         logging.info("Timeliness Results: %s", metric_results["Timeliness"])
         logging.info("Integrity Results: %s", metric_results["Integrity"])
-        logging.info("Overall Score: %s", overall_score)
+        logging.info("Overall Results: %s", metric_results["Overall"])
 
-        return input_df, metric_df, overall_score_row
+        return input_df, metric_df
