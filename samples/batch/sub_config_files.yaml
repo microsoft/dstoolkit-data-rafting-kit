@@ -47,11 +47,9 @@ pipeline:
 
   data_quality:
     - name: check_data
-      type: checks
+      type: metrics
       params:
-        mode: separate
-        unique_column_identifiers:
-          - show_id
+        column_wise: True
         checks:
           - type: expect_column_values_to_be_unique
             params:

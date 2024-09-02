@@ -49,6 +49,7 @@ pipeline:
           condition: 'source.show_id = target.show_id'
 
   data_quality:
+    # For running data quality checks
     - name: check_data
       type: checks
       params:
@@ -59,6 +60,25 @@ pipeline:
           - type: expect_column_values_to_be_unique
             params:
               column: show_id
+          - type: expect_column_values_to_be_between
+            params:
+              column: release_year
+              min_value: "1900"
+              max_value: "2005"
+
+    # For calculating data quality metrics
+    - name: calculate_metrics
+      type: metrics
+      params:
+        column_wise: True
+        checks:
+          - type: expect_column_values_to_be_unique
+            params:
+              column: show_id
+          - type: expect_column_values_to_be_in_set
+            params:
+              column: type
+              values: ['Movies']
           - type: expect_column_values_to_be_between
             params:
               column: release_year

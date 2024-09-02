@@ -59,7 +59,7 @@ class MetricsDataQuality(DataQualityBase):
     def filter_and_build_expectations_configurations_for_select_columns(
         self,
         spec: type[MetricsDataQualityParamSpec],
-        expectation_types: list[str],
+        expectation_types: list[str] | None = None,
         columns: list[str] | None = None,
     ):
         """Filters the expectation specs for the columns and expectation types.
@@ -76,10 +76,14 @@ class MetricsDataQuality(DataQualityBase):
         """
         expectation_configs = []
         for expectation in spec.params.checks:
-            if expectation.root.type in expectation_types and (
-                columns is None
-                or (columns is not None and expectation.root.params.column in columns)
-            ):
+            if hasattr(expectation.root.params, "column"):
+                column_name = expectation.root.params.column
+            else:
+                column_name = expectation.root.params.column_A
+
+            if (
+                expectation_types is None or expectation.root.type in expectation_types
+            ) and (columns is None or column_name in columns):
                 expectation_config = ExpectationConfiguration(
                     expectation_type=expectation.root.type,
                     kwargs=expectation.root.params.model_dump(by_alias=False),
@@ -118,7 +122,9 @@ class MetricsDataQuality(DataQualityBase):
 
         return results["statistics"]["success_percent"]
 
-    def run_expectation_column_wise(self, expectation_suite: ExpectationSuite) -> dict:
+    def run_expectation_column_wise_with_single_column(
+        self, expectation_suite: ExpectationSuite
+    ) -> dict:
         """Runs the expectation suite and returns the unexpected percent.
 
         Args:
@@ -135,7 +141,7 @@ class MetricsDataQuality(DataQualityBase):
                 "result_format": "BASIC",
             },
         )
-
+        print(results)
         if results["success"] is False:
             for result in results.results:
                 if (
@@ -146,6 +152,7 @@ class MetricsDataQuality(DataQualityBase):
                     logging.error(results)
                     raise ValueError("Data quality checks failed due to exception.")
 
+        print(results)
         column_wise_result = {}
         for result in results.results:
             expectation_config = result["expectation_config"]["kwargs"]
@@ -299,7 +306,9 @@ class MetricsDataQuality(DataQualityBase):
 
         return result
 
-    def validity(self, spec: MetricsDataQualityParamSpec) -> dict | float:
+    def validity(
+        self, spec: MetricsDataQualityParamSpec, input_df: DataFrame
+    ) -> dict | float:
         """Runs the validity checks.
 
         Args:
@@ -313,12 +322,53 @@ class MetricsDataQuality(DataQualityBase):
         """
         logging.info("Running validity checks.")
 
-        suite = self.build_expectation_configuration(
-            spec, validate_unique_column_identifiers=False
-        )
-
         if spec.params.column_wise:
-            result = self.run_expectation_column_wise(suite)
+            expectation_columns = [
+                expectation.root.params.column
+                if hasattr(expectation.root.params, "column")
+                else expectation.root.params.column_A
+                for expectation in spec.params.checks
+            ]
+
+            def has_duplicates(lst):
+                seen = set()
+                for item in lst:
+                    if item in seen:
+                        return True  # Duplicate found
+                    seen.add(item)
+                return False
+
+            if has_duplicates(expectation_columns):
+                result = {}
+                for column in input_df.columns:
+                    filtered_expectations = self.filter_and_build_expectations_configurations_for_select_columns(
+                        spec, columns=[column]
+                    )
+
+                    if len(filtered_expectations) == 0:
+                        continue
+
+                    print(filtered_expectations)
+
+                    suite = ExpectationSuite(
+                        expectation_suite_name="validity",
+                        expectations=filtered_expectations,
+                    )
+
+                    result_for_column = (
+                        self.run_expectation_column_wise_with_single_column(
+                            filtered_expectations
+                        )
+                    )
+
+                    result[column] = result_for_column
+                    raise ValueError()
+            else:
+                suite = self.build_expectation_configuration(
+                    spec, validate_unique_column_identifiers=False
+                )
+
+                result = self.run_expectation_column_wise_with_single_expectation(suite)
         else:
             result = self.run_expectation(suite)
 
@@ -351,7 +401,7 @@ class MetricsDataQuality(DataQualityBase):
         expectations = (
             self.filter_and_build_expectations_configurations_for_select_columns(
                 spec,
-                ["expect_column_values_to_be_between"],
+                expectation_types=["expect_column_values_to_be_between"],
                 columns=timeliness_columns,
             )
         )
@@ -365,9 +415,9 @@ class MetricsDataQuality(DataQualityBase):
         )
 
         if spec.params.column_wise:
-            result = {column: None for column in timeliness_columns}
-            tiemliness_result = self.run_expectation_column_wise(expectation_suite)
-            result.update(tiemliness_result)
+            result = self.run_expectation_column_wise_with_single_expectation(
+                expectation_suite
+            )
         else:
             result = self.run_expectation(expectation_suite)
 
@@ -391,7 +441,7 @@ class MetricsDataQuality(DataQualityBase):
 
         expectations = (
             self.filter_and_build_expectations_configurations_for_select_columns(
-                spec, ["expect_column_values_to_be_in_set"]
+                spec, expectation_types=["expect_column_values_to_be_in_set"]
             )
         )
 
@@ -617,9 +667,9 @@ class MetricsDataQuality(DataQualityBase):
 
         run_time = datetime.now()
 
-        metric_results["Completeness"] = self.completeness(spec, input_df)
-        metric_results["Uniqueness"] = self.uniqueness(spec, input_df)
-        metric_results["Validity"] = self.validity(spec)
+        # metric_results["Completeness"] = self.completeness(spec, input_df)
+        # metric_results["Uniqueness"] = self.uniqueness(spec, input_df)
+        metric_results["Validity"] = self.validity(spec, input_df)
         metric_results["Timeliness"] = self.timeliness(spec, input_df)
         metric_results["Integrity"] = self.integrity(spec)
 
