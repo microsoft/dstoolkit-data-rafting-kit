@@ -348,21 +348,16 @@ class MetricsDataQuality(DataQualityBase):
                     if len(filtered_expectations) == 0:
                         continue
 
-                    print(filtered_expectations)
-
                     suite = ExpectationSuite(
                         expectation_suite_name=f"validity-{column}",
                         expectations=filtered_expectations,
                     )
 
                     result_for_column = (
-                        self.run_expectation_column_wise_with_single_column(
-                            filtered_expectations
-                        )
+                        self.run_expectation_column_wise_with_single_column(suite)
                     )
 
                     result[column] = result_for_column
-                    raise ValueError()
             else:
                 suite = self.build_expectation_configuration(
                     spec, validate_unique_column_identifiers=False
@@ -559,9 +554,16 @@ class MetricsDataQuality(DataQualityBase):
                     if self._run_id is not None:
                         row["RunId"] = self._run_id
                     rows_to_write[column] = row
-                rows_to_write[column][metric] = value
+
+                # If 'value' a dictionary.
+                if isinstance(value, dict):
+                    for sub_value in value.items():
+                        rows_to_write[column][metric] = sub_value
+                else:
+                    rows_to_write[column][metric] = value
 
         rows_to_write = list(rows_to_write.values())
+        print(rows_to_write)
 
         metric_df = self._spark.createDataFrame(
             rows_to_write, schema=self.metric_df_schema(spec)
@@ -687,8 +689,8 @@ class MetricsDataQuality(DataQualityBase):
 
         logging.info("Data quality metrics completed.")
 
-        logging.info("Completeness Results: %s", metric_results["Completeness"])
-        logging.info("Uniqueness Results: %s", metric_results["Uniqueness"])
+        # logging.info("Completeness Results: %s", metric_results["Completeness"])
+        # logging.info("Uniqueness Results: %s", metric_results["Uniqueness"])
         logging.info("Validity Results: %s", metric_results["Validity"])
         logging.info("Timeliness Results: %s", metric_results["Timeliness"])
         logging.info("Integrity Results: %s", metric_results["Integrity"])
