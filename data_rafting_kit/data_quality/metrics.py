@@ -148,7 +148,6 @@ class MetricsDataQuality(DataQualityBase):
 
         column_wise_result = {}
         for result in results.results:
-            print(result)
             expectation_config = result["expectation_config"]["kwargs"]
 
             # Determine the column(s) involved in the expectation
