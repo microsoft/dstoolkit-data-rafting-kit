@@ -149,8 +149,6 @@ class MetricsDataQuality(DataQualityBase):
                 column = "unknown_column"
 
             unexpected_percent[column] = result["result"]["unexpected_percent"]
-            # Debugging
-            print(f"Result for column {column}: {result}")
 
         return unexpected_percent
 
@@ -256,8 +254,6 @@ class MetricsDataQuality(DataQualityBase):
         -------
             dict | float: The validity metrics.
         """
-        print("Running validity checks...")
-
         suite = self.build_expectation_configuration(
             spec, validate_unique_column_identifiers=False
         )
