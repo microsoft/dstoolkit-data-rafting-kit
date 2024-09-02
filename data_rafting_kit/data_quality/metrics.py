@@ -118,7 +118,7 @@ class MetricsDataQuality(DataQualityBase):
     def run_expectation_column_wise_with_single_expectation(
         self, expectation_suite: ExpectationSuite
     ):
-        """Runs the expectation suite and returns the unexpected percent.
+        """Runs the expectation suite and returns the unexpected percent for each column.
 
         Args:
         ----
@@ -126,7 +126,7 @@ class MetricsDataQuality(DataQualityBase):
 
         Returns:
         -------
-            float: The unexpected percent.
+            dict: The unexpected percent for each column.
         """
         results = self._validator.validate(
             expectation_suite=expectation_suite,
@@ -135,7 +135,23 @@ class MetricsDataQuality(DataQualityBase):
             },
         )
 
-        return results.results["unexpected_percent"]
+        unexpected_percent = {}
+        for result in results.results:
+            expectation_config = result["expectation_config"]["kwargs"]
+
+            # Determine the column(s) involved in the expectation
+            if "column" in expectation_config:
+                column = expectation_config["column"]
+            elif "column_A" in expectation_config and "column_B" in expectation_config:
+                column = f"{expectation_config['column_A']}, {expectation_config['column_B']}"
+            else:
+                column = "unknown_column"
+
+            unexpected_percent[column] = result["result"]["unexpected_percent"]
+            # Debugging
+            print(f"Result for column {column}: {result}")
+
+        return unexpected_percent
 
     def build_uniqueness_expectation(self, column: str) -> ExpectationConfiguration:
         """Builds the uniqueness expectation.
@@ -166,6 +182,7 @@ class MetricsDataQuality(DataQualityBase):
         Returns:
         -------
             dict | float: The uniqueness metrics.
+
         """
         name = "uniqueness"
         expectations = []
@@ -190,6 +207,7 @@ class MetricsDataQuality(DataQualityBase):
         Returns:
         -------
             ExpectationConfiguration: The expectation configuration.
+
         """
         return ExpectationConfiguration(
             expectation_type="expect_column_values_to_not_be_null",
@@ -212,8 +230,62 @@ class MetricsDataQuality(DataQualityBase):
         """
         name = "completeness"
         expectations = []
+
         for column in input_df.columns:
             expectations.append(self.build_completeness_expectation(column))
+
+        suite = ExpectationSuite(expectation_suite_name=name, expectations=expectations)
+
+        if spec.params.column_wise:
+            result = self.run_expectation_column_wise_with_single_expectation(suite)
+        else:
+            result = self.run_expectation(suite)
+
+        return result
+
+    def validity(self, spec: MetricsDataQualityParamSpec) -> dict | float:
+        """Runs the validity checks.
+
+        Args:
+        ----
+            spec (MetricsDataQualityParamSpec): The data quality expectation specification.
+            input_df (DataFrame): The input DataFrame.
+
+        Returns:
+        -------
+            dict | float: The validity metrics.
+        """
+        print("Running validity checks...")
+        name = "validity"
+        expectations = []
+
+        for check in spec.params.checks:
+            kwargs = check.root.params.model_dump(by_alias=False)
+
+            # Check and handle different column scenarios
+            if "column" in kwargs:
+                print(
+                    f"Creating expectation {check.root.type} for column {kwargs['column']}"
+                )
+            elif "column_A" in kwargs and "column_B" in kwargs:
+                print(
+                    f"Creating expectation {check.root.type} for columns {kwargs['column_A']} and {kwargs['column_B']}"
+                )
+            elif "column_list" in kwargs:
+                print(
+                    f"Creating expectation {check.root.type} for columns {kwargs['column_list']}"
+                )
+            else:
+                print(
+                    f"Creating expectation {check.root.type} with parameters {kwargs}"
+                )
+
+            expectation_config = ExpectationConfiguration(
+                expectation_type=check.root.type,
+                kwargs=kwargs,
+            )
+            expectations.append(expectation_config)
+
         suite = ExpectationSuite(expectation_suite_name=name, expectations=expectations)
 
         if spec.params.column_wise:
@@ -236,6 +308,7 @@ class MetricsDataQuality(DataQualityBase):
         Returns:
         -------
             tuple[DataFrame, DataFrame] | DataFrame: The input DataFrame and the metric DataFrame.
+
         """
         # Filter metrics for the datatypes
 
@@ -265,12 +338,65 @@ class MetricsDataQuality(DataQualityBase):
 
         return result
 
+    def build_integrity_expectation(
+        self, column: str, valid_values: list
+    ) -> ExpectationConfiguration:
+        """Builds the integrity expectation (domain and referential).
+
+        Args:
+        ----
+            column (str): The column name.
+            valid_values (list): A list of valid values (could be domain values or foreign key references).
+
+        Returns:
+        -------
+            ExpectationConfiguration: The expectation configuration.
+
+        """
+        return ExpectationConfiguration(
+            expectation_type="expect_column_values_to_be_in_set",
+            kwargs={"column": column, "value_set": valid_values},
+        )
+
+    def integrity(self, spec: MetricsDataQualityParamSpec) -> dict | float:
+        """Runs integrit check; domain and referential integrity.
+
+        Args:
+        ----
+            spec (MetricsDataQualityParamSpec): The data quality expectation specification.
+            input_df (DataFrame): The input DataFrame.
+
+        Returns:
+        -------
+            dict | float: The integrity metrics.
+
+        """
+        name = "integrity"
+        expectations = []
+
+        # Loop through the checks in the spec and only check for column values in set
+        for check in spec.params.checks:
+            if check.root.type == "expect_column_values_to_be_in_set":
+                column = check.root.params.column
+                value_set = check.root.params.value_set
+                expectations.append(self.build_integrity_expectation(column, value_set))
+
+        suite = ExpectationSuite(expectation_suite_name=name, expectations=expectations)
+
+        if spec.params.column_wise:
+            result = self.run_expectation_column_wise_with_single_expectation(suite)
+        else:
+            result = self.run_expectation(suite)
+
+        return result
+
     def metric_df_schema(self, spec: type[MetricsDataQualityParamSpec]) -> t.StructType:
         """Builds the metric DataFrame schema.
 
         Returns
         -------
             t.StructType: The metric DataFrame schema.
+
         """
         schema_structs = []
 
@@ -289,7 +415,9 @@ class MetricsDataQuality(DataQualityBase):
                 t.StructField("ProcessedTimestamp", t.TimestampType(), True),
                 t.StructField("Completeness", t.FloatType(), True),
                 t.StructField("Uniqueness", t.FloatType(), True),
+                t.StructField("Validity", t.FloatType(), True),
                 t.StructField("Timeliness", t.FloatType(), True),
+                t.StructField("Integrity", t.FloatType(), True),
             ]
         )
 
@@ -346,27 +474,80 @@ class MetricsDataQuality(DataQualityBase):
             DataFrame: The metric DataFrame.
         """
         rows_to_write = {}
-        for metric in metric_results:
-            for column in metric_results[metric]:
+        all_metrics = list(metric_results.keys())
+
+        # Iterate over each metric and its corresponding columns
+        for metric, columns in metric_results.items():
+            for column, value in columns.items():
                 if column not in rows_to_write:
-                    rows_to_write[column] = {
+                    row = {
                         "Column": column,
                         "ProcessedTimestamp": run_time,
                     }
-
+                    for m in all_metrics:
+                        row[m] = None
                     if self._run_id is not None:
-                        rows_to_write[column]["RunId"] = self._run_id
+                        row["RunId"] = self._run_id
+                    rows_to_write[column] = row
+                rows_to_write[column][metric] = value
 
-                rows_to_write[column] = metric_results[metric][column]
+        rows_to_write = list(rows_to_write.values())
 
         metric_df = self._spark.createDataFrame(
-            [rows_to_write.values()], schema=self.metric_df_schema(spec)
+            rows_to_write, schema=self.metric_df_schema(spec)
         )
 
         return metric_df
 
+    def calculate_overall_score(self, metric_results: dict) -> float:
+        """Calculates the overall data quality score using logical rules and thresholds.
+
+        Args:
+        ----
+            metric_results (dict): Dictionary containing individual metric results.
+
+        Returns:
+        -------
+            float: The overall data quality score.
+        """
+        scores = []
+
+        # Define thresholds for critical metrics
+        critical_thresholds = {
+            "Completeness": 70.0,  # Below 70% completeness is critical
+            "Uniqueness": 80.0,  # Below 80% uniqueness is critical
+            "Validity": 75.0,  # Below 75% validity is critical
+            "Timeliness": 60.0,  # Below 60% timeliness is critical
+            "Integrity": 85.0,  # Below 85% integrity is critical
+        }
+
+        # Calculate adjusted scores based on thresholds
+        for metric, result in metric_results.items():
+            if isinstance(result, dict):  # If column-wise results, average them
+                metric_score = sum(result.values()) / len(result) if result else 0.0
+            elif isinstance(result, float):  # Direct metric result
+                metric_score = result
+            else:
+                metric_score = 0.0
+
+            # Normalize score and apply penalty for critical failures
+            if metric_score < critical_thresholds[metric]:
+                penalty_factor = 0.5  # Penalize critical failures more harshly
+                adjusted_score = metric_score * penalty_factor
+            else:
+                adjusted_score = metric_score
+
+            scores.append(adjusted_score)
+
+        # Calculate the overall score as the average of adjusted scores
+        overall_score = sum(scores) / len(scores) if scores else 0.0
+
+        return overall_score
+
     def metrics(
-        self, spec: type[MetricsDataQualityParamSpec], input_df: DataFrame
+        self,
+        spec: MetricsDataQualityParamSpec,
+        input_df: DataFrame,
     ) -> tuple[DataFrame, DataFrame]:
         """Runs the data quality metrics.
 
@@ -386,7 +567,12 @@ class MetricsDataQuality(DataQualityBase):
 
         metric_results["Completeness"] = self.completeness(spec, input_df)
         metric_results["Uniqueness"] = self.uniqueness(spec, input_df)
+        metric_results["Validity"] = self.validity(spec)
         metric_results["Timeliness"] = self.timeliness(spec, input_df)
+        metric_results["Integrity"] = self.integrity(spec)
+
+        # Calculate overall score
+        overall_score = self.calculate_overall_score(metric_results)
 
         if spec.params.column_wise:
             metric_df = self.create_metric_df_column_wise(
@@ -395,7 +581,25 @@ class MetricsDataQuality(DataQualityBase):
         else:
             metric_df = self.create_metric_df(spec, metric_results, run_time)
 
-        # Temp print
-        metric_df.show()
+        # Add overall score as a separate row or create a separate DataFrame
+        overall_score_row = self._spark.createDataFrame(
+            [{"OverallScore": overall_score, "ProcessedTimestamp": run_time}],
+            schema=t.StructType(
+                [
+                    t.StructField("OverallScore", t.FloatType(), True),
+                    t.StructField("ProcessedTimestamp", t.TimestampType(), True),
+                ]
+            ),
+        )
 
-        return input_df, metric_df
+        metric_df.show()
+        overall_score_row.show()
+
+        print("Completeness Results:", metric_results["Completeness"])
+        print("Uniqueness Results:", metric_results["Uniqueness"])
+        print("Validity Results:", metric_results["Validity"])
+        print("Timeliness Results:", metric_results["Timeliness"])
+        print("Integrity Results:", metric_results["Integrity"])
+        print("Overall Score:", overall_score)
+
+        return input_df, metric_df, overall_score_row
