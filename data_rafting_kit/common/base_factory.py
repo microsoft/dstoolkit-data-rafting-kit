@@ -17,6 +17,7 @@ class BaseFactory:
         logger: Logger,
         dfs: PipelineDataframeHolder,
         env: EnvSpec,
+        run_id: str | None = None,
     ):
         """Initializes an instance of the Factory class.
 
@@ -26,8 +27,10 @@ class BaseFactory:
             logger (Logger): The logger object.
             dfs (PipelineDataframeHolder): The ordered dictionary of DataFrames.
             env (EnvSpec): The environment specification.
+            run_id (str | None): The run ID.
         """
         self._spark = spark
         self._logger = logger
         self._dfs = dfs
         self._env = env
+        self._run_id = run_id

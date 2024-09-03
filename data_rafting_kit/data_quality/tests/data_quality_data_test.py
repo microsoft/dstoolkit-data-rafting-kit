@@ -14,15 +14,17 @@ from data_rafting_kit.common.test_utils import (
     logger,  # noqa
     spark_session,  # noqa
 )
+from data_rafting_kit.data_quality.checks import (
+    DataQualityModeEnum,
+    dynamic_great_expectations_data_quality_models,
+)
 from data_rafting_kit.data_quality.data_quality_factory import DataQualityFactory
 from data_rafting_kit.data_quality.data_quality_spec import (
-    ALL_DATA_QUALITY_SPECS,
     DataQualityRootSpec,
 )
-from data_rafting_kit.data_quality.great_expectations import DataQualityModeEnum
 
 
-def run_data_quality_check(  # noqa: PLR0913
+def run_data_quality_check(
     mode,
     mock_spec,
     mock_dataset,
@@ -56,7 +58,7 @@ def run_data_quality_check(  # noqa: PLR0913
     dfs["input_df"] = input_rows_df
 
     DataQualityFactory(spark_session, logger, dfs, env_spec).process_data_quality(
-        data_quality_check_spec
+        data_quality_check_spec.root
     )
 
     if mode == DataQualityModeEnum.SEPARATE:
@@ -66,7 +68,9 @@ def run_data_quality_check(  # noqa: PLR0913
         assertDataFrameEqual(dfs["test_dq_fails"], failing_rows)
 
 
-@pytest.mark.parametrize("data_quality_spec_model", ALL_DATA_QUALITY_SPECS)
+@pytest.mark.parametrize(
+    "data_quality_spec_model", dynamic_great_expectations_data_quality_models
+)
 def test_data_quality_data(
     data_quality_spec_model,
     spark_session,  # noqa
@@ -82,7 +86,7 @@ def test_data_quality_data(
         logger (FakeLogger): The fake logger fixture.
         env_spec (EnvSpec): The environment spec.
     """
-    pattern = r"^(GreatExpectations)(.*)DataQualitySpec$"
+    pattern = r"^(Checks)(.*)DataQualitySpec$"
     mock_directory, mock_data_file_name = extract_and_convert_model_name_to_file_name(
         data_quality_spec_model.__name__, pattern
     )
@@ -105,7 +109,7 @@ def test_data_quality_data(
             # Test the data quality spec
             mock_spec = {
                 "name": "test_dq",
-                "type": "check",
+                "type": "checks",
                 "params": {
                     "mode": mode,
                     "unique_column_identifiers": mock_data["unique_column_identifiers"],

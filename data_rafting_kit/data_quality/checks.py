@@ -1,15 +1,13 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
+import logging
 import re
 from datetime import datetime
 from enum import StrEnum
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any, Literal, Union
 
-import great_expectations as gx
 import pyspark.sql.functions as f
 import pyspark.sql.utils as pyspark_utils
-from great_expectations.core import ExpectationSuite
-from great_expectations.expectations.expectation import ExpectationConfiguration
 from great_expectations.expectations.registry import (
     get_expectation_impl,
     list_registered_expectation_implementations,
@@ -17,10 +15,11 @@ from great_expectations.expectations.registry import (
 from pydantic import Field, create_model
 from pyspark.sql import DataFrame
 
-from data_rafting_kit.common.base_spec import BaseParamSpec
+from data_rafting_kit.common.base_spec import BaseParamSpec, BaseRootModel
 from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityBase,
     DataQualityBaseSpec,
+    DataQualityEnum,
 )
 
 
@@ -109,14 +108,6 @@ STANDARD_ARG_TYPES = {
 }
 
 EXCLUDED_ARG_TYPES = ["auto", "profiler_config", "allow_cross_type_comparisons"]
-TYPE_CHECKING = True
-
-
-class GreatExpectationBaseSpec(DataQualityBaseSpec):
-    """Base expectation parameter specification."""
-
-    pass
-
 
 dynamic_great_expectations_data_quality_models = []
 for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
@@ -144,19 +135,48 @@ for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
     normalised_expectation_name = (
         expectation_name.replace("_", " ").title().replace(" ", "")
     )
-    model_name = f"GreatExpectations{normalised_expectation_name}DataQualitySpec"
+    model_name = f"Checks{normalised_expectation_name}DataQualitySpec"
 
     dynamic_great_expectations_data_quality_model = create_model(
-        model_name, **fields, __base__=GreatExpectationBaseSpec
+        model_name, **fields, __base__=BaseParamSpec
     )
     dynamic_great_expectations_data_quality_models.append(
         dynamic_great_expectations_data_quality_model
     )
 
-GREAT_EXPECTATIONS_DATA_QUALITY_SPECS = dynamic_great_expectations_data_quality_models
+ChecksDataQualityRootSpec = create_model(
+    "ChecksDataQualityRootSpec",
+    root=Annotated[
+        Union[tuple(dynamic_great_expectations_data_quality_models)],
+        Field(..., discriminator="type"),
+    ],
+    __base__=BaseRootModel,
+)
+
+param_fields = {
+    "checks": Annotated[list[ChecksDataQualityRootSpec], Field(...)],
+    "mode": Annotated[
+        DataQualityModeEnum | None, Field(default=DataQualityModeEnum.FAIL)
+    ],
+    "unique_column_identifiers": Annotated[
+        list[str] | None, Field(default_factory=list)
+    ],
+}
+ChecksDataQualityParamSpec = create_model(
+    "ChecksDataQualityParamSpec", **param_fields, __base__=BaseParamSpec
+)
+
+fields = {
+    "input_df": Annotated[str | None, Field(default=None)],
+    "params": Annotated[ChecksDataQualityParamSpec, Field(...)],
+    "type": Annotated[Literal[DataQualityEnum.CHECKS], Field(...)],
+}
+ChecksDataQualitySpec = create_model(
+    "ChecksDataQualitySpec", **fields, __base__=DataQualityBaseSpec
+)
 
 
-class GreatExpectationsDataQuality(DataQualityBase):
+class ChecksDataQuality(DataQualityBase):
     """Represents a Great Expectations data quality expectation object."""
 
     def fix_unquoted_strings(self, sql_expr: str) -> str:
@@ -368,7 +388,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
         failed_flag_column_name,
         combined_filter_expression,
         input_df: DataFrame,
-        spec: GreatExpectationBaseSpec,
+        spec: ChecksDataQualityRootSpec,
     ) -> tuple[DataFrame, DataFrame | None]:
         """Splits the input DataFrame based on the data quality mode.
 
@@ -377,7 +397,7 @@ class GreatExpectationsDataQuality(DataQualityBase):
             failed_flag_column_name (str): The failed flag column name.
             combined_filter_expression (str): The combined filter expression.
             input_df (DataFrame): The input DataFrame.
-            spec (GreatExpectationBaseSpec): The data quality expectation specification.
+            spec (ChecksDataQualityRootSpec): The data quality expectation specification.
 
         Returns:
         -------
@@ -417,49 +437,14 @@ class GreatExpectationsDataQuality(DataQualityBase):
 
             return input_df, failing_rows_df
 
-    def build_expectation_configuration(
-        self, spec: GreatExpectationBaseSpec, input_df: DataFrame
-    ) -> ExpectationSuite:
-        """Builds the expectation configuration.
-
-        Args:
-        ----
-            spec (GreatExpectationBaseSpec): The data quality expectation specification.
-            input_df (DataFrame): The input DataFrame.
-
-        Returns:
-        -------
-        ExpectationSuite: The expectation suite.
-        """
-        expectation_configs = []
-        for expectation in spec.params.checks:
-            expectation_config = ExpectationConfiguration(
-                expectation_type=expectation.root.type,
-                kwargs=expectation.root.params.model_dump(by_alias=False),
-            )
-            expectation_configs.append(expectation_config)
-
-        expectation_suite = ExpectationSuite(
-            expectation_suite_name=spec.name, expectations=expectation_configs
-        )
-
-        # Check that the column identifiers exist in the input DataFrame
-        for column in spec.params.unique_column_identifiers:
-            if column not in input_df.columns:
-                raise ValueError(
-                    f"Column Identifier {column} not found in input DataFrame"
-                )
-
-        return expectation_suite
-
-    def expectation(
-        self, spec: GreatExpectationBaseSpec, input_df: DataFrame
+    def checks(
+        self, spec: ChecksDataQualityParamSpec, input_df: DataFrame
     ) -> tuple[DataFrame, DataFrame] | DataFrame:
         """Executes the data quality expectation.
 
         Args:
         ----
-            spec (GreatExpectationBaseSpec): The data quality expectation specification.
+            spec (ChecksDataQualityParamSpec): The data quality expectation specification.
             input_df (DataFrame): The input DataFrame.
 
         Returns:
@@ -468,16 +453,11 @@ class GreatExpectationsDataQuality(DataQualityBase):
             DataFrame: The failing rows DataFrame.
 
         """
-        context = gx.get_context()
-        asset = context.sources.add_spark(
-            "spark", spark_config=self._spark.sparkContext.getConf().getAll()
-        ).add_dataframe_asset(spec.name)
+        validator = self.get_validator(spec, input_df)
 
-        validator = context.get_validator(
-            batch_request=asset.build_batch_request(dataframe=input_df)
+        expectation_suite = self.build_expectation_configuration(
+            spec, input_df, validate_unique_column_identifiers=True
         )
-
-        expectation_suite = self.build_expectation_configuration(spec, input_df)
 
         results = validator.validate(
             expectation_suite=expectation_suite,
@@ -489,6 +469,16 @@ class GreatExpectationsDataQuality(DataQualityBase):
             },
             only_return_failures=True,
         )
+
+        if results["success"] is False:
+            for result in results.results:
+                if (
+                    "exception_info" in result
+                    and result["exception_info"]["raised_exception"] is True
+                ):
+                    logging.error("Data quality checks failed due to exception.")
+                    logging.error(results)
+                    raise ValueError("Data quality checks failed due to exception.")
 
         failed_checks = [
             result["expectation_config"]["expectation_type"]

@@ -4,38 +4,19 @@ from typing import Annotated, Union
 
 from pydantic import Field, create_model
 
-from data_rafting_kit.common.base_spec import BaseParamSpec, BaseRootModel, BaseSpec
-from data_rafting_kit.data_quality.great_expectations import (
-    GREAT_EXPECTATIONS_DATA_QUALITY_SPECS,
-    DataQualityModeEnum,
+from data_rafting_kit.common.base_spec import BaseRootModel
+from data_rafting_kit.data_quality.checks import (
+    ChecksDataQualitySpec,
 )
+from data_rafting_kit.data_quality.metrics import MetricsDataQualitySpec
 
-ALL_DATA_QUALITY_SPECS = GREAT_EXPECTATIONS_DATA_QUALITY_SPECS
+ALL_DATA_QUALITY_SPECS = [ChecksDataQualitySpec, MetricsDataQualitySpec]
 
-DataQualityCheckRootSpec = create_model(
-    "DataQualityCheckRootSpec",
+DataQualityRootSpec = create_model(
+    "DataQualityRootSpec",
     root=Annotated[
         Union[tuple(ALL_DATA_QUALITY_SPECS)],
         Field(..., discriminator="type"),
     ],
     __base__=BaseRootModel,
 )
-
-param_fields = {
-    "checks": Annotated[list[DataQualityCheckRootSpec], Field(...)],
-    "mode": Annotated[
-        DataQualityModeEnum | None, Field(default=DataQualityModeEnum.FAIL)
-    ],
-    "unique_column_identifiers": Annotated[
-        list[str] | None, Field(default_factory=list)
-    ],
-}
-DataQualityParamSpec = create_model(
-    "DataQualityCheckParamSpec", **param_fields, __base__=BaseParamSpec
-)
-
-fields = {
-    "input_df": Annotated[str | None, Field(default=None)],
-    "params": Annotated[DataQualityParamSpec, Field(...)],
-}
-DataQualityRootSpec = create_model("DataQualityRootSpec", **fields, __base__=BaseSpec)

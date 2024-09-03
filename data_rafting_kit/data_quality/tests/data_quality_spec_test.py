@@ -10,10 +10,14 @@ from pydantic import ValidationError
 from data_rafting_kit.common.test_utils import (
     extract_and_convert_model_name_to_file_name,
 )
-from data_rafting_kit.data_quality.data_quality_spec import ALL_DATA_QUALITY_SPECS
+from data_rafting_kit.data_quality.checks import (
+    dynamic_great_expectations_data_quality_models,
+)
 
 
-@pytest.mark.parametrize("data_quality_spec_model", ALL_DATA_QUALITY_SPECS)
+@pytest.mark.parametrize(
+    "data_quality_spec_model", dynamic_great_expectations_data_quality_models
+)
 def test_data_quality_yaml_spec_loads(data_quality_spec_model):
     """Test that the transformation spec can be loaded from the mock spec file.
 
@@ -21,7 +25,7 @@ def test_data_quality_yaml_spec_loads(data_quality_spec_model):
     ----
         data_quality_spec_model (BaseParamSpec): The data quality model to test.
     """
-    pattern = r"^(GreatExpectations)(.*)DataQualitySpec$"
+    pattern = r"^(Checks)(.*)DataQualitySpec$"
     mock_directory, mock_spec_file_name = extract_and_convert_model_name_to_file_name(
         data_quality_spec_model.__name__, pattern
     )
@@ -56,7 +60,9 @@ def test_data_quality_yaml_spec_loads(data_quality_spec_model):
         )
 
 
-@pytest.mark.parametrize("data_quality_spec_model", ALL_DATA_QUALITY_SPECS)
+@pytest.mark.parametrize(
+    "data_quality_spec_model", dynamic_great_expectations_data_quality_models
+)
 def test_data_quality_json_spec_loads(data_quality_spec_model):
     """Test that the transformation spec can be loaded from the mock spec file.
 
@@ -64,7 +70,7 @@ def test_data_quality_json_spec_loads(data_quality_spec_model):
     ----
         data_quality_spec_model (Pydantic BaseModel): The data quality model to test.
     """
-    pattern = r"^(GreatExpectations)(.*)DataQualitySpec$"
+    pattern = r"^(Checks)(.*)DataQualitySpec$"
     mock_directory, mock_spec_file_name = extract_and_convert_model_name_to_file_name(
         data_quality_spec_model.__name__, pattern
     )

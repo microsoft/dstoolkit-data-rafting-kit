@@ -120,7 +120,9 @@ class IOBase:
 
     """
 
-    def __init__(self, spark: SparkSession, logger: Logger, env):
+    def __init__(
+        self, spark: SparkSession, logger: Logger, env, run_id: str | None = None
+    ):
         """Initializes an instance of the IO class.
 
         Args:
@@ -128,7 +130,9 @@ class IOBase:
             spark (SparkSession): The SparkSession object.
             logger (Logger): The logger object.
             env (EnvSpec): The environment specification.
+            run_id (str | None): The run ID.
         """
         self._spark = spark
         self._logger = logger
         self._env = env
+        self._run_id = run_id

@@ -27,18 +27,22 @@ class DataQualityFactory(BaseFactory):
         (
             data_quality_class,
             data_quality_function,
-        ) = DataQualityMapping.get_data_quality_map("great_expectations")
+        ) = DataQualityMapping.get_data_quality_map(spec.type)
 
         if input_df.isStreaming:
             df = input_df.foreachBatch(
                 lambda batch_df, _: getattr(
-                    data_quality_class(self._spark, self._logger, self._dfs, self._env),
+                    data_quality_class(
+                        self._spark, self._logger, self._dfs, self._env, self._run_id
+                    ),
                     data_quality_function.__name__,
                 )(spec, batch_df),
             )
         else:
             df = getattr(
-                data_quality_class(self._spark, self._logger, self._dfs, self._env),
+                data_quality_class(
+                    self._spark, self._logger, self._dfs, self._env, self._run_id
+                ),
                 data_quality_function.__name__,
             )(spec, input_df)
 

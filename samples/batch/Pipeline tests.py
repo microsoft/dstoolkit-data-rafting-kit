@@ -341,6 +341,7 @@ pipeline:
 
 data_quality:
   - name: check_data
+    type: checks
     params:
       checks:
         - type: 'expect_column_to_exist'

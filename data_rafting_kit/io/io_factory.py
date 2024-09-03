@@ -48,7 +48,7 @@ class IOFactory(BaseFactory):
         """
         input_class, input_function = IOMapping.get_input_map(spec.type)
 
-        io_object = input_class(self._spark, self._logger, self._env)
+        io_object = input_class(self._spark, self._logger, self._env, self._run_id)
         df = getattr(io_object, input_function.__name__)(spec)
 
         if spec.params.expected_schema is not None:
@@ -68,7 +68,7 @@ class IOFactory(BaseFactory):
 
         output_class, output_function = IOMapping.get_output_map(spec.type)
 
-        io_object = output_class(self._spark, self._logger, self._env)
+        io_object = output_class(self._spark, self._logger, self._env, self._run_id)
 
         if spec.params.expected_schema is not None:
             self.validate_schema(spec, input_df)

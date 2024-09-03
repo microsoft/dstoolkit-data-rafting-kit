@@ -101,6 +101,7 @@ ignore = [
     "D104", # Missing docstring in public package
     "S101", # Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
     "B011", # Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+    "PLR0913", # Too many function call arguments
 ]
 
 [tool.coverage.run]
