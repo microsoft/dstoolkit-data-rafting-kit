@@ -122,52 +122,6 @@ class MetricsDataQuality(DataQualityBase):
 
         return results["statistics"]["success_percent"]
 
-    def run_expectation_column_wise_with_single_column(
-        self, expectation_suite: ExpectationSuite
-    ) -> dict:
-        """Runs the expectation suite and returns the unexpected percent.
-
-        Args:
-        ----
-            expectation_suite (ExpectationSuite): The expectation suite object.
-
-        Returns:
-        -------
-            dict: The successful percentage.
-        """
-        results = self._validator.validate(
-            expectation_suite=expectation_suite,
-            result_format={
-                "result_format": "BASIC",
-            },
-        )
-        print(results)
-        if results["success"] is False:
-            for result in results.results:
-                if (
-                    "exception_info" in result
-                    and result["exception_info"]["raised_exception"] is True
-                ):
-                    logging.error("Data quality checks failed due to exception.")
-                    logging.error(results)
-                    raise ValueError("Data quality checks failed due to exception.")
-
-        print(results)
-        column_wise_result = {}
-        for result in results.results:
-            expectation_config = result["expectation_config"]["kwargs"]
-
-            # Determine the column(s) involved in the expectation
-            if "column" in expectation_config:
-                column = expectation_config["column"]
-            elif "column_A" in expectation_config and "column_B" in expectation_config:
-                column = expectation_config["column_A"]
-            else:
-                raise ValueError("Column(s) not found in expectation configuration.")
-            column_wise_result[column] = 100 - result["result"]["unexpected_percent"]
-
-        return column_wise_result
-
     def run_expectation_column_wise_with_single_expectation(
         self, expectation_suite: ExpectationSuite
     ):
@@ -353,9 +307,7 @@ class MetricsDataQuality(DataQualityBase):
                         expectations=filtered_expectations,
                     )
 
-                    result_for_column = (
-                        self.run_expectation_column_wise_with_single_column(suite)
-                    )
+                    result_for_column = self.run_expectation(suite)
 
                     result[column] = result_for_column
             else:
@@ -669,8 +621,8 @@ class MetricsDataQuality(DataQualityBase):
 
         run_time = datetime.now()
 
-        # metric_results["Completeness"] = self.completeness(spec, input_df)
-        # metric_results["Uniqueness"] = self.uniqueness(spec, input_df)
+        metric_results["Completeness"] = self.completeness(spec, input_df)
+        metric_results["Uniqueness"] = self.uniqueness(spec, input_df)
         metric_results["Validity"] = self.validity(spec, input_df)
         metric_results["Timeliness"] = self.timeliness(spec, input_df)
         metric_results["Integrity"] = self.integrity(spec)
@@ -689,8 +641,8 @@ class MetricsDataQuality(DataQualityBase):
 
         logging.info("Data quality metrics completed.")
 
-        # logging.info("Completeness Results: %s", metric_results["Completeness"])
-        # logging.info("Uniqueness Results: %s", metric_results["Uniqueness"])
+        logging.info("Completeness Results: %s", metric_results["Completeness"])
+        logging.info("Uniqueness Results: %s", metric_results["Uniqueness"])
         logging.info("Validity Results: %s", metric_results["Validity"])
         logging.info("Timeliness Results: %s", metric_results["Timeliness"])
         logging.info("Integrity Results: %s", metric_results["Integrity"])
