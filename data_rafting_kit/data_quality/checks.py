@@ -135,7 +135,7 @@ for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
     normalised_expectation_name = (
         expectation_name.replace("_", " ").title().replace(" ", "")
     )
-    model_name = f"GreatExpectations{normalised_expectation_name}DataQualitySpec"
+    model_name = f"Checks{normalised_expectation_name}DataQualitySpec"
 
     dynamic_great_expectations_data_quality_model = create_model(
         model_name, **fields, __base__=BaseParamSpec

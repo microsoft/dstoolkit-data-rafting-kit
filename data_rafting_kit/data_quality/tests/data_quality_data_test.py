@@ -22,7 +22,7 @@ from data_rafting_kit.data_quality.data_quality_spec import (
 )
 
 
-def run_data_quality_check(  # noqa: PLR0913
+def run_data_quality_check(
     mode,
     mock_spec,
     mock_dataset,
@@ -82,7 +82,7 @@ def test_data_quality_data(
         logger (FakeLogger): The fake logger fixture.
         env_spec (EnvSpec): The environment spec.
     """
-    pattern = r"^(GreatExpectations)(.*)DataQualitySpec$"
+    pattern = r"^(Checks)(.*)DataQualitySpec$"
     mock_directory, mock_data_file_name = extract_and_convert_model_name_to_file_name(
         data_quality_spec_model.__name__, pattern
     )
@@ -105,7 +105,7 @@ def test_data_quality_data(
             # Test the data quality spec
             mock_spec = {
                 "name": "test_dq",
-                "type": "check",
+                "type": "checks",
                 "params": {
                     "mode": mode,
                     "unique_column_identifiers": mock_data["unique_column_identifiers"],
