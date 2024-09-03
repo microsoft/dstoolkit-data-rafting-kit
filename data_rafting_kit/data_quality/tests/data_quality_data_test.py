@@ -58,7 +58,7 @@ def run_data_quality_check(
     dfs["input_df"] = input_rows_df
 
     DataQualityFactory(spark_session, logger, dfs, env_spec).process_data_quality(
-        data_quality_check_spec
+        data_quality_check_spec.root
     )
 
     if mode == DataQualityModeEnum.SEPARATE:
