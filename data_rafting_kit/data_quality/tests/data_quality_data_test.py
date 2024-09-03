@@ -14,10 +14,12 @@ from data_rafting_kit.common.test_utils import (
     logger,  # noqa
     spark_session,  # noqa
 )
-from data_rafting_kit.data_quality.checks import DataQualityModeEnum
+from data_rafting_kit.data_quality.checks import (
+    DataQualityModeEnum,
+    dynamic_great_expectations_data_quality_models,
+)
 from data_rafting_kit.data_quality.data_quality_factory import DataQualityFactory
 from data_rafting_kit.data_quality.data_quality_spec import (
-    ALL_DATA_QUALITY_SPECS,
     DataQualityRootSpec,
 )
 
@@ -66,7 +68,9 @@ def run_data_quality_check(
         assertDataFrameEqual(dfs["test_dq_fails"], failing_rows)
 
 
-@pytest.mark.parametrize("data_quality_spec_model", ALL_DATA_QUALITY_SPECS)
+@pytest.mark.parametrize(
+    "data_quality_spec_model", dynamic_great_expectations_data_quality_models
+)
 def test_data_quality_data(
     data_quality_spec_model,
     spark_session,  # noqa
