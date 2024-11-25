@@ -515,7 +515,6 @@ class MetricsDataQuality(DataQualityBase):
                     rows_to_write[column][metric] = value
 
         rows_to_write = list(rows_to_write.values())
-        print(rows_to_write)
 
         metric_df = self._spark.createDataFrame(
             rows_to_write, schema=self.metric_df_schema(spec)
