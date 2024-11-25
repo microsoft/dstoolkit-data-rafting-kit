@@ -78,8 +78,14 @@ class MetricsDataQuality(DataQualityBase):
         for expectation in spec.params.checks:
             if hasattr(expectation.root.params, "column"):
                 column_name = expectation.root.params.column
-            else:
+            elif hasattr(expectation.root.params, "column_A"):
                 column_name = expectation.root.params.column_A
+            else:
+                logging.warning(
+                    "Skipping %s expectation for column-wise validity. This expectation type is not supported for column-wise validity.",
+                    expectation.root.type,
+                )
+                continue
 
             if (
                 expectation_types is None or expectation.root.type in expectation_types
@@ -279,12 +285,17 @@ class MetricsDataQuality(DataQualityBase):
         logging.info("Running validity checks.")
 
         if spec.params.column_wise:
-            expectation_columns = [
-                expectation.root.params.column
-                if hasattr(expectation.root.params, "column")
-                else expectation.root.params.column_A
-                for expectation in spec.params.checks
-            ]
+            expectation_columns = []
+            for expectation in spec.params.checks:
+                if hasattr(expectation.root.params, "column"):
+                    expectation_columns.append(expectation.root.params.column)
+                elif hasattr(expectation.root.params, "column_A"):
+                    expectation_columns.append(expectation.root.params.column_A)
+                else:
+                    logging.warning(
+                        "Skipping %s expectation for column-wise validity. This expectation type is not supported for column-wise validity.",
+                        expectation.root.type,
+                    )
 
             def has_duplicates(lst):
                 seen = set()
