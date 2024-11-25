@@ -480,6 +480,7 @@ class ChecksDataQuality(DataQualityBase):
 
         if results["success"] is False:
             for result in results.results:
+                logging.debug(result)
                 if (
                     "exception_info" in result
                     and result["exception_info"]["raised_exception"] is True
