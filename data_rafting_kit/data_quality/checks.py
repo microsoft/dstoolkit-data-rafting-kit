@@ -107,7 +107,12 @@ STANDARD_ARG_TYPES = {
     "column_values": (list[str], Field(required=True, alias="columns")),
 }
 
-EXCLUDED_ARG_TYPES = ["auto", "profiler_config", "allow_cross_type_comparisons"]
+EXCLUDED_ARG_TYPES = [
+    "auto",
+    "profiler_config",
+    "allow_cross_type_comparisons",
+    "unexpected_rows_query",
+]
 
 dynamic_great_expectations_data_quality_models = []
 for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
