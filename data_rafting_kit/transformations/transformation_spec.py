@@ -177,7 +177,7 @@ for transformation in PYSPARK_DYNAMIC_TRANSFORMATIONS:
                 param_fields[name] = (cleaned_type, Field(alias=cleaned_name))
 
     if len(param_fields) > 0:
-        param_config = ConfigDict(allow_population_by_field_name=True)
+        param_config = ConfigDict(populate_by_name=True)
         dynamic_transformation_param_model = create_model(
             f"{transformation}_params", **param_fields, __config__=param_config
         )

@@ -105,9 +105,17 @@ STANDARD_ARG_TYPES = {
     "exact_match": (bool | None, Field(default=True, alias="exact_match")),
     "column_set": (list[str], Field(required=True, alias="columns")),
     "column_values": (list[str], Field(required=True, alias="columns")),
+    "unexpected_rows_query": (
+        str,
+        Field(required=True, alias="unexpected_index_query"),
+    ),
 }
 
-EXCLUDED_ARG_TYPES = ["auto", "profiler_config", "allow_cross_type_comparisons"]
+EXCLUDED_ARG_TYPES = [
+    "auto",
+    "profiler_config",
+    "allow_cross_type_comparisons",
+]
 
 dynamic_great_expectations_data_quality_models = []
 for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
@@ -472,6 +480,7 @@ class ChecksDataQuality(DataQualityBase):
 
         if results["success"] is False:
             for result in results.results:
+                logging.debug(result)
                 if (
                     "exception_info" in result
                     and result["exception_info"]["raised_exception"] is True
