@@ -44,7 +44,6 @@ EXCLUDED_GREAT_EXPECTATION_CHECKS = [
     "expect_column_values_to_match_strftime_format",
     "expect_column_values_to_be_in_type_list",
     "expect_column_values_to_be_of_type",
-    "unexpected_rows_expectation",
 ]
 GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY = [
     x
@@ -106,13 +105,16 @@ STANDARD_ARG_TYPES = {
     "exact_match": (bool | None, Field(default=True, alias="exact_match")),
     "column_set": (list[str], Field(required=True, alias="columns")),
     "column_values": (list[str], Field(required=True, alias="columns")),
+    "unexpected_rows_query": (
+        str,
+        Field(required=True, alias="unexpected_index_query"),
+    ),
 }
 
 EXCLUDED_ARG_TYPES = [
     "auto",
     "profiler_config",
     "allow_cross_type_comparisons",
-    "unexpected_rows_query",
 ]
 
 dynamic_great_expectations_data_quality_models = []
