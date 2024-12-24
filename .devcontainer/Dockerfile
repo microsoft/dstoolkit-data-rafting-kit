@@ -1,9 +1,11 @@
-FROM ubuntu:24.04
+FROM ubuntu:22.04
 
 USER root
 
+# Unminimize the image to include essential tools and locales
 RUN apt-get update && yes | unminimize
 
+# Install base dependencies
 RUN apt-get update \
     && apt-get install -y \
     git \
@@ -15,7 +17,6 @@ RUN apt-get update \
     python3 \
     python3-pip \
     python3-venv \
-    python3-poetry \
     build-essential \
     libhdf5-dev \
     libsnappy-dev \
@@ -25,18 +26,26 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
+# Configure locales
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
+# Install Poetry using the official installation script
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Add Poetry to PATH
+ENV PATH="/root/.local/bin:$PATH"
+
+# Set environment variables for Spark and Hadoop
 ENV SPARK_VERSION=3.5.1 \
     HADOOP_VERSION=3.3.6 \
     SPARK_HOME=/opt/spark \
     PYTHONHASHSEED=1
 
-# Download and uncompress spark from the apache archive
+# Download and uncompress Spark from the Apache archive
 RUN wget --no-verbose -O apache-spark.tgz "https://archive.apache.org/dist/spark/spark-${SPARK_VERSION}/spark-${SPARK_VERSION}-bin-hadoop3.tgz" \
     && mkdir -p /opt/spark \
     && tar -xf apache-spark.tgz -C /opt/spark --strip-components=1 \
@@ -52,7 +61,8 @@ RUN wget --no-verbose -O hadoop-native.tgz "https://archive.apache.org/dist/hado
 ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 ENV PATH=$SPARK_HOME/bin:$PATH
 
-# Verify installation
-RUN java -version && javac -version && python3 --version
+# Verify installation of Java, Python, and Poetry
+RUN java -version && javac -version && python3 --version && poetry --version
 
+# Set working directory to Spark home
 WORKDIR /opt/spark
