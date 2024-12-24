@@ -44,7 +44,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.13, 3.12, 3.11, 3.10]
+        python-version: [3.12, 3.11, 3.10]
 
     steps:
       - name: Checkout code
@@ -53,8 +53,8 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: "temurin"
+          java-version: "17"
 
       - name: Set environmental variables
         run: |
