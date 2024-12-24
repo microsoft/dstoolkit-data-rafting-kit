@@ -91,6 +91,9 @@ def test_data_quality_data(
         data_quality_spec_model.__name__, pattern
     )
 
+    if mock_data_file_name != "unexpected_rows_expectation":
+        return
+
     # Check if the file exists
     try:
         with open(

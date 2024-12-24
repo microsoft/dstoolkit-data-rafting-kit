@@ -1,6 +1,5 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from enum import StrEnum
 from typing import Literal
 
 import pandas as pd
@@ -13,6 +12,7 @@ from pydantic import Field, RootModel
 from pyspark.sql import DataFrame
 
 from data_rafting_kit.common.base_spec import BaseParamSpec
+from data_rafting_kit.common.str_enum import StrEnum
 from data_rafting_kit.transformations.transformation_base import (
     TransformationBase,
     TransformationBaseSpec,

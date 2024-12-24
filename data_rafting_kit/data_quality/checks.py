@@ -1,9 +1,7 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-import logging
 import re
 from datetime import datetime
-from enum import StrEnum
 from typing import Annotated, Any, Literal, Union
 
 import pyspark.sql.functions as f
@@ -16,6 +14,7 @@ from pydantic import Field, create_model
 from pyspark.sql import DataFrame
 
 from data_rafting_kit.common.base_spec import BaseParamSpec, BaseRootModel
+from data_rafting_kit.common.str_enum import StrEnum
 from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityBase,
     DataQualityBaseSpec,
@@ -105,9 +104,17 @@ STANDARD_ARG_TYPES = {
     "exact_match": (bool | None, Field(default=True, alias="exact_match")),
     "column_set": (list[str], Field(required=True, alias="columns")),
     "column_values": (list[str], Field(required=True, alias="columns")),
+    "unexpected_rows_query": (
+        str,
+        Field(required=True, alias="unexpected_index_query"),
+    ),
 }
 
-EXCLUDED_ARG_TYPES = ["auto", "profiler_config", "allow_cross_type_comparisons"]
+EXCLUDED_ARG_TYPES = [
+    "auto",
+    "profiler_config",
+    "allow_cross_type_comparisons",
+]
 
 dynamic_great_expectations_data_quality_models = []
 for expectation_name in GREAT_EXPECTATIONS_DYNAMIC_DATA_QUALITY:
@@ -451,7 +458,6 @@ class ChecksDataQuality(DataQualityBase):
         -------
             DataFrame: The output DataFrame.
             DataFrame: The failing rows DataFrame.
-
         """
         validator = self.get_validator(spec, input_df)
 
@@ -472,16 +478,15 @@ class ChecksDataQuality(DataQualityBase):
 
         if results["success"] is False:
             for result in results.results:
-                if (
-                    "exception_info" in result
-                    and result["exception_info"]["raised_exception"] is True
+                if "exception_info" in result and result["exception_info"].get(
+                    "raised_exception", False
                 ):
-                    logging.error("Data quality checks failed due to exception.")
-                    logging.error(results)
-                    raise ValueError("Data quality checks failed due to exception.")
+                    raise ValueError(
+                        f"""Data quality checks failed due to exception. {result['exception_info']}"""
+                    )
 
         failed_checks = [
-            result["expectation_config"]["expectation_type"]
+            result["expectation_config"]["type"]
             for result in results.results
             if result.success is False
         ]

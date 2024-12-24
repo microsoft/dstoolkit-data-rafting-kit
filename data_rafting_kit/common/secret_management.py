@@ -27,7 +27,7 @@ class Secret(BaseParamSpec):
 
         Returns:
         -------
-        Secret: The secret object.
+            Secret: The secret object.
         """
         try:
             from pyspark.dbutils import DBUtils
@@ -50,9 +50,34 @@ class Secret(BaseParamSpec):
 
         Returns:
         -------
-        Secret: The secret object.
+            Secret: The secret object.
         """
         return Secret(name=name, value=os.getenv(name))
+
+    @classmethod
+    def fetch_from_synapse(cls, key_vault_uri: str, name: str):
+        """Fetch the secret from synapse.
+
+        Args:
+        ----
+            key_vault_uri (str): The URI of the key vault.
+            name (str): The name of the secret to fetch.
+
+        Returns:
+        -------
+            Secret: The secret object.
+        """
+        try:
+            from notebookutils import mssparkutils
+
+            return Secret(
+                name=name, value=mssparkutils.credentials.getSecret(key_vault_uri, name)
+            )
+
+        except ImportError as e:
+            raise ImportError(
+                "mssparkutils not available. Please run this on Synapse."
+            ) from e
 
     @classmethod
     def fetch_from_fabric(cls, key_vault_uri: str, name: str):
@@ -76,7 +101,7 @@ class Secret(BaseParamSpec):
 
         except ImportError as e:
             raise ImportError(
-                "mssparkutils not available. Please run this on a Databricks cluster."
+                "mssparkutils not available. Please run this on Fabric."
             ) from e
 
     @classmethod
@@ -91,11 +116,13 @@ class Secret(BaseParamSpec):
 
         Returns:
         -------
-        Secret: The secret object.
+            Secret: The secret object.
         """
         if env.secrets.secret_storage == TargetEnum.LOCAL:
             return cls.fetch_from_local(name)
         elif env.secrets.secret_storage == TargetEnum.FABRIC:
             return cls.fetch_from_fabric(env.secrets.key_vault_uri, name)
+        elif env.secrets.secret_storage == TargetEnum.SYNAPSE:
+            return cls.fetch_from_synapse(env.secrets.key_vault_uri, name)
         elif env.secrets.secret_storage == TargetEnum.DATABRICKS:
             return cls.fetch_from_databricks(spark, name)

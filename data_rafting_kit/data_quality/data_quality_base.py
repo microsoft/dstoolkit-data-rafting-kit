@@ -1,6 +1,5 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from enum import StrEnum
 from logging import Logger
 
 import great_expectations as gx
@@ -10,6 +9,7 @@ from pyspark.sql import DataFrame, SparkSession
 
 from data_rafting_kit.common.base_spec import BaseSpec
 from data_rafting_kit.common.pipeline_dataframe_holder import PipelineDataframeHolder
+from data_rafting_kit.common.str_enum import StrEnum
 
 
 class DataQualityEnum(StrEnum):
@@ -73,12 +73,13 @@ class DataQualityBase:
         Validator: The Great Expectations validator object.
         """
         context = gx.get_context()
-        asset = context.sources.add_spark(
+        asset = context.data_sources.add_spark(
             "spark", spark_config=self._spark.sparkContext.getConf().getAll()
         ).add_dataframe_asset(spec.name)
 
+        batch_parameters = {"dataframe": input_df}
         validator = context.get_validator(
-            batch_request=asset.build_batch_request(dataframe=input_df)
+            batch_request=asset.build_batch_request(options=batch_parameters)
         )
 
         return validator
@@ -104,13 +105,13 @@ class DataQualityBase:
         expectation_configs = []
         for expectation in spec.params.checks:
             expectation_config = ExpectationConfiguration(
-                expectation_type=expectation.root.type,
+                type=expectation.root.type,
                 kwargs=expectation.root.params.model_dump(by_alias=False),
             )
             expectation_configs.append(expectation_config)
 
         expectation_suite = ExpectationSuite(
-            expectation_suite_name=spec.name, expectations=expectation_configs
+            name=spec.name, expectations=expectation_configs
         )
 
         if validate_unique_column_identifiers:
