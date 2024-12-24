@@ -2,7 +2,6 @@
 # Licensed under the MIT License.
 import re
 from datetime import datetime
-from data_rafting_kit.common.str_enum import StrEnum
 from typing import Annotated, Any, Literal, Union
 
 import pyspark.sql.functions as f
@@ -15,6 +14,7 @@ from pydantic import Field, create_model
 from pyspark.sql import DataFrame
 
 from data_rafting_kit.common.base_spec import BaseParamSpec, BaseRootModel
+from data_rafting_kit.common.str_enum import StrEnum
 from data_rafting_kit.data_quality.data_quality_base import (
     DataQualityBase,
     DataQualityBaseSpec,
@@ -476,24 +476,20 @@ class ChecksDataQuality(DataQualityBase):
             only_return_failures=True,
         )
 
-        print("\n[DEBUG] Validation Results:", results)
-
         if results["success"] is False:
             for result in results.results:
-                print("\n[DEBUG] Processing Result:", result)
-
                 if "exception_info" in result and result["exception_info"].get(
                     "raised_exception", False
                 ):
-                    print("[DEBUG] Exception Info:", result["exception_info"])
-                    raise ValueError("Data quality checks failed due to exception.")
+                    raise ValueError(
+                        f"""Data quality checks failed due to exception. {result['exception_info']}"""
+                    )
 
         failed_checks = [
-            result["expectation_config"]["expectation_type"]
+            result["expectation_config"]["type"]
             for result in results.results
             if result.success is False
         ]
-        print("\n[DEBUG] Failed Checks:", failed_checks)
 
         if spec.params.mode == DataQualityModeEnum.FAIL and results["success"] is False:
             failed_checks_str = ", ".join(failed_checks)
@@ -516,26 +512,8 @@ class ChecksDataQuality(DataQualityBase):
                         [], schema=input_df.schema
                     )
             else:
-                combined_filter_expression = None
-                unexpected_query = None
+                combined_filter_expression = self.get_filter_expression_by_sql(results)
 
-                for result in results.results:
-                    unexpected_query = result.result.get("unexpected_index_query")
-                    print("\n[DEBUG] Unexpected Index Query:", unexpected_query)
-
-                    if unexpected_query:
-                        combined_filter_expression = re.search(
-                            r"df\.filter\(F\.expr\((.*)\)\)",
-                            unexpected_query,
-                        )
-                        if combined_filter_expression:
-                            combined_filter_expression = (
-                                combined_filter_expression.group(1)
-                            )
-                            print(
-                                "[DEBUG] Filter Expression:", combined_filter_expression
-                            )
-                            break
                 try:
                     input_df, failing_rows_df = self.split_dataframe(
                         failed_flag_column_name,

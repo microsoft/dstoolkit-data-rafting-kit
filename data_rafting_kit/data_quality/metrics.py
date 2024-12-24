@@ -91,7 +91,7 @@ class MetricsDataQuality(DataQualityBase):
                 expectation_types is None or expectation.root.type in expectation_types
             ) and (columns is None or column_name in columns):
                 expectation_config = ExpectationConfiguration(
-                    expectation_type=expectation.root.type,
+                    type=expectation.root.type,
                     kwargs=expectation.root.params.model_dump(by_alias=False),
                 )
                 expectation_configs.append(expectation_config)
@@ -188,7 +188,7 @@ class MetricsDataQuality(DataQualityBase):
             ExpectationConfiguration: The expectation configuration.
         """
         return ExpectationConfiguration(
-            expectation_type="expect_column_values_to_be_unique",
+            type="expect_column_values_to_be_unique",
             kwargs={"column": column},
         )
 
@@ -234,7 +234,7 @@ class MetricsDataQuality(DataQualityBase):
 
         """
         return ExpectationConfiguration(
-            expectation_type="expect_column_values_to_not_be_null",
+            type="expect_column_values_to_not_be_null",
             kwargs={"column": column},
         )
 

@@ -1,6 +1,5 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from data_rafting_kit.common.str_enum import StrEnum
 from typing import Literal
 
 import pyspark.sql.functions as f
@@ -15,6 +14,7 @@ from data_rafting_kit.common.schema import (
     to_pyspark_struct,
 )
 from data_rafting_kit.common.secret_management import Secret
+from data_rafting_kit.common.str_enum import StrEnum
 from data_rafting_kit.io.io_base import (
     InputBaseParamSpec,
     InputBaseSpec,

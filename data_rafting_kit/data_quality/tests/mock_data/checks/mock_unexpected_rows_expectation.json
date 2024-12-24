@@ -38,7 +38,7 @@
       ],
       "passing_rows": [],
       "spec": {
-        "unexpected_rows_query": "SELECT column_1 FROM {batch} WHERE column_1 NOT IN ('value1', 'value2', 'value3', 'value4', 'value5')"
+        "unexpected_rows_query": "SELECT column_1 FROM {batch} WHERE column_1 IN ('value1', 'value2', 'value3', 'value4', 'value5')"
       }
     },
     {
@@ -67,7 +67,7 @@
         }
       ],
       "spec": {
-        "unexpected_rows_query": "SELECT column_1 FROM {batch} WHERE column_1 IN ('value1', 'value2', 'value3')"
+        "unexpected_rows_query": "SELECT column_1 FROM {batch} WHERE column_1 NOT IN ('value1', 'value2', 'value3')"
       }
     }
   ],

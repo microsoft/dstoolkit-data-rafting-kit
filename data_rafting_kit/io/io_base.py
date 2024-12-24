@@ -1,6 +1,5 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from data_rafting_kit.common.str_enum import StrEnum
 from logging import Logger
 from typing import Literal
 
@@ -9,6 +8,7 @@ from pyspark.sql import SparkSession
 
 from data_rafting_kit.common.base_spec import BaseParamSpec, BaseSpec
 from data_rafting_kit.common.schema import SchemaFieldSpec
+from data_rafting_kit.common.str_enum import StrEnum
 
 
 class IOEnum(StrEnum):

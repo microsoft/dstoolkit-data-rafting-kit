@@ -1,6 +1,5 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from data_rafting_kit.common.str_enum import StrEnum
 from logging import Logger
 
 from pydantic import Field
@@ -8,6 +7,7 @@ from pyspark.sql import SparkSession
 
 from data_rafting_kit.common.base_spec import BaseSpec
 from data_rafting_kit.common.pipeline_dataframe_holder import PipelineDataframeHolder
+from data_rafting_kit.common.str_enum import StrEnum
 
 
 class TransformationEnum(StrEnum):

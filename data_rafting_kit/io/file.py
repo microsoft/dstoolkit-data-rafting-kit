@@ -1,10 +1,10 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from data_rafting_kit.common.str_enum import StrEnum
 from typing import Literal
 
 from pyspark.sql import DataFrame
 
+from data_rafting_kit.common.str_enum import StrEnum
 from data_rafting_kit.io.io_base import (
     InputBaseParamSpec,
     InputBaseSpec,

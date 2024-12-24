@@ -1,17 +1,18 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from data_rafting_kit.common.str_enum import StrEnum
 from typing import Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
 from data_rafting_kit.common.base_spec import BaseParamSpec
+from data_rafting_kit.common.str_enum import StrEnum
 
 
 class TargetEnum(StrEnum):
     """Enum for target platforms."""
 
     FABRIC = "fabric"
+    SYNAPSE = "synapse"
     DATABRICKS = "databricks"
     LOCAL = "local"
 
@@ -19,7 +20,9 @@ class TargetEnum(StrEnum):
 class SecretSpec(BaseParamSpec):
     """Secret specification. Used to specify the secret storage and key vault URI."""
 
-    secret_storage: Literal[TargetEnum.FABRIC, TargetEnum.DATABRICKS, TargetEnum.LOCAL]
+    secret_storage: Literal[
+        TargetEnum.FABRIC, TargetEnum.SYNAPSE, TargetEnum.DATABRICKS, TargetEnum.LOCAL
+    ]
     key_vault_uri: str | None = Field(default=None)
 
     @model_validator(mode="after")
