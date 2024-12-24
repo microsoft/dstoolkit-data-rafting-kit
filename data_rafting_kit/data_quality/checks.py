@@ -3,7 +3,7 @@
 import logging
 import re
 from datetime import datetime
-from enum import StrEnum
+from data_rafting_kit.common.str_enum import StrEnum
 from typing import Annotated, Any, Literal, Union
 
 import pyspark.sql.functions as f

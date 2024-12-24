@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-from enum import StrEnum
+from data_rafting_kit.common.str_enum import StrEnum
 from logging import Logger
 from typing import Literal
 

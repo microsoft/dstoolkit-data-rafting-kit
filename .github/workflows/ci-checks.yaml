@@ -10,7 +10,7 @@ on:
       - "*" # Run on all branches
 
 env:
-  MIN_PYTHON_VERSION: 3.11
+  MIN_PYTHON_VERSION: 3.10
 
 jobs:
   job-pre-commit-check:
@@ -44,7 +44,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: [3.12, 3.11]
+        python-version: [3.12, 3.11, 3.10]
 
     steps:
       - name: Checkout code
