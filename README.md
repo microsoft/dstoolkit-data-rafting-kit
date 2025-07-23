@@ -88,7 +88,7 @@ pipeline:
 
 ## Why 'Data Rafting Kit'?
 
-Naming a library is hard... In the real world, a raft flows down a stream carrying a load. In our data world, this library carries data along a data stream.
+Naming a library is hard... In the real world, a raft flows down a stream carrying a load. In our data world, this library carries data along a data stream making it readily consumable for AI.
 
 ### Why a new library?
 
